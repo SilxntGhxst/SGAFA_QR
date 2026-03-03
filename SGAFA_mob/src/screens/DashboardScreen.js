@@ -158,7 +158,7 @@ export default function DashboardScreen({ navigation }) {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={["top"]}>
+    <View style={styles.safeArea}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContainer}
@@ -252,13 +252,17 @@ export default function DashboardScreen({ navigation }) {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: colors.background },
-  scrollContainer: { padding: 24, paddingBottom: 40 },
+  scrollContainer: { 
+  paddingHorizontal: 24, 
+  paddingTop: 20,
+  paddingBottom: 40 
+},
   header: {
     flexDirection: "row",
     justifyContent: "space-between",

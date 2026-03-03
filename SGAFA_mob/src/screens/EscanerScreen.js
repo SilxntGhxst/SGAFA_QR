@@ -7,6 +7,7 @@ import {
   Modal,
   TextInput,
   ScrollView,
+  Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { CameraView, useCameraPermissions } from "expo-camera";
@@ -60,9 +61,19 @@ export default function EscanerScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      {/* HEADER GLOBAL (Azul Oscuro) */}
-      <SafeAreaView style={styles.topHeader} edges={["top"]}>
-        <Text style={styles.topHeaderText}>S.G.A.F.A Qr</Text>
+      {/* HEADER UNIFICADO */}
+      <SafeAreaView edges={["top"]} style={styles.headerSafeArea}>
+        <View style={styles.headerContainer}>
+          <Image
+            source={require("../../assets/logo.png")}
+            style={styles.headerLogo}
+            resizeMode="contain"
+          />
+          <View style={styles.headerTextContainer}>
+            <Text style={styles.headerTitle}>S.G.A.F.A QR</Text>
+            <Text style={styles.headerSubtitle}>Escáner</Text>
+          </View>
+        </View>
       </SafeAreaView>
 
       {/* CÁMARA EN EL FONDO */}
@@ -340,17 +351,28 @@ export default function EscanerScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#a8a29e" },
-  topHeader: {
-    backgroundColor: colors.primary,
+  // Estilos del Header Unificado
+  headerSafeArea: { backgroundColor: colors.primary, zIndex: 10 },
+  headerContainer: {
+    flexDirection: "row",
     alignItems: "center",
     paddingVertical: 16,
-    zIndex: 10,
+    paddingHorizontal: 24,
   },
-  topHeaderText: {
+  headerLogo: { width: 44, height: 44, marginRight: 12 },
+  headerTextContainer: { justifyContent: "center" },
+  headerTitle: {
     color: colors.surface,
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: "800",
     letterSpacing: 0.5,
+  },
+  headerSubtitle: {
+    color: "#94a3b8",
+    fontSize: 13,
+    fontWeight: "600",
+    marginTop: 2,
+    textTransform: "uppercase",
   },
 
   overlay: {
@@ -359,7 +381,13 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
 
-  absoluteCamera: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
+  absoluteCamera: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
 
   headerSection: { padding: 24, paddingTop: 32 },
   navRow: {
@@ -397,7 +425,12 @@ const styles = StyleSheet.create({
   },
 
   // Marco del escáner
-  scannerFrameContainer: { alignItems: "center", justifyContent: "center" },
+  scannerFrameContainer: { 
+    flex: 1, // Le decimos que tome todo el espacio central disponible
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    marginTop: -200 // <--- La incisión: Un margen negativo para forzarlo a subir
+  },
   scannerFrame: {
     width: 260,
     height: 260,
