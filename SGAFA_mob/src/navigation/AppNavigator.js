@@ -6,19 +6,21 @@ import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
 import RecuperarScreen from '../screens/RecuperarScreen';
 import TabNavigator from './TabNavigator';
+import EscanerScreen from '../screens/EscanerScreen';
+import IncidenciaScreen from '../screens/IncidenciaScreen';
 
 const Stack = createNativeStackNavigator();
 
 export default function AppNavigator() {
   return (
     <NavigationContainer>
-      {/* initialRouteName fuerza a que la app inicie SIEMPRE en Login */}
       <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Login">
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Register" component={RegisterScreen} />
         <Stack.Screen name="Recuperar" component={RecuperarScreen} />
-        {/* El menú principal ahora es una ruta accesible desde el Login */}
         <Stack.Screen name="Main" component={TabNavigator} />
+        <Stack.Screen name="Escaner" component={EscanerScreen} />
+        <Stack.Screen name="Incidencia" component={IncidenciaScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
