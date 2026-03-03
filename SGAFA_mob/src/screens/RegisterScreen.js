@@ -1,49 +1,87 @@
-import React, { useState } from 'react';
-import { 
-  View, 
-  Text, 
-  TextInput, 
-  TouchableOpacity, 
-  StyleSheet, 
-  KeyboardAvoidingView, 
-  Platform, 
-  Image, 
-  ScrollView
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors } from '../theme/colors';
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
+  Image,
+  ScrollView,
+  Alert, // <--- Importamos Alert
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { colors } from "../theme/colors";
 
 export default function RegisterScreen({ navigation }) {
-  const [nombres, setNombres] = useState('');
-  const [apellidos, setApellidos] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [nombres, setNombres] = useState("");
+  const [apellidos, setApellidos] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  // --- LÓGICA DE SIMULACIÓN ---
+  const handleRegister = () => {
+    // 1. Validación básica de campos vacíos
+    if (
+      !nombres.trim() ||
+      !apellidos.trim() ||
+      !email.trim() ||
+      !password.trim()
+    ) {
+      Alert.alert(
+        "Campos incompletos",
+        "Por favor, completa todos los campos para continuar.",
+      );
+      return;
+    }
+
+    // 2. Validación de contraseñas
+    if (password !== confirmPassword) {
+      Alert.alert(
+        "Error de seguridad",
+        "Las contraseñas no coinciden. Inténtalo de nuevo.",
+      );
+      return;
+    }
+
+    // 3. Simulación de éxito
+    Alert.alert(
+      "¡Registro Exitoso!",
+      "Tu cuenta de resguardante ha sido creada correctamente. Ahora puedes iniciar sesión en el sistema.",
+      [
+        {
+          text: "Ir al Login",
+          onPress: () => navigation.goBack(), // Regresa al login automáticamente
+        },
+      ],
+    );
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.container}
       >
-        <ScrollView 
+        <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContainer}
         >
           <View style={styles.formContainer}>
-            
-            {/* --- ZONA DE IDENTIDAD VISUAL --- */}
             <View style={styles.headerContainer}>
-              <Image 
-                source={require('../../assets/logo.png')} 
-                style={styles.logo} 
-                resizeMode="contain" 
+              <Image
+                source={require("../../assets/logo.png")}
+                style={styles.logo}
+                resizeMode="contain"
               />
               <Text style={styles.title}>Únete a S.G.A.F.A</Text>
-              <Text style={styles.subtitle}>Crea tu cuenta de resguardante</Text>
+              <Text style={styles.subtitle}>
+                Crea tu cuenta de resguardante
+              </Text>
             </View>
 
-            {/* --- ZONA DE FORMULARIO --- */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Nombre/Nombres</Text>
               <TextInput
@@ -103,19 +141,20 @@ export default function RegisterScreen({ navigation }) {
               />
             </View>
 
-            {/* --- ZONA DE ACCIONES --- */}
-            <TouchableOpacity style={styles.primaryButton}>
+            {/* Conectamos la función al botón principal */}
+            <TouchableOpacity
+              style={styles.primaryButton}
+              onPress={handleRegister}
+            >
               <Text style={styles.primaryButtonText}>Crear cuenta</Text>
             </TouchableOpacity>
 
             <View style={styles.footerContainer}>
               <Text style={styles.footerText}>¿Ya tienes una cuenta? </Text>
-              {/* Aquí aplicamos la navegación inversa (goBack) */}
               <TouchableOpacity onPress={() => navigation.goBack()}>
                 <Text style={styles.secondaryActionText}>Inicia sesión</Text>
               </TouchableOpacity>
             </View>
-
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -126,65 +165,56 @@ export default function RegisterScreen({ navigation }) {
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: colors.background },
   container: { flex: 1 },
-  scrollContainer: { 
-    flexGrow: 1, 
-    justifyContent: 'center', 
-    paddingVertical: 24 
+  scrollContainer: {
+    flexGrow: 1,
+    justifyContent: "center",
+    paddingVertical: 24,
   },
-  formContainer: { 
-    paddingHorizontal: 32, 
-    width: '100%', 
-    maxWidth: 400, 
-    alignSelf: 'center' 
+  formContainer: {
+    paddingHorizontal: 32,
+    width: "100%",
+    maxWidth: 400,
+    alignSelf: "center",
   },
-  headerContainer: {
-    alignItems: 'center',
-    marginBottom: 32,
-  },
-  logo: {
-    width: 120, // Reducido ligeramente para acomodar el formulario largo
-    height: 120,
-    marginBottom: 16,
-  },
-  title: { 
-    fontSize: 26, 
-    fontWeight: '800', 
-    color: colors.primary, 
+  headerContainer: { alignItems: "center", marginBottom: 32 },
+  logo: { width: 120, height: 120, marginBottom: 16 },
+  title: {
+    fontSize: 26,
+    fontWeight: "800",
+    color: colors.primary,
     letterSpacing: 0.5,
   },
-  subtitle: { 
-    fontSize: 14, 
-    fontWeight: '400', 
+  subtitle: {
+    fontSize: 14,
+    fontWeight: "400",
     color: colors.textSecondary,
     marginTop: 4,
   },
-  inputGroup: {
-    marginBottom: 16,
-  },
-  label: { 
-    fontSize: 13, 
-    fontWeight: '600', 
-    color: colors.textPrimary, 
+  inputGroup: { marginBottom: 16 },
+  label: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: colors.textPrimary,
     marginBottom: 8,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
     letterSpacing: 0.5,
   },
-  input: { 
-    backgroundColor: colors.surface, 
-    borderWidth: 1, 
-    borderColor: '#e2e8f0', 
-    borderRadius: 12, 
-    paddingHorizontal: 16, 
-    height: 52, 
-    fontSize: 16, 
+  input: {
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    height: 52,
+    fontSize: 16,
     color: colors.textPrimary,
   },
-  primaryButton: { 
-    backgroundColor: colors.accent, 
-    borderRadius: 12, 
-    height: 52, 
-    justifyContent: 'center', 
-    alignItems: 'center', 
+  primaryButton: {
+    backgroundColor: colors.accent,
+    borderRadius: 12,
+    height: 52,
+    justifyContent: "center",
+    alignItems: "center",
     marginTop: 12,
     marginBottom: 24,
     shadowColor: colors.accent,
@@ -193,24 +223,17 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
   },
-  primaryButtonText: { 
-    color: colors.surface, 
-    fontSize: 16, 
-    fontWeight: '700' 
+  primaryButtonText: { color: colors.surface, fontSize: 16, fontWeight: "700" },
+  footerContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 16,
   },
-  footerContainer: { 
-    flexDirection: 'row', 
-    justifyContent: 'center', 
-    alignItems: 'center',
-    marginBottom: 16
+  footerText: { color: colors.textSecondary, fontSize: 14 },
+  secondaryActionText: {
+    color: colors.accent,
+    fontSize: 14,
+    fontWeight: "700",
   },
-  footerText: { 
-    color: colors.textSecondary, 
-    fontSize: 14 
-  },
-  secondaryActionText: { 
-    color: colors.accent, 
-    fontSize: 14, 
-    fontWeight: '700' 
-  }
 });

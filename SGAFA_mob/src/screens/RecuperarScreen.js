@@ -63,7 +63,7 @@ export default function RecuperarScreen({ navigation }) {
             {/* --- ZONA INSTRUCTIVA (Detalles para completar la interfaz) --- */}
             <View style={styles.instructionsContainer}>
               <Text style={styles.instructionsText}>
-                Ingresa tu correo electrónico asociado a tu cuenta. Te enviaremos un enlace para que puedas restablecer tu contraseña.
+                Ingresa el correo electrónico asociado a tu cuenta. Te enviaremos un enlace para que puedas restablecer tu contraseña.
               </Text>
             </View>
 

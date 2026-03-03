@@ -69,7 +69,10 @@ export default function LoginScreen({ navigation }) {
           </TouchableOpacity>
 
           {/* --- ZONA DE ACCIONES --- */}
-          <TouchableOpacity style={styles.primaryButton}>
+          <TouchableOpacity 
+            style={styles.primaryButton}
+            onPress={() => navigation.replace('Main')} 
+          >
             <Text style={styles.primaryButtonText}>Iniciar sesión</Text>
           </TouchableOpacity>
 
