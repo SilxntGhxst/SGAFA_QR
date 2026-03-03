@@ -66,7 +66,7 @@ export default function EscanerScreen({ navigation }) {
       </SafeAreaView>
 
       {/* CÁMARA EN EL FONDO */}
-      <CameraView style={StyleSheet.absoluteFillObject} facing="back" />
+      <CameraView style={styles.absoluteCamera} facing="back" />
 
       {/* OVERLAY DE INTERFAZ (Fondo semi-transparente) */}
       <View style={styles.overlay}>
@@ -359,6 +359,8 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
 
+  absoluteCamera: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
+
   headerSection: { padding: 24, paddingTop: 32 },
   navRow: {
     flexDirection: "row",
@@ -569,7 +571,7 @@ const styles = StyleSheet.create({
   },
 
   primaryButton: {
-    backgroundColor: "#0ea5e9",
+    backgroundColor: "#2563eb",
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: "center",
