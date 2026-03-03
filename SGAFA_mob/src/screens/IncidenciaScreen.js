@@ -76,15 +76,20 @@ export default function IncidenciaScreen({ navigation }) {
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
       {/* HEADER UNIFICADO */}
       <View style={styles.headerContainer}>
-        <Image
-          source={require("../../assets/logo.png")}
-          style={styles.headerLogo}
-          resizeMode="contain"
-        />
-        <View style={styles.headerTextContainer}>
-          <Text style={styles.headerTitle}>S.G.A.F.A QR</Text>
-          <Text style={styles.headerSubtitle}>Incidencias</Text>
+        <View style={styles.headerLeft}>
+          <Image
+            source={require("../../assets/logo.png")}
+            style={styles.headerLogo}
+            resizeMode="contain"
+          />
+          <View style={styles.headerTextContainer}>
+            <Text style={styles.headerTitle}>S.G.A.F.A QR</Text>
+            <Text style={styles.headerSubtitle}>Incidencias</Text>
+          </View>
         </View>
+        <TouchableOpacity onPress={() => navigation.navigate("Sincronizacion")}>
+          <Feather name="refresh-cw" size={24} color={colors.surface} />
+        </TouchableOpacity>
       </View>
 
       <KeyboardAvoidingView
@@ -220,7 +225,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     paddingVertical: 16,
     paddingHorizontal: 24,
+    justifyContent: 'space-between',
   },
+  headerLeft: { flexDirection: 'row', alignItems: 'center' },
   headerLogo: { width: 44, height: 44, marginRight: 12 },
   headerTextContainer: { justifyContent: "center" },
   headerTitle: {

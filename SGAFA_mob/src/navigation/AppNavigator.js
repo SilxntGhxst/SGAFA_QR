@@ -8,6 +8,7 @@ import RecuperarScreen from '../screens/RecuperarScreen';
 import TabNavigator from './TabNavigator';
 import EscanerScreen from '../screens/EscanerScreen';
 import IncidenciaScreen from '../screens/IncidenciaScreen';
+import SincronizacionScreen from '../screens/SincronizacionScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -21,6 +22,7 @@ export default function AppNavigator() {
         <Stack.Screen name="Main" component={TabNavigator} />
         <Stack.Screen name="Escaner" component={EscanerScreen} />
         <Stack.Screen name="Incidencia" component={IncidenciaScreen} />
+        <Stack.Screen name="Sincronizacion" component={SincronizacionScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -62,8 +62,9 @@ export default function EscanerScreen({ navigation }) {
   return (
     <View style={styles.container}>
       {/* HEADER UNIFICADO */}
-      <SafeAreaView edges={["top"]} style={styles.headerSafeArea}>
-        <View style={styles.headerContainer}>
+      {/* HEADER UNIFICADO */}
+      <View style={styles.headerContainer}>
+        <View style={styles.headerLeft}>
           <Image
             source={require("../../assets/logo.png")}
             style={styles.headerLogo}
@@ -74,7 +75,10 @@ export default function EscanerScreen({ navigation }) {
             <Text style={styles.headerSubtitle}>Escáner</Text>
           </View>
         </View>
-      </SafeAreaView>
+        <TouchableOpacity onPress={() => navigation.navigate("Sincronizacion")}>
+          <Feather name="refresh-cw" size={24} color={colors.surface} />
+        </TouchableOpacity>
+      </View>
 
       {/* CÁMARA EN EL FONDO */}
       <CameraView style={styles.absoluteCamera} facing="back" />
@@ -358,7 +362,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 16,
     paddingHorizontal: 24,
+    justifyContent: 'space-between',
   },
+  headerLeft: { flexDirection: 'row', alignItems: 'center' },
   headerLogo: { width: 44, height: 44, marginRight: 12 },
   headerTextContainer: { justifyContent: "center" },
   headerTitle: {
@@ -425,11 +431,11 @@ const styles = StyleSheet.create({
   },
 
   // Marco del escáner
-  scannerFrameContainer: { 
+  scannerFrameContainer: {
     flex: 1, // Le decimos que tome todo el espacio central disponible
-    alignItems: 'center', 
-    justifyContent: 'center', 
-    marginTop: -200 // <--- La incisión: Un margen negativo para forzarlo a subir
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: -200, // <--- La incisión: Un margen negativo para forzarlo a subir
   },
   scannerFrame: {
     width: 260,
