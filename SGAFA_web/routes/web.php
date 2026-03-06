@@ -53,4 +53,5 @@ Route::get('/perfil',      fn() => view('perfil.index'))->name('perfil');
 Route::get('/perfil/edit', fn() => view('perfil.index'))->name('perfil.edit');
 
 // ── Forgot password (placeholder) ──────────────────────────────
-Route::get('/forgot-password', fn() => view('auth.login'))->name('password.request');
+Route::get('/forgot-password',  fn() => view('auth.forgot-password'))->name('password.request');
+Route::post('/forgot-password', fn() => back()->with('status', 'Enlace enviado.'))->name('password.email');
