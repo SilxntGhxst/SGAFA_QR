@@ -4,19 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'SGAFA QR') — S.G.A.F.A QR</title>
+    <title>@yield('title', 'SGAFA QR') – S.G.A.F.A QR</title>
 
-    {{-- Google Fonts --}}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
 
-    {{-- Vite (Tailwind v4 + JS) --}}
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-    {{-- Estilos propios del sistema SGAFA —
-         Se declaran DESPUÉS de Vite para tener mayor especificidad
-         y no ser pisados por el reset de Tailwind v4               --}}
     <style>
         /* ── VARIABLES ── */
         :root {
@@ -37,13 +32,8 @@
             --shadow-lg:      0 8px 32px rgba(0,0,0,0.10);
         }
 
-        /* ── RESET NECESARIO (Tailwind v4 puede alterar estos valores) ── */
-        *, *::before, *::after {
-            box-sizing: border-box;
-        }
+        *, *::before, *::after { box-sizing: border-box; }
 
-        /* ── BODY ── */
-        /* !important para sobreescribir el body de app.css de Tailwind v4 */
         body {
             font-family: 'DM Sans', sans-serif !important;
             background: var(--body-bg) !important;
@@ -160,7 +150,6 @@
             font-family: 'Sora', sans-serif;
             font-size: 1.55rem; font-weight: 800;
             color: var(--text-primary); letter-spacing: -0.03em;
-            /* Tailwind v4 resetea h1 — lo reestablecemos */
             margin: 0; padding: 0;
         }
 
@@ -176,11 +165,17 @@
         }
         .topbar-icon-btn:hover { border-color: var(--accent); color: var(--accent); }
 
+        /* ── PROFILE DROPDOWN ── */
+        .profile-dropdown-wrapper {
+            position: relative;
+        }
+
         .profile-btn {
             display: flex; align-items: center; gap: 8px;
             padding: 6px 14px 6px 6px;
             background: var(--card-bg); border: 1px solid var(--border);
-            border-radius: 40px; cursor: pointer; text-decoration: none; transition: all 0.2s;
+            border-radius: 40px; cursor: pointer; text-decoration: none;
+            transition: all 0.2s; user-select: none;
         }
         .profile-btn:hover { border-color: var(--accent); }
 
@@ -192,14 +187,53 @@
             overflow: hidden; flex-shrink: 0;
         }
         .profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
-
         .profile-name { font-size: 0.85rem; font-weight: 600; color: var(--text-primary); }
+
+        /* Dropdown menu */
+        .profile-menu {
+            position: absolute; top: calc(100% + 8px); right: 0;
+            width: 200px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            opacity: 0; pointer-events: none;
+            transform: translateY(-6px);
+            transition: all 0.18s ease;
+            z-index: 200;
+        }
+        .profile-menu.open { opacity: 1; pointer-events: all; transform: translateY(0); }
+
+        .profile-menu-header {
+            padding: 14px 16px 10px;
+            border-bottom: 1px solid var(--border);
+        }
+        .profile-menu-name  { font-size: .88rem; font-weight: 700; color: var(--text-primary); }
+        .profile-menu-email { font-size: .76rem; color: var(--text-secondary); margin-top: 2px; }
+
+        .profile-menu a, .profile-menu button {
+            display: flex; align-items: center; gap: 9px;
+            width: 100%; padding: 10px 16px;
+            font-family: 'DM Sans', sans-serif; font-size: .88rem;
+            color: var(--text-primary); text-decoration: none;
+            background: none; border: none; cursor: pointer;
+            transition: background 0.15s; text-align: left;
+        }
+        .profile-menu a:hover, .profile-menu button:hover { background: #f4f6fb; }
+        .profile-menu a svg, .profile-menu button svg { width: 15px; height: 15px; color: var(--text-secondary); }
+
+        .profile-menu-logout {
+            border-top: 1px solid var(--border);
+        }
+        .profile-menu-logout button { color: #dc2626 !important; }
+        .profile-menu-logout button svg { color: #dc2626 !important; }
+        .profile-menu-logout button:hover { background: #fff5f5 !important; }
 
         /* ── PAGE CONTENT ── */
         .page-content { flex: 1; padding: 0 32px 32px; }
 
         /* ── COMPONENTES COMPARTIDOS ── */
-
         .card {
             background: var(--card-bg);
             border-radius: var(--radius);
@@ -290,7 +324,7 @@
         }
         .page-btn:hover, .page-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 
-        /* Botones de acción (tabla) */
+        /* Botones acción tabla */
         .action-btn {
             width: 30px; height: 30px; border-radius: 7px;
             border: 1px solid var(--border); background: transparent;
@@ -311,7 +345,6 @@
         }
         .filter-select svg { color: var(--text-secondary); }
 
-        /* Checkbox */
         input[type="checkbox"] { width: 17px; height: 17px; accent-color: var(--accent); cursor: pointer; }
 
         /* Overlay mobile */
@@ -335,7 +368,6 @@
 </head>
 <body>
 
-{{-- Overlay para cerrar sidebar en mobile --}}
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 
 {{-- ─── SIDEBAR ─── --}}
@@ -343,8 +375,6 @@
 
     <div class="sidebar-logo">
         <div class="sidebar-logo-icon">
-            {{-- Si tienes public/img/logo.png descomenta y borra el SVG --}}
-            {{-- <img src="{{ asset('img/logo.png') }}" alt="SGAFA QR"> --}}
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <rect x="3" y="3" width="7" height="7"/>
                 <rect x="14" y="3" width="7" height="7"/>
@@ -428,31 +458,7 @@
             Reportes
         </a>
 
-        {{-- Más --}}
-        <div>
-            <div class="nav-item {{ request()->is('perfil*') ? 'active open' : '' }}"
-                 onclick="toggleSubnav('subnav-mas', this)">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="5" r="1"/>
-                    <circle cx="12" cy="12" r="1"/>
-                    <circle cx="12" cy="19" r="1"/>
-                </svg>
-                Más
-                <svg class="nav-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <polyline points="6 9 12 15 18 9"/>
-                </svg>
-            </div>
-            <div class="subnav {{ request()->is('perfil*') ? 'open' : '' }}" id="subnav-mas">
-                <a href="{{ url('/perfil') }}"
-                   class="subnav-item {{ request()->is('perfil') ? 'active' : '' }}">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
-                        <circle cx="12" cy="7" r="4"/>
-                    </svg>
-                    Perfil
-                </a>
-            </div>
-        </div>
+        {{-- PERFIL removido del sidebar: ahora está en el header dropdown --}}
 
     </nav>
 </aside>
@@ -462,14 +468,51 @@
     <header class="topbar">
         <h1 class="topbar-title">@yield('page-title', 'Dashboard')</h1>
         <div class="topbar-actions">
+
             @yield('topbar-actions')
-            <a href="{{ url('/perfil') }}" class="profile-btn">
-                <div class="profile-avatar">AP</div>
-                <span class="profile-name">Profile</span>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7a8d" stroke-width="2.5">
-                    <polyline points="6 9 12 15 18 9"/>
-                </svg>
-            </a>
+
+            {{-- Profile dropdown en el header --}}
+            <div class="profile-dropdown-wrapper">
+                <div class="profile-btn" onclick="toggleProfileMenu()" id="profileBtn">
+                    <div class="profile-avatar">AP</div>
+                    <span class="profile-name">Adán Piña</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7a8d" stroke-width="2.5">
+                        <polyline points="6 9 12 15 18 9"/>
+                    </svg>
+                </div>
+
+                <div class="profile-menu" id="profileMenu">
+                    <div class="profile-menu-header">
+                        <div class="profile-menu-name">Adán Piña</div>
+                        <div class="profile-menu-email">adan.pina@upq.edu.mx</div>
+                    </div>
+                    <a href="{{ url('/perfil') }}">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+                            <circle cx="12" cy="7" r="4"/>
+                        </svg>
+                        Mi perfil
+                    </a>
+                    <a href="{{ url('/perfil/edit') }}">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                            <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                        </svg>
+                        Editar perfil
+                    </a>
+                    <div class="profile-menu-logout">
+                        <a href="{{ url('/login') }}">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
+                                <polyline points="16 17 21 12 16 7"/>
+                                <line x1="21" y1="12" x2="9" y2="12"/>
+                            </svg>
+                            Cerrar sesión
+                        </a>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </header>
 
@@ -482,7 +525,6 @@
     function toggleSubnav(id, el) {
         const sub    = document.getElementById(id);
         const isOpen = sub.classList.contains('open');
-        // Cierra todos antes de abrir el clickeado
         document.querySelectorAll('.subnav').forEach(s => s.classList.remove('open'));
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('open'));
         if (!isOpen) {
@@ -502,6 +544,18 @@
         document.getElementById('sidebar').classList.remove('open');
         document.getElementById('sidebarOverlay').classList.remove('visible');
     }
+
+    function toggleProfileMenu() {
+        document.getElementById('profileMenu').classList.toggle('open');
+    }
+
+    // Cierra el dropdown al hacer click fuera
+    document.addEventListener('click', function(e) {
+        const wrapper = document.querySelector('.profile-dropdown-wrapper');
+        if (wrapper && !wrapper.contains(e.target)) {
+            document.getElementById('profileMenu').classList.remove('open');
+        }
+    });
 </script>
 
 @stack('scripts')
