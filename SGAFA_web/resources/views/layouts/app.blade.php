@@ -162,13 +162,112 @@
             display: flex; align-items: center; justify-content: center;
             cursor: pointer; transition: all 0.2s;
             text-decoration: none; color: var(--text-secondary);
+            position: relative;
         }
         .topbar-icon-btn:hover { border-color: var(--accent); color: var(--accent); }
 
-        /* ── PROFILE DROPDOWN ── */
-        .profile-dropdown-wrapper {
-            position: relative;
+        /* ── NOTIFICACIONES ── */
+        .notif-wrapper { position: relative; }
+
+        .notif-badge {
+            position: absolute; top: 6px; right: 6px;
+            min-width: 8px; height: 8px;
+            background: #ef4444; border-radius: 50%;
+            border: 2px solid var(--body-bg);
+            font-size: 9px; font-weight: 700; color: #fff;
+            display: flex; align-items: center; justify-content: center;
+            padding: 0 2px;
         }
+
+        .notif-panel {
+            position: absolute; top: calc(100% + 8px); right: 0;
+            width: 340px;
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+            z-index: 200;
+            opacity: 0; pointer-events: none;
+            transform: translateY(-6px);
+            transition: all 0.18s ease;
+            overflow: hidden;
+        }
+        .notif-panel.open { opacity: 1; pointer-events: all; transform: translateY(0); }
+
+        .notif-panel-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 14px 16px 10px;
+            border-bottom: 1px solid #f0f2f5;
+        }
+        .notif-panel-title { font-family: 'Sora', sans-serif; font-size: .92rem; font-weight: 700; color: #0f1f35; }
+        .notif-mark-all {
+            font-size: .75rem; font-weight: 600; color: #4a86b5;
+            background: none; border: none; cursor: pointer; padding: 0;
+            font-family: 'DM Sans', sans-serif;
+        }
+        .notif-mark-all:hover { text-decoration: underline; }
+
+        .notif-list { max-height: 320px; overflow-y: auto; scrollbar-width: thin; }
+
+        .notif-item {
+            display: flex; align-items: flex-start; gap: 10px;
+            padding: 12px 16px;
+            border-bottom: 1px solid #f7f8fa;
+            cursor: pointer; transition: background .15s;
+            text-decoration: none; color: inherit;
+        }
+        .notif-item:hover { background: #f8fafc; }
+        .notif-item:last-child { border-bottom: none; }
+        .notif-item.no-leida { background: #eff6ff; }
+        .notif-item.no-leida:hover { background: #dbeafe; }
+
+        .notif-icon {
+            width: 34px; height: 34px; border-radius: 9px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0; margin-top: 1px;
+        }
+        .notif-icon.blue   { background: #dbeafe; color: #1d4ed8; }
+        .notif-icon.red    { background: #fee2e2; color: #dc2626; }
+        .notif-icon.yellow { background: #fef9c3; color: #a16207; }
+        .notif-icon.green  { background: #dcfce7; color: #15803d; }
+
+        .notif-body { flex: 1; min-width: 0; }
+        .notif-titulo {
+            font-size: .84rem; font-weight: 600; color: #0f1f35;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .notif-mensaje { font-size: .78rem; color: #6b7a8d; margin-top: 2px; line-height: 1.4; }
+        .notif-tiempo  { font-size: .72rem; color: #9ca3af; margin-top: 4px; }
+
+        .notif-dot {
+            width: 7px; height: 7px; border-radius: 50%;
+            background: #4a86b5; flex-shrink: 0; margin-top: 6px;
+        }
+
+        .notif-loading {
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 32px; font-size: .84rem; color: #9ca3af;
+        }
+
+        .notif-empty {
+            padding: 32px 16px; text-align: center;
+            font-size: .84rem; color: #9ca3af;
+        }
+        .notif-empty svg { display: block; margin: 0 auto 8px; }
+
+        .notif-ver-todas {
+            display: block; text-align: center;
+            padding: 12px; font-size: .82rem; font-weight: 600;
+            color: #4a86b5; text-decoration: none;
+            border-top: 1px solid #f0f2f5;
+            transition: background .15s;
+        }
+        .notif-ver-todas:hover { background: #f8fafc; }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── PROFILE DROPDOWN ── */
+        .profile-dropdown-wrapper { position: relative; }
 
         .profile-btn {
             display: flex; align-items: center; gap: 8px;
@@ -189,7 +288,6 @@
         .profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
         .profile-name { font-size: 0.85rem; font-weight: 600; color: var(--text-primary); }
 
-        /* Dropdown menu */
         .profile-menu {
             position: absolute; top: calc(100% + 8px); right: 0;
             width: 200px;
@@ -223,12 +321,10 @@
         .profile-menu a:hover, .profile-menu button:hover { background: #f4f6fb; }
         .profile-menu a svg, .profile-menu button svg { width: 15px; height: 15px; color: var(--text-secondary); }
 
-        .profile-menu-logout {
-            border-top: 1px solid var(--border);
-        }
-        .profile-menu-logout button { color: #dc2626 !important; }
-        .profile-menu-logout button svg { color: #dc2626 !important; }
-        .profile-menu-logout button:hover { background: #fff5f5 !important; }
+        .profile-menu-logout { border-top: 1px solid var(--border); }
+        .profile-menu-logout a { color: #dc2626 !important; }
+        .profile-menu-logout a svg { color: #dc2626 !important; }
+        .profile-menu-logout a:hover { background: #fff5f5 !important; }
 
         /* ── PAGE CONTENT ── */
         .page-content { flex: 1; padding: 0 32px 32px; }
@@ -275,7 +371,6 @@
         }
         .search-bar input::placeholder { color: #b0bac6; }
 
-        /* Tabla */
         .data-table { width: 100%; border-collapse: collapse; }
         .data-table th {
             padding: 13px 16px; text-align: left;
@@ -293,7 +388,6 @@
         .data-table th:first-child,
         .data-table td:first-child   { padding-left: 20px; }
 
-        /* Badges */
         .badge {
             display: inline-flex; align-items: center; gap: 4px;
             padding: 4px 12px; border-radius: 50px;
@@ -312,7 +406,6 @@
             border-radius: 50%; background: currentColor; display: inline-block;
         }
 
-        /* Paginación */
         .pagination { display: flex; align-items: center; gap: 6px; }
         .page-btn {
             width: 34px; height: 34px; border-radius: 8px;
@@ -324,7 +417,6 @@
         }
         .page-btn:hover, .page-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 
-        /* Botones acción tabla */
         .action-btn {
             width: 30px; height: 30px; border-radius: 7px;
             border: 1px solid var(--border); background: transparent;
@@ -334,7 +426,6 @@
         }
         .action-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
 
-        /* Filtros select */
         .filter-select {
             display: flex; align-items: center; gap: 8px;
             padding: 9px 14px;
@@ -347,14 +438,12 @@
 
         input[type="checkbox"] { width: 17px; height: 17px; accent-color: var(--accent); cursor: pointer; }
 
-        /* Overlay mobile */
         .sidebar-overlay {
             display: none; position: fixed; inset: 0;
             background: rgba(0,0,0,0.4); z-index: 99;
         }
         .sidebar-overlay.visible { display: block; }
 
-        /* ── RESPONSIVE ── */
         @media (max-width: 1024px) {
             .sidebar      { transform: translateX(-100%); }
             .sidebar.open { transform: translateX(0); }
@@ -414,7 +503,6 @@
             Activos
         </a>
 
-        {{-- Solicitudes --}}
         <div>
             <div class="nav-item {{ request()->is('solicitudes*') ? 'active open' : '' }}"
                  onclick="toggleSubnav('subnav-sol', this)">
@@ -458,8 +546,6 @@
             Reportes
         </a>
 
-        {{-- PERFIL removido del sidebar: ahora está en el header dropdown --}}
-
     </nav>
 </aside>
 
@@ -471,7 +557,36 @@
 
             @yield('topbar-actions')
 
-            {{-- Profile dropdown en el header --}}
+            {{-- ── CAMPANA DE NOTIFICACIONES ── --}}
+            <div class="notif-wrapper" id="notifWrapper">
+                <button class="topbar-icon-btn" onclick="toggleNotif()" title="Notificaciones">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                    </svg>
+                    <span class="notif-badge" id="notifBadge" style="display:none;"></span>
+                </button>
+
+                <div class="notif-panel" id="notifPanel">
+                    <div class="notif-panel-header">
+                        <span class="notif-panel-title">Notificaciones</span>
+                        <button class="notif-mark-all" onclick="marcarTodas()">Marcar todas como leídas</button>
+                    </div>
+                    <div class="notif-list" id="notifList">
+                        <div class="notif-loading">
+                            <svg width="20" height="20" fill="none" stroke="#9ca3af" stroke-width="2" viewBox="0 0 24 24"
+                                style="animation:spin 1s linear infinite;">
+                                <path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" opacity=".3"/>
+                                <path d="M21 12a9 9 0 00-9-9"/>
+                            </svg>
+                            Cargando...
+                        </div>
+                    </div>
+                    <a href="#" class="notif-ver-todas">Ver todas las notificaciones →</a>
+                </div>
+            </div>
+
+            {{-- ── PERFIL ── --}}
             <div class="profile-dropdown-wrapper">
                 <div class="profile-btn" onclick="toggleProfileMenu()" id="profileBtn">
                     <div class="profile-avatar">AP</div>
@@ -522,6 +637,7 @@
 </div>
 
 <script>
+    // ── SIDEBAR ──
     function toggleSubnav(id, el) {
         const sub    = document.getElementById(id);
         const isOpen = sub.classList.contains('open');
@@ -545,16 +661,125 @@
         document.getElementById('sidebarOverlay').classList.remove('visible');
     }
 
+    // ── PERFIL ──
     function toggleProfileMenu() {
         document.getElementById('profileMenu').classList.toggle('open');
+        document.getElementById('notifPanel').classList.remove('open');
     }
 
-    // Cierra el dropdown al hacer click fuera
     document.addEventListener('click', function(e) {
-        const wrapper = document.querySelector('.profile-dropdown-wrapper');
-        if (wrapper && !wrapper.contains(e.target)) {
+        const profile = document.querySelector('.profile-dropdown-wrapper');
+        const notif   = document.getElementById('notifWrapper');
+        if (profile && !profile.contains(e.target))
             document.getElementById('profileMenu').classList.remove('open');
+        if (notif && !notif.contains(e.target))
+            document.getElementById('notifPanel').classList.remove('open');
+    });
+
+    // ── NOTIFICACIONES ──
+    function toggleNotif() {
+        const panel = document.getElementById('notifPanel');
+        panel.classList.toggle('open');
+        document.getElementById('profileMenu').classList.remove('open');
+        if (panel.classList.contains('open')) cargarNotificaciones();
+    }
+
+    async function cargarNotificaciones() {
+        try {
+            const res  = await fetch('/notificaciones', { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+            const data = await res.json();
+            actualizarBadge(data.no_leidas);
+            renderNotificaciones(data.notifications);
+        } catch(e) {
+            document.getElementById('notifList').innerHTML =
+                '<div class="notif-empty">Error al cargar notificaciones.</div>';
         }
+    }
+
+    function actualizarBadge(count) {
+        const badge = document.getElementById('notifBadge');
+        if (count > 0) {
+            badge.style.display = 'flex';
+            badge.textContent = count > 9 ? '9+' : (count > 1 ? count : '');
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+
+    function renderNotificaciones(items) {
+        const list = document.getElementById('notifList');
+        if (!items.length) {
+            list.innerHTML = `
+                <div class="notif-empty">
+                    <svg width="32" height="32" fill="none" stroke="#d1d5db" stroke-width="1.5" viewBox="0 0 24 24">
+                        <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                    </svg>
+                    Sin notificaciones nuevas
+                </div>`;
+            return;
+        }
+        const iconos = {
+            bell:    '<path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>',
+            warning: '<path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
+            check:   '<polyline points="20 6 9 17 4 12"/>',
+            info:    '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>',
+        };
+        list.innerHTML = items.map(n => `
+            <div class="notif-item ${n.leida ? '' : 'no-leida'}"
+                 onclick="abrirNotif(${n.id}, '${n.url || ''}')">
+                <div class="notif-icon ${n.color}">
+                    <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        ${iconos[n.icono] || iconos.bell}
+                    </svg>
+                </div>
+                <div class="notif-body">
+                    <div class="notif-titulo">${n.titulo}</div>
+                    <div class="notif-mensaje">${n.mensaje}</div>
+                    <div class="notif-tiempo">${tiempoRelativo(n.created_at)}</div>
+                </div>
+                ${!n.leida ? '<div class="notif-dot"></div>' : ''}
+            </div>
+        `).join('');
+    }
+
+    async function abrirNotif(id, url) {
+        await fetch(`/notificaciones/${id}/leer`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'X-Requested-With': 'XMLHttpRequest',
+            }
+        });
+        if (url) window.location.href = url;
+        else cargarNotificaciones();
+    }
+
+    async function marcarTodas() {
+        await fetch('/notificaciones/leer-todas', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'X-Requested-With': 'XMLHttpRequest',
+            }
+        });
+        cargarNotificaciones();
+    }
+
+    function tiempoRelativo(fechaStr) {
+        const diff = Math.floor((Date.now() - new Date(fechaStr)) / 1000);
+        if (diff < 60)    return 'Hace un momento';
+        if (diff < 3600)  return `Hace ${Math.floor(diff/60)} min`;
+        if (diff < 86400) return `Hace ${Math.floor(diff/3600)} h`;
+        return `Hace ${Math.floor(diff/86400)} días`;
+    }
+
+    // Carga el badge al iniciar
+    document.addEventListener('DOMContentLoaded', async function() {
+        try {
+            const res  = await fetch('/notificaciones', { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+            const data = await res.json();
+            actualizarBadge(data.no_leidas);
+        } catch(e) {}
     });
 </script>
 
