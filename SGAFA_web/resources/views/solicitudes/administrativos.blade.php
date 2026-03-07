@@ -3,7 +3,7 @@
 @section('page-title','Solicitud/Movimientos Administrativos')
 
 @section('topbar-actions')
-<a href="/solicitudes/nueva" class="btn-primary">
+<a href="#" onclick="document.getElementById('modalNuevaAuditoria').style.display='flex'; return false;" class="btn-primary">
     <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
     Nueva auditoria
 </a>
@@ -65,4 +65,75 @@
         </div>
     </div>
 </div>
+
+{{-- Modal Nueva Auditoría --}}
+<div id="modalNuevaAuditoria" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);align-items:center;justify-content:center;z-index:1000;">
+    <div style="background:#fff;border-radius:14px;padding:28px 28px 24px;width:440px;box-shadow:0 8px 32px rgba(0,0,0,0.18);" onclick="event.stopPropagation()">
+
+        {{-- Header --}}
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;">
+            <h2 style="margin:0;font-size:1.05rem;font-weight:700;color:#1a2e45;">Nueva Auditoría</h2>
+            <button onclick="cerrarModal()" style="border:none;background:none;cursor:pointer;padding:4px;color:#94a3b8;display:flex;align-items:center;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
+        </div>
+
+        <div style="margin-bottom:16px;">
+            <label style="display:block;font-size:.8rem;font-weight:600;color:#475569;margin-bottom:6px;">Solicitante</label>
+            <input type="text" placeholder="Nombre del solicitante"
+                style="width:100%;padding:9px 12px;border-radius:8px;border:1px solid #e2e8f0;font-size:.875rem;color:#334155;outline:none;box-sizing:border-box;">
+        </div>
+
+        <div style="margin-bottom:16px;">
+            <label style="display:block;font-size:.8rem;font-weight:600;color:#475569;margin-bottom:6px;">Fecha</label>
+            <input type="date"
+                style="width:100%;padding:9px 12px;border-radius:8px;border:1px solid #e2e8f0;font-size:.875rem;color:#334155;outline:none;box-sizing:border-box;">
+        </div>
+
+        <div style="margin-bottom:16px;">
+            <label style="display:block;font-size:.8rem;font-weight:600;color:#475569;margin-bottom:6px;">Tipo</label>
+            <select style="width:100%;padding:9px 12px;border-radius:8px;border:1px solid #e2e8f0;font-size:.875rem;color:#334155;outline:none;background:#fff;box-sizing:border-box;">
+                <option value="">Seleccionar tipo</option>
+                <option>Asignación</option>
+                <option>Traslado</option>
+                <option>Mantenimiento</option>
+                <option>Devolución</option>
+            </select>
+        </div>
+
+        <div style="margin-bottom:24px;">
+            <label style="display:block;font-size:.8rem;font-weight:600;color:#475569;margin-bottom:6px;">Estado</label>
+            <select style="width:100%;padding:9px 12px;border-radius:8px;border:1px solid #e2e8f0;font-size:.875rem;color:#334155;outline:none;background:#fff;box-sizing:border-box;">
+                <option>Pendiente</option>
+                <option>Aprobado</option>
+                <option>Rechazado</option>
+                <option>En proceso</option>
+            </select>
+        </div>
+
+        <div style="display:flex;gap:10px;justify-content:flex-end;">
+            <button type="button" onclick="cerrarModal()"
+                style="padding:8px 18px;border-radius:8px;border:1px solid #e2e8f0;background:#fff;color:#475569;font-weight:600;font-size:.875rem;cursor:pointer;">
+                Cancelar
+            </button>
+            <button type="button" onclick="cerrarModal()"
+                style="padding:8px 18px;border-radius:8px;border:none;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;font-weight:600;font-size:.875rem;cursor:pointer;box-shadow:0 2px 8px rgba(37,99,235,0.3);">
+                Crear
+            </button>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    // Cerrar modal con botón o clickeando fuera
+    function cerrarModal() {
+        document.getElementById('modalNuevaAuditoria').style.display = 'none';
+    }
+    document.getElementById('modalNuevaAuditoria').addEventListener('click', function(e) {
+        if (e.target === this) cerrarModal();
+    });
+</script>
 @endsection
