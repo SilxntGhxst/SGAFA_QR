@@ -57,14 +57,14 @@
         </thead>
         <tbody>
             @php $rep=[
-                ['ACT-001','Escritorio','Mobiliario','Oficina','Asignado','blue',true,'10/02/2026'],
-                ['ACT-002','Ventilador','Equipos','Almacén','Disponible','green',false,'28/02/2026'],
-                ['ACT-003','Impresora HP Laser','Equipos','Sala IT','Mantenimiento','yellow',false,'03/02/2026'],
-                ['ACT-004','Laptop Lenovo','Equipos','Oficina 204','Prestado','purple',false,'05/02/2026'],
-                ['ACT-005','Dispensador de agua','Equipos','Oficina','Prestado','purple',false,'05/02/2026'],
-                ['ACT-006','Impresora Canon Color','Equipos','Laboratorio 3','Disponible','green',false,'05/02/2026'],
-                ['ACT-007','Proyector Epson','Audio-Video','Oficina','Prestado','red',false,'05/02/2026'],
-                ['ACT-010','Televisión Samsung 55"','Audio-Video','Laboratorio 3','Obsoleto','gray',false,'04/02/2026'],
+                ['ACT-001','Escritorio','Bienes muebles','Oficina','Funcional','blue',true,'10/02/2026'],
+                ['ACT-002','Ventilador','Bienes muebles','Almacén','Funcional','blue',false,'28/02/2026'],
+                ['ACT-003','Impresora HP Laser','Bienes muebles','Sala IT','Mantenimiento','yellow',false,'03/02/2026'],
+                ['ACT-004','Laptop Lenovo','Bienes muebles','Oficina 204','Mantenimiento','yellow',false,'05/02/2026'],
+                ['ACT-005','Dispensador de agua','Bienes muebles','Oficina','Funcional','blue',false,'05/02/2026'],
+                ['ACT-006','Impresora Canon Color','Bienes muebles','Laboratorio 3','Funcional','blue',false,'05/02/2026'],
+                ['ACT-007','Proyector Epson','Bienes muebles','Oficina','Baja','green',false,'05/02/2026'],
+                ['ACT-010','Televisión Samsung 55"','Bienes muebles','Laboratorio 3','Baja','green',false,'04/02/2026'],
             ]; @endphp
             @foreach($rep as $r)
             <tr>
