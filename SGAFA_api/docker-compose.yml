@@ -1,0 +1,9 @@
+services:
+
+  api:
+    build: .
+    container_name: sgafa_Api
+    ports:
+      - "8080:5000"
+    volumes:
+      - ./app:/app/app
