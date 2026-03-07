@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\NotificationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -55,3 +56,8 @@ Route::get('/perfil/edit', fn() => view('perfil.index'))->name('perfil.edit');
 // ── Forgot password (placeholder) ──────────────────────────────
 Route::get('/forgot-password',  fn() => view('auth.forgot-password'))->name('password.request');
 Route::post('/forgot-password', fn() => back()->with('status', 'Enlace enviado.'))->name('password.email');
+
+// ── Notificaciones ──────────────────────────────────────────────
+Route::get('/notificaciones',             [NotificationController::class, 'index']);
+Route::post('/notificaciones/{id}/leer',  [NotificationController::class, 'marcarLeida']);
+Route::post('/notificaciones/leer-todas', [NotificationController::class, 'marcarTodasLeidas']);

@@ -2,16 +2,6 @@
 @section('title','Dashboard')
 @section('page-title','Dashboard')
 
-@section('topbar-actions')
-<a href="#" class="topbar-icon-btn" title="Notificaciones" style="position:relative;">
-    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-    </svg>
-    {{-- Badge de notificaciones --}}
-    <span style="position:absolute;top:6px;right:6px;width:8px;height:8px;background:#ef4444;border-radius:50%;border:2px solid #f0f2f5;"></span>
-</a>
-@endsection
-
 @push('styles')
 <style>
 /* ── STATS ── */
@@ -37,7 +27,6 @@
 }
 .stat-card:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(0,0,0,.10); }
 
-/* Cada card tiene su propio acento sutil */
 .stat-card-icon {
     width: 38px; height: 38px; border-radius: 10px;
     display: flex; align-items: center; justify-content: center;
@@ -57,7 +46,6 @@
     color: #6b7a8d; margin-top: 4px;
 }
 
-/* Tendencia */
 .stat-trend {
     display: inline-flex; align-items: center; gap: 3px;
     font-size: .74rem; font-weight: 700;
@@ -124,7 +112,6 @@
     border-bottom: 1px solid #f0f2f5;
 }
 
-/* Estado vacío */
 .empty-state {
     padding: 40px 20px;
     text-align: center;
@@ -299,7 +286,6 @@
             </tbody>
         </table>
 
-        {{-- Footer de tabla con conteo --}}
         <div style="padding:12px 20px;border-top:1px solid #f0f2f5;display:flex;align-items:center;justify-content:space-between;">
             <span style="font-size:.8rem;color:#9ca3af;">Mostrando 5 de 42 activos</span>
             <a href="/activos" class="see-all" style="font-size:.82rem;">Ver todos los activos →</a>
@@ -309,7 +295,7 @@
     {{-- Columna derecha --}}
     <div style="display:flex;flex-direction:column;gap:20px;">
 
-        {{-- Donut mejorado --}}
+        {{-- Donut --}}
         <div class="card">
             <div class="section-header">
                 <span class="section-title">Estado de Activos</span>
@@ -318,26 +304,21 @@
             <div class="donut-wrap">
                 <svg class="donut-svg" width="140" height="140" viewBox="0 0 140 140">
                     <circle cx="70" cy="70" r="54" fill="none" stroke="#f0f2f5" stroke-width="22"/>
-                    {{-- Asignado ~45% --}}
                     <circle cx="70" cy="70" r="54" fill="none" stroke="#4a86b5" stroke-width="22"
                         stroke-dasharray="152.7 186.6" stroke-dashoffset="0"
                         stroke-linecap="butt" transform="rotate(-90 70 70)"/>
-                    {{-- Disponible ~30% --}}
                     <circle cx="70" cy="70" r="54" fill="none" stroke="#34d399" stroke-width="22"
                         stroke-dasharray="101.8 237.5" stroke-dashoffset="-154.7"
                         stroke-linecap="butt" transform="rotate(-90 70 70)"/>
-                    {{-- Mantenimiento ~13% --}}
                     <circle cx="70" cy="70" r="54" fill="none" stroke="#f59e0b" stroke-width="22"
                         stroke-dasharray="44.1 295.2" stroke-dashoffset="-258.5"
                         stroke-linecap="butt" transform="rotate(-90 70 70)"/>
-                    {{-- Prestado ~12% --}}
                     <circle cx="70" cy="70" r="54" fill="none" stroke="#a78bfa" stroke-width="22"
                         stroke-dasharray="40.7 298.6" stroke-dashoffset="-302.6"
                         stroke-linecap="butt" transform="rotate(-90 70 70)"/>
                     <text x="70" y="66" text-anchor="middle" font-family="Sora" font-size="20" font-weight="800" fill="#0f1f35">42</text>
                     <text x="70" y="82" text-anchor="middle" font-family="DM Sans" font-size="9" fill="#9ca3af">activos</text>
                 </svg>
-
                 <div class="legend">
                     <div class="legend-item">
                         <div class="legend-dot" style="background:#4a86b5"></div>
@@ -359,7 +340,7 @@
             </div>
         </div>
 
-        {{-- Acciones rápidas — renombrado y mejorado --}}
+        {{-- Acciones rápidas --}}
         <div class="card">
             <div class="section-header">
                 <span class="section-title">Acciones rápidas</span>
