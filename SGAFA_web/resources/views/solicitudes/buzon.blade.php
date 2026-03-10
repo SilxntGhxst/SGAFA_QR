@@ -138,7 +138,7 @@
             <tr>
                 <th><input type="checkbox"></th>
                 <th>Código</th>
-                <th>Activo</th>
+                <th>Descripción</th>
                 <th>Tipo</th>
                 <th>Reportado por</th>
                 <th>Área</th>
@@ -190,7 +190,7 @@
             <div class="form-group">
                 <label>Tipo</label>
                 <select id="edit-tipo">
-                    <option>Activo Faltante</option>
+                    <option>Activo sin registro</option>
                     <option>Reporte de Daño</option>
                     <option>Activo Fantasma</option>
                 </select>

@@ -18,8 +18,8 @@ import { CameraView, useCameraPermissions } from "expo-camera";
 import { Feather } from "@expo/vector-icons";
 import { colors } from "../theme/colors";
 
-const API_BASE_URL = "http://192.168.100.26:8080/api";//CAMBIAR POR IP DEL EJECUTANTE,DEBE ESTAR EN LA MISMA RED CELULAR Y COMPUTADORA, EJECUTA IPCONFIG EN POWERSHELL PARA OBTENER LA IP Y CAMBIALA ANTES DE :8080
-const TIPOS = ["Activo Fantasma", "Activo Faltante", "Reporte de Daño"];
+const API_BASE_URL = "http://10.155.50.202:8080/api";//CAMBIAR POR IP DEL EJECUTANTE,DEBE ESTAR EN LA MISMA RED CELULAR Y COMPUTADORA, EJECUTA IPCONFIG EN POWERSHELL PARA OBTENER LA IP Y CAMBIALA ANTES DE :8080
+const TIPOS = ["Activo Fantasma", "Activo sin registro", "Reporte de Daño"];
 
 export default function IncidenciaScreen({ navigation }) {
   const [permission, requestPermission] = useCameraPermissions();
