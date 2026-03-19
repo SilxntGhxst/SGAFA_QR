@@ -4,7 +4,7 @@ services:
 
   api:
     build: .
-    container_name: ServerFastAPI
+    container_name: ServerFastAPI_SGAFA
     ports:
       - "8080:5000"
     volumes:
@@ -13,11 +13,11 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgresql://admin:123456@postgres:5434/DB_miapi
+      DATABASE_URL: postgresql://admin:123456@postgres:5434/DB_miapiSGAFA
 
   postgres:
     image: postgres:15
-    container_name: ServerPostgreSql
+    container_name: ServerPostgreSql_SGAFA
     restart: always
     environment:
       POSTGRES_USER: admin
@@ -29,7 +29,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
 
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U admin -d DB_miapi"]
+      test: ["CMD-SHELL", "pg_isready -U admin -d DB_miapiSGAFA"]
       interval: 5s
       retries: 5
       timeout: 5s
