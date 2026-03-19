@@ -10,7 +10,7 @@ from app.routers import varios
 app = FastAPI(
     title="SGAFA QR - Buzón de Discrepancias",
     description="API para gestionar reportes de incidencias de activos",
-    version="1.0.0"
+    version="2.0.3"
 )
 
 app.include_router(varios.router)
