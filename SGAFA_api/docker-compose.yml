@@ -22,7 +22,7 @@ services:
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: 123456
-      POSTGRES_DB: DB_miapi
+      POSTGRES_DB: DB_miapiSGAFA
     ports:
       - "5436:5432"
     volumes:
