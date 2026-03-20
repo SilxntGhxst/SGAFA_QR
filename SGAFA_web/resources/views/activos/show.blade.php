@@ -86,9 +86,11 @@
             </div>
         </div>
         <div style="display:flex;gap:8px;">
-            <button class="action-btn" title="Generar QR" style="width:36px;height:36px;color:#4a86b5;border-color:#bfdbfe;">
+            <a href="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=ACT-001&format=png"
+               target="_blank"
+               class="action-btn" title="Ver QR" style="width:36px;height:36px;color:#4a86b5;border-color:#bfdbfe;">
                 <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3m0 4h4m-4 0v-4m4 0h-4"/></svg>
-            </button>
+            </a>
             <button class="action-btn" title="Eliminar" style="width:36px;height:36px;color:#dc2626;border-color:#fecaca;" onclick="document.getElementById('deleteModal').classList.add('open')">
                 <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
             </button>
@@ -157,18 +159,40 @@
         </div>
 
         {{-- QR --}}
+        @php $qrCodigo = 'ACT-001'; @endphp
         <div class="card" style="padding:24px;">
             <h3 style="font-family:'Sora',sans-serif;font-size:.95rem;font-weight:700;color:#0f1f35;margin-bottom:16px;">Código QR</h3>
             <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
-                <div style="width:100px;height:100px;background:#f0f2f5;border-radius:12px;display:flex;align-items:center;justify-content:center;border:2px dashed #e4e8ef;">
-                    <svg width="40" height="40" fill="none" stroke="#9ca3af" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3m0 4h4m-4 0v-4m4 0h-4"/></svg>
-                </div>
+                <img
+                    src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data={{ urlencode($qrCodigo) }}&format=png"
+                    alt="QR {{ $qrCodigo }}"
+                    style="width:120px;height:120px;border-radius:12px;border:1px solid #e4e8ef;"
+                >
                 <div>
-                    <p style="font-size:.85rem;color:#6b7a8d;margin-bottom:12px;">Genera el código QR para identificar este activo físicamente.</p>
-                    <button class="btn-primary" style="padding:9px 18px;font-size:.85rem;">
-                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3m0 4h4m-4 0v-4m4 0h-4"/></svg>
-                        Generar QR
-                    </button>
+                    <p style="font-size:.85rem;color:#6b7a8d;margin-bottom:12px;">
+                        Código QR generado para <strong style="color:#0f1f35;">{{ $qrCodigo }}</strong>.<br>
+                        Imprímelo y colócalo en el activo físico.
+                    </p>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                        <a
+                            href="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data={{ urlencode($qrCodigo) }}&format=png"
+                            download="QR_{{ $qrCodigo }}.png"
+                            class="btn-primary"
+                            style="padding:9px 18px;font-size:.85rem;text-decoration:none;display:inline-flex;align-items:center;gap:6px;"
+                        >
+                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            Descargar QR
+                        </a>
+                        <a
+                            href="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data={{ urlencode($qrCodigo) }}&format=png"
+                            target="_blank"
+                            class="btn-outline"
+                            style="padding:9px 18px;font-size:.85rem;text-decoration:none;display:inline-flex;align-items:center;gap:6px;"
+                        >
+                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                            Ver en pantalla completa
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>

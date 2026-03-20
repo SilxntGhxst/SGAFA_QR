@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   View,
   Text,
@@ -8,29 +8,28 @@ import {
   TextInput,
   ScrollView,
   Image,
+  Alert,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { Feather } from "@expo/vector-icons";
 import { colors } from "../theme/colors";
 
+const GOQR_READ_URL = "https://api.qrserver.com/v1/read-qr-code/";
+
 export default function EscanerScreen({ navigation }) {
   const [permission, requestPermission] = useCameraPermissions();
   const [modalVisible, setModalVisible] = useState(false);
   const [progreso, setProgreso] = useState(1);
+  const [escaneando, setEscaneando] = useState(false);
+  const [activoEscaneado, setActivoEscaneado] = useState(null);
   const totalActivos = 26;
+  const cameraRef = useRef(null);
 
   // Estados para el formulario
   const [estadoSeleccionado, setEstadoSeleccionado] = useState(null);
   const [observacion, setObservacion] = useState("");
-
-  const activoSimulado = {
-    codigo: "INV-001",
-    nombre: "Proyector",
-    ubicacion: "Edificio A",
-    responsable: "Andre",
-    estadoActual: "Funcional",
-  };
 
   // Manejo de permisos
   if (!permission) return <View style={styles.container} />;
@@ -50,10 +49,56 @@ export default function EscanerScreen({ navigation }) {
     );
   }
 
+  const capturarYEscanear = async () => {
+    if (!cameraRef.current || escaneando) return;
+    setEscaneando(true);
+    try {
+      const photo = await cameraRef.current.takePictureAsync({ base64: false });
+
+      const formData = new FormData();
+      formData.append("file", {
+        uri: photo.uri,
+        type: "image/jpeg",
+        name: "qr_scan.jpg",
+      });
+
+      const response = await fetch(GOQR_READ_URL, {
+        method: "POST",
+        body: formData,
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      const result = await response.json();
+      const qrData = result[0]?.symbol[0]?.data;
+
+      if (qrData) {
+        // El QR codifica el código del activo, ej. "ACT-001"
+        setActivoEscaneado({
+          codigo: qrData,
+          nombre: "Activo " + qrData,
+          ubicacion: "—",
+          responsable: "—",
+          estadoActual: "—",
+        });
+        setModalVisible(true);
+      } else {
+        Alert.alert(
+          "QR no detectado",
+          "No se encontró un código QR en la imagen. Asegúrate de apuntar bien la cámara e intenta de nuevo."
+        );
+      }
+    } catch (error) {
+      Alert.alert("Error de conexión", "No se pudo conectar con el servidor de lectura QR. Verifica tu internet.");
+    } finally {
+      setEscaneando(false);
+    }
+  };
+
   const handleContinuar = () => {
     setModalVisible(false);
     setEstadoSeleccionado(null);
     setObservacion("");
+    setActivoEscaneado(null);
     if (progreso < totalActivos) setProgreso(progreso + 1);
   };
 
@@ -81,7 +126,7 @@ export default function EscanerScreen({ navigation }) {
       </View>
 
       {/* CÁMARA EN EL FONDO */}
-      <CameraView style={styles.absoluteCamera} facing="back" />
+      <CameraView ref={cameraRef} style={styles.absoluteCamera} facing="back" />
 
       {/* OVERLAY DE INTERFAZ (Fondo semi-transparente) */}
       <View style={styles.overlay}>
@@ -125,15 +170,20 @@ export default function EscanerScreen({ navigation }) {
           </View>
         </View>
 
-        {/* Botón Temporal Simulación */}
+        {/* Botón Capturar QR */}
         <View style={styles.bottomSection}>
           <TouchableOpacity
-            style={styles.simulacionButton}
-            onPress={() => setModalVisible(true)}
+            style={[styles.simulacionButton, escaneando && { opacity: 0.7 }]}
+            onPress={capturarYEscanear}
+            disabled={escaneando}
           >
-            <Feather name="target" size={20} color={colors.surface} />
+            {escaneando ? (
+              <ActivityIndicator size="small" color={colors.surface} />
+            ) : (
+              <Feather name="camera" size={20} color={colors.surface} />
+            )}
             <Text style={styles.simulacionButtonText}>
-              Simular Escaneo de Activo
+              {escaneando ? "Leyendo QR..." : "Capturar y Leer QR"}
             </Text>
           </TouchableOpacity>
         </View>
@@ -169,12 +219,12 @@ export default function EscanerScreen({ navigation }) {
                   </View>
                   <View style={styles.assetTitles}>
                     <Text style={styles.assetName}>
-                      {activoSimulado.nombre}
+                      {activoEscaneado?.nombre ?? "—"}
                     </Text>
                     <Text style={styles.assetCode}>
                       Código:{"\n"}
                       <Text style={{ color: colors.textSecondary }}>
-                        {activoSimulado.codigo}
+                        {activoEscaneado?.codigo ?? "—"}
                       </Text>
                     </Text>
                   </View>
@@ -191,7 +241,7 @@ export default function EscanerScreen({ navigation }) {
                     <Text style={styles.detailText}>
                       Ubicación:{" "}
                       <Text style={styles.detailValue}>
-                        {activoSimulado.ubicacion}
+                        {activoEscaneado?.ubicacion ?? "—"}
                       </Text>
                     </Text>
                   </View>
@@ -205,7 +255,7 @@ export default function EscanerScreen({ navigation }) {
                     <Text style={styles.detailText}>
                       Responsable:{" "}
                       <Text style={styles.detailValue}>
-                        {activoSimulado.responsable}
+                        {activoEscaneado?.responsable ?? "—"}
                       </Text>
                     </Text>
                   </View>
@@ -219,7 +269,7 @@ export default function EscanerScreen({ navigation }) {
                     <Text style={styles.detailText}>
                       Estado Actual:{"\n"}
                       <Text style={styles.detailValue}>
-                        {activoSimulado.estadoActual}
+                        {activoEscaneado?.estadoActual ?? "—"}
                       </Text>
                     </Text>
                   </View>
@@ -485,15 +535,15 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     flexDirection: "row",
     paddingVertical: 16,
-    paddingHorizontal: 24,
+    paddingHorizontal: 28,
     borderRadius: 12,
     alignItems: "center",
+    gap: 10,
   },
   simulacionButtonText: {
     color: colors.surface,
     fontWeight: "800",
-    fontSize: 14,
-    marginLeft: 8,
+    fontSize: 15,
   },
 
   // Permisos

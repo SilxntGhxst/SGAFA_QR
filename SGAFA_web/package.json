@@ -17,7 +17,11 @@
     "vite": "^7.0.7"
   },
   "dependencies": {
+    "@fontsource-variable/dm-sans": "^5.2.8",
+    "@fontsource-variable/sora": "^5.2.8",
+    "@fontsource/dm-mono": "^5.2.7",
     "expo": "^55.0.5",
+    "jszip": "^3.10.1",
     "react-dom": "19.2.0",
     "react-native-web": "^0.21.0"
   }

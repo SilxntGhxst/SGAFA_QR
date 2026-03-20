@@ -20,11 +20,8 @@ Route::get('/dashboard', fn() => view('dashboard'))->name('dashboard');
 
 // ── Activos ─────────────────────────────────────────────────────
 Route::prefix('activos')->name('activos.')->group(function () {
-    Route::get('/',           fn() => view('activos.index'))->name('index');
-    Route::get('/crear',      fn() => view('activos.create'))->name('create');
-    Route::get('/qr-masivo',  fn() => view('activos.index'))->name('qr');
-    Route::get('/{id}',       fn() => view('activos.show',  ['id' => 1]))->name('show');
-    Route::get('/{id}/edit',  fn() => view('activos.edit',  ['id' => 1]))->name('edit');
+    Route::get('/',      fn() => view('activos.index'))->name('index');
+    Route::get('/{id}',  fn() => view('activos.show', ['id' => 1]))->name('show');
 });
 
 // ── Solicitudes ─────────────────────────────────────────────────
