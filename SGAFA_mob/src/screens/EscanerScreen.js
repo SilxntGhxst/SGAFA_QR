@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -8,392 +8,190 @@ import {
   TextInput,
   ScrollView,
   Image,
-  Alert,
-  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { Feather } from "@expo/vector-icons";
 import { colors } from "../theme/colors";
 
-const GOQR_READ_URL = "https://api.qrserver.com/v1/read-qr-code/";
-
 export default function EscanerScreen({ navigation }) {
   const [permission, requestPermission] = useCameraPermissions();
   const [modalVisible, setModalVisible] = useState(false);
-  const [progreso, setProgreso] = useState(1);
-  const [escaneando, setEscaneando] = useState(false);
+  const [escaneado, setEscaneado] = useState(false);
   const [activoEscaneado, setActivoEscaneado] = useState(null);
-  const totalActivos = 26;
-  const cameraRef = useRef(null);
-
-  // Estados para el formulario
   const [estadoSeleccionado, setEstadoSeleccionado] = useState(null);
   const [observacion, setObservacion] = useState("");
 
-  // Manejo de permisos
+  // Permisos
   if (!permission) return <View style={styles.container} />;
   if (!permission.granted) {
     return (
       <SafeAreaView style={styles.permissionContainer}>
+        <Feather name="camera-off" size={48} color={colors.textSecondary} style={{ marginBottom: 16 }} />
         <Text style={styles.permissionText}>
-          S.G.A.F.A QR necesita acceso a la cámara.
+          S.G.A.F.A QR necesita acceso a la cámara
         </Text>
-        <TouchableOpacity
-          style={styles.primaryButton}
-          onPress={requestPermission}
-        >
+        <TouchableOpacity style={styles.primaryButton} onPress={requestPermission}>
           <Text style={styles.primaryButtonText}>Otorgar Permiso</Text>
         </TouchableOpacity>
       </SafeAreaView>
     );
   }
 
-  const capturarYEscanear = async () => {
-    if (!cameraRef.current || escaneando) return;
-    setEscaneando(true);
-    try {
-      const photo = await cameraRef.current.takePictureAsync({ base64: false });
-
-      const formData = new FormData();
-      formData.append("file", {
-        uri: photo.uri,
-        type: "image/jpeg",
-        name: "qr_scan.jpg",
-      });
-
-      const response = await fetch(GOQR_READ_URL, {
-        method: "POST",
-        body: formData,
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-
-      const result = await response.json();
-      const qrData = result[0]?.symbol[0]?.data;
-
-      if (qrData) {
-        // El QR codifica el código del activo, ej. "ACT-001"
-        setActivoEscaneado({
-          codigo: qrData,
-          nombre: "Activo " + qrData,
-          ubicacion: "—",
-          responsable: "—",
-          estadoActual: "—",
-        });
-        setModalVisible(true);
-      } else {
-        Alert.alert(
-          "QR no detectado",
-          "No se encontró un código QR en la imagen. Asegúrate de apuntar bien la cámara e intenta de nuevo."
-        );
-      }
-    } catch (error) {
-      Alert.alert("Error de conexión", "No se pudo conectar con el servidor de lectura QR. Verifica tu internet.");
-    } finally {
-      setEscaneando(false);
-    }
+  const handleQRScanned = ({ data }) => {
+    if (escaneado) return;
+    setEscaneado(true);
+    setActivoEscaneado({
+      codigo: data,
+      nombre: "Activo " + data,
+      ubicacion: "—",
+      responsable: "—",
+      estadoActual: "—",
+    });
+    setModalVisible(true);
   };
 
-  const handleContinuar = () => {
+  const handleCerrar = () => {
     setModalVisible(false);
     setEstadoSeleccionado(null);
     setObservacion("");
     setActivoEscaneado(null);
-    if (progreso < totalActivos) setProgreso(progreso + 1);
+    // Pequeño delay para que la cámara no re-escanee de inmediato
+    setTimeout(() => setEscaneado(false), 1500);
   };
-
-  const progresoPorcentaje = (progreso / totalActivos) * 100;
 
   return (
     <View style={styles.container}>
-      {/* HEADER UNIFICADO */}
-      {/* HEADER UNIFICADO */}
-      <View style={styles.headerContainer}>
+      {/* HEADER */}
+      <View style={styles.header}>
         <View style={styles.headerLeft}>
           <Image
             source={require("../../assets/logo.png")}
             style={styles.headerLogo}
             resizeMode="contain"
           />
-          <View style={styles.headerTextContainer}>
+          <View>
             <Text style={styles.headerTitle}>S.G.A.F.A QR</Text>
-            <Text style={styles.headerSubtitle}>Escáner</Text>
+            <Text style={styles.headerSubtitle}>ESCÁNER</Text>
           </View>
         </View>
         <TouchableOpacity onPress={() => navigation.navigate("Sincronizacion")}>
-          <Feather name="refresh-cw" size={24} color={colors.surface} />
+          <Feather name="refresh-cw" size={22} color={colors.surface} />
         </TouchableOpacity>
       </View>
 
-      {/* CÁMARA EN EL FONDO */}
-      <CameraView ref={cameraRef} style={styles.absoluteCamera} facing="back" />
+      {/* CÁMARA */}
+      <CameraView
+        style={StyleSheet.absoluteFill}
+        facing="back"
+        barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
+        onBarcodeScanned={handleQRScanned}
+      />
 
-      {/* OVERLAY DE INTERFAZ (Fondo semi-transparente) */}
+      {/* OVERLAY */}
       <View style={styles.overlay}>
-        {/* Cabecera y Progreso */}
-        <View style={styles.headerSection}>
-          <View style={styles.navRow}>
-            <TouchableOpacity onPress={() => navigation.goBack()}>
-              <Feather name="arrow-left" size={28} color={colors.primary} />
-            </TouchableOpacity>
-            <Text style={styles.screenTitle}>Escanear QR</Text>
-            <View style={{ width: 28 }} />
-          </View>
+        {/* Botón volver */}
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <Feather name="arrow-left" size={22} color={colors.surface} />
+        </TouchableOpacity>
 
-          <Text style={styles.progressText}>
-            Activos escaneados: ({progreso.toString().padStart(2, "0")}/
-            {totalActivos})
-          </Text>
-          <View style={styles.progressBarBg}>
-            <View
-              style={[
-                styles.progressBarFill,
-                { width: `${progresoPorcentaje}%` },
-              ]}
-            />
-          </View>
-
-          <Text style={styles.instructionText}>
-            Alinea el código dentro{"\n"}del recuadro
-          </Text>
-        </View>
-
-        {/* Marco del QR (Centro) */}
-        <View style={styles.scannerFrameContainer}>
-          <View style={styles.scannerFrame}>
+        {/* Marco del QR */}
+        <View style={styles.frameWrapper}>
+          <View style={styles.frame}>
             <View style={[styles.corner, styles.topLeft]} />
             <View style={[styles.corner, styles.topRight]} />
             <View style={[styles.corner, styles.bottomLeft]} />
             <View style={[styles.corner, styles.bottomRight]} />
-            {/* Ícono de QR al centro simulando el objetivo */}
-            <Feather name="maximize" size={120} color="rgba(255,255,255,0.4)" />
           </View>
+          <Text style={styles.hint}>Apunta al código QR del activo</Text>
         </View>
 
-        {/* Botón Capturar QR */}
-        <View style={styles.bottomSection}>
-          <TouchableOpacity
-            style={[styles.simulacionButton, escaneando && { opacity: 0.7 }]}
-            onPress={capturarYEscanear}
-            disabled={escaneando}
-          >
-            {escaneando ? (
-              <ActivityIndicator size="small" color={colors.surface} />
-            ) : (
-              <Feather name="camera" size={20} color={colors.surface} />
-            )}
-            <Text style={styles.simulacionButtonText}>
-              {escaneando ? "Leyendo QR..." : "Capturar y Leer QR"}
-            </Text>
-          </TouchableOpacity>
-        </View>
+        <View style={{ height: 80 }} />
       </View>
 
-      {/* --- MODAL: FORMULARIO DE AUDITORÍA --- */}
-      <Modal animationType="slide" transparent={true} visible={modalVisible}>
+      {/* MODAL DE RESULTADOS */}
+      <Modal animationType="slide" transparent visible={modalVisible}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
+            {/* Header modal */}
             <View style={styles.modalHeader}>
-              <TouchableOpacity onPress={() => setModalVisible(false)}>
-                <Feather name="arrow-left" size={28} color={colors.primary} />
+              <TouchableOpacity onPress={handleCerrar}>
+                <Feather name="x" size={26} color={colors.primary} />
               </TouchableOpacity>
-              <Text style={styles.modalTitle}>Resultados</Text>
-              <View style={{ width: 28 }} />
+              <Text style={styles.modalTitle}>Activo Escaneado</Text>
+              <View style={{ width: 26 }} />
             </View>
 
-            <ScrollView
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={styles.modalScroll}
-            >
-              <Text style={styles.sectionSubtitle}>Activo Escaneado</Text>
-
-              {/* Tarjeta del Activo */}
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.modalScroll}>
+              {/* Tarjeta del activo */}
               <View style={styles.assetCard}>
-                <View style={styles.assetHeader}>
-                  <View style={styles.imagePlaceholder}>
-                    <Feather
-                      name="monitor"
-                      size={40}
-                      color={colors.textSecondary}
-                    />
-                  </View>
-                  <View style={styles.assetTitles}>
-                    <Text style={styles.assetName}>
-                      {activoEscaneado?.nombre ?? "—"}
-                    </Text>
-                    <Text style={styles.assetCode}>
-                      Código:{"\n"}
-                      <Text style={{ color: colors.textSecondary }}>
-                        {activoEscaneado?.codigo ?? "—"}
-                      </Text>
-                    </Text>
-                  </View>
+                <View style={styles.imagePlaceholder}>
+                  <Feather name="box" size={36} color={colors.textSecondary} />
                 </View>
+                <Text style={styles.assetName}>{activoEscaneado?.nombre ?? "—"}</Text>
+                <Text style={styles.assetCode}>{activoEscaneado?.codigo ?? "—"}</Text>
 
-                <View style={styles.assetDetails}>
-                  <View style={styles.detailRow}>
-                    <Feather
-                      name="map"
-                      size={20}
-                      color={colors.primary}
-                      style={styles.detailIcon}
-                    />
-                    <Text style={styles.detailText}>
-                      Ubicación:{" "}
-                      <Text style={styles.detailValue}>
-                        {activoEscaneado?.ubicacion ?? "—"}
-                      </Text>
-                    </Text>
-                  </View>
-                  <View style={styles.detailRow}>
-                    <Feather
-                      name="user"
-                      size={20}
-                      color={colors.primary}
-                      style={styles.detailIcon}
-                    />
-                    <Text style={styles.detailText}>
-                      Responsable:{" "}
-                      <Text style={styles.detailValue}>
-                        {activoEscaneado?.responsable ?? "—"}
-                      </Text>
-                    </Text>
-                  </View>
-                  <View style={styles.detailRow}>
-                    <Feather
-                      name="shield"
-                      size={20}
-                      color={colors.primary}
-                      style={styles.detailIcon}
-                    />
-                    <Text style={styles.detailText}>
-                      Estado Actual:{"\n"}
-                      <Text style={styles.detailValue}>
-                        {activoEscaneado?.estadoActual ?? "—"}
-                      </Text>
-                    </Text>
-                  </View>
+                <View style={styles.divider} />
+
+                <View style={styles.detailRow}>
+                  <Feather name="map-pin" size={16} color={colors.primary} />
+                  <Text style={styles.detailText}>
+                    Ubicación: <Text style={styles.detailValue}>{activoEscaneado?.ubicacion ?? "—"}</Text>
+                  </Text>
+                </View>
+                <View style={styles.detailRow}>
+                  <Feather name="user" size={16} color={colors.primary} />
+                  <Text style={styles.detailText}>
+                    Responsable: <Text style={styles.detailValue}>{activoEscaneado?.responsable ?? "—"}</Text>
+                  </Text>
+                </View>
+                <View style={styles.detailRow}>
+                  <Feather name="activity" size={16} color={colors.primary} />
+                  <Text style={styles.detailText}>
+                    Estado: <Text style={styles.detailValue}>{activoEscaneado?.estadoActual ?? "—"}</Text>
+                  </Text>
                 </View>
               </View>
 
-              {/* Botones de Evaluación */}
-              <View style={styles.evaluationContainer}>
-                <TouchableOpacity
-                  style={[
-                    styles.evalButton,
-                    estadoSeleccionado === "funcional"
-                      ? {
-                          backgroundColor: colors.success,
-                          borderColor: colors.success,
-                        }
-                      : { borderColor: colors.success },
-                  ]}
-                  onPress={() => setEstadoSeleccionado("funcional")}
-                >
-                  <Feather
-                    name="check"
-                    size={24}
-                    color={
-                      estadoSeleccionado === "funcional"
-                        ? colors.surface
-                        : colors.success
-                    }
-                  />
-                  <Text
-                    style={[
-                      styles.evalButtonText,
-                      estadoSeleccionado === "funcional"
-                        ? { color: colors.surface }
-                        : { color: colors.success },
-                    ]}
-                  >
-                    Funcional
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[
-                    styles.evalButton,
-                    estadoSeleccionado === "mantenimiento"
-                      ? { backgroundColor: "#eab308", borderColor: "#eab308" }
-                      : { borderColor: "#eab308" },
-                  ]}
-                  onPress={() => setEstadoSeleccionado("mantenimiento")}
-                >
-                  <Feather
-                    name="info"
-                    size={24}
-                    color={
-                      estadoSeleccionado === "mantenimiento"
-                        ? colors.surface
-                        : "#eab308"
-                    }
-                  />
-                  <Text
-                    style={[
-                      styles.evalButtonText,
-                      estadoSeleccionado === "mantenimiento"
-                        ? { color: colors.surface }
-                        : { color: "#eab308" },
-                    ]}
-                  >
-                    Manteni-{"\n"}miento
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[
-                    styles.evalButton,
-                    estadoSeleccionado === "baja"
-                      ? {
-                          backgroundColor: colors.danger,
-                          borderColor: colors.danger,
-                        }
-                      : { borderColor: colors.danger },
-                  ]}
-                  onPress={() => setEstadoSeleccionado("baja")}
-                >
-                  <Feather
-                    name="x"
-                    size={24}
-                    color={
-                      estadoSeleccionado === "baja"
-                        ? colors.surface
-                        : colors.danger
-                    }
-                  />
-                  <Text
-                    style={[
-                      styles.evalButtonText,
-                      estadoSeleccionado === "baja"
-                        ? { color: colors.surface }
-                        : { color: colors.danger },
-                    ]}
-                  >
-                    Baja
-                  </Text>
-                </TouchableOpacity>
+              {/* Evaluación */}
+              <Text style={styles.sectionLabel}>Actualizar estado</Text>
+              <View style={styles.evalRow}>
+                {[
+                  { key: "funcional",     label: "Funcional",     icon: "check",  color: colors.success },
+                  { key: "mantenimiento", label: "Mantenimiento", icon: "tool",   color: "#eab308" },
+                  { key: "baja",          label: "Baja",          icon: "x",      color: colors.danger },
+                ].map(({ key, label, icon, color }) => {
+                  const active = estadoSeleccionado === key;
+                  return (
+                    <TouchableOpacity
+                      key={key}
+                      style={[styles.evalBtn, { borderColor: color, backgroundColor: active ? color : colors.surface }]}
+                      onPress={() => setEstadoSeleccionado(key)}
+                    >
+                      <Feather name={icon} size={22} color={active ? colors.surface : color} />
+                      <Text style={[styles.evalLabel, { color: active ? colors.surface : color }]}>{label}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
               </View>
 
-              {/* Observación y Envío */}
+              {/* Observación */}
               <TextInput
-                style={styles.observationInput}
-                placeholder="Agregar Observación"
+                style={styles.input}
+                placeholder="Observación (opcional)"
                 placeholderTextColor={colors.textSecondary}
                 value={observacion}
                 onChangeText={setObservacion}
                 multiline
               />
 
+              {/* Guardar */}
               <TouchableOpacity
-                style={[
-                  styles.primaryButton,
-                  !estadoSeleccionado && { backgroundColor: "#94a3b8" },
-                ]}
-                onPress={handleContinuar}
+                style={[styles.primaryButton, !estadoSeleccionado && styles.disabledButton]}
+                onPress={handleCerrar}
                 disabled={!estadoSeleccionado}
               >
-                <Text style={styles.primaryButtonText}>Continuar</Text>
+                <Text style={styles.primaryButtonText}>Guardar y continuar</Text>
               </TouchableOpacity>
             </ScrollView>
           </View>
@@ -404,266 +202,146 @@ export default function EscanerScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#a8a29e" },
-  // Estilos del Header Unificado
-  headerSafeArea: { backgroundColor: colors.primary, zIndex: 10 },
-  headerContainer: {
+  container: { flex: 1, backgroundColor: "#000" },
+
+  // Header
+  header: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    justifyContent: 'space-between',
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    backgroundColor: colors.primary,
+    zIndex: 10,
   },
-  headerLeft: { flexDirection: 'row', alignItems: 'center' },
-  headerLogo: { width: 44, height: 44, marginRight: 12 },
-  headerTextContainer: { justifyContent: "center" },
-  headerTitle: {
-    color: colors.surface,
-    fontSize: 18,
-    fontWeight: "800",
-    letterSpacing: 0.5,
-  },
-  headerSubtitle: {
-    color: "#94a3b8",
-    fontSize: 13,
-    fontWeight: "600",
-    marginTop: 2,
-    textTransform: "uppercase",
-  },
+  headerLeft: { flexDirection: "row", alignItems: "center", gap: 12 },
+  headerLogo: { width: 38, height: 38 },
+  headerTitle: { color: colors.surface, fontSize: 16, fontWeight: "800" },
+  headerSubtitle: { color: "#94a3b8", fontSize: 11, fontWeight: "600", letterSpacing: 1 },
 
+  // Overlay
   overlay: {
-    flex: 1,
-    backgroundColor: "rgba(199, 194, 190, 0.36)",
+    ...StyleSheet.absoluteFillObject,
+    top: 70, // debajo del header
     justifyContent: "space-between",
+    alignItems: "center",
+    paddingTop: 16,
+  },
+  backButton: {
+    alignSelf: "flex-start",
+    marginLeft: 16,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    padding: 10,
+    borderRadius: 10,
   },
 
-  absoluteCamera: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
-
-  headerSection: { padding: 24, paddingTop: 32 },
-  navRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 24,
-  },
-  screenTitle: { fontSize: 24, fontWeight: "800", color: colors.primary },
-  progressText: {
-    fontSize: 14,
-    fontWeight: "800",
-    color: colors.primary,
-    textAlign: "center",
-    marginBottom: 8,
-  },
-  progressBarBg: {
-    height: 16,
-    backgroundColor: "#e2e8f0",
-    borderRadius: 8,
-    overflow: "hidden",
-    marginBottom: 24,
-  },
-  progressBarFill: {
-    height: "100%",
-    backgroundColor: "#22c55e",
-    borderRadius: 8,
-  },
-  instructionText: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: colors.surface,
-    textAlign: "center",
-    lineHeight: 28,
-  },
-
-  // Marco del escáner
-  scannerFrameContainer: {
-    flex: 1, // Le decimos que tome todo el espacio central disponible
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: -200, // <--- La incisión: Un margen negativo para forzarlo a subir
-  },
-  scannerFrame: {
-    width: 260,
-    height: 260,
-    justifyContent: "center",
-    alignItems: "center",
+  // Marco escáner
+  frameWrapper: { alignItems: "center", gap: 20 },
+  frame: {
+    width: 240,
+    height: 240,
     position: "relative",
+    justifyContent: "center",
+    alignItems: "center",
   },
   corner: {
     position: "absolute",
-    width: 50,
-    height: 50,
-    borderColor: colors.surface,
-    borderWidth: 6,
+    width: 44,
+    height: 44,
+    borderColor: "#fff",
+    borderWidth: 5,
   },
-  topLeft: {
-    top: 0,
-    left: 0,
-    borderBottomWidth: 0,
-    borderRightWidth: 0,
-    borderTopLeftRadius: 24,
-  },
-  topRight: {
-    top: 0,
-    right: 0,
-    borderBottomWidth: 0,
-    borderLeftWidth: 0,
-    borderTopRightRadius: 24,
-  },
-  bottomLeft: {
-    bottom: 0,
-    left: 0,
-    borderTopWidth: 0,
-    borderRightWidth: 0,
-    borderBottomLeftRadius: 24,
-  },
-  bottomRight: {
-    bottom: 0,
-    right: 0,
-    borderTopWidth: 0,
-    borderLeftWidth: 0,
-    borderBottomRightRadius: 24,
-  },
-
-  bottomSection: { padding: 24, paddingBottom: 48, alignItems: "center" },
-  simulacionButton: {
-    backgroundColor: colors.primary,
-    flexDirection: "row",
-    paddingVertical: 16,
-    paddingHorizontal: 28,
-    borderRadius: 12,
-    alignItems: "center",
-    gap: 10,
-  },
-  simulacionButtonText: {
-    color: colors.surface,
-    fontWeight: "800",
+  topLeft:     { top: 0,    left: 0,  borderBottomWidth: 0, borderRightWidth: 0,  borderTopLeftRadius: 12 },
+  topRight:    { top: 0,    right: 0, borderBottomWidth: 0, borderLeftWidth: 0,   borderTopRightRadius: 12 },
+  bottomLeft:  { bottom: 0, left: 0,  borderTopWidth: 0,    borderRightWidth: 0,  borderBottomLeftRadius: 12 },
+  bottomRight: { bottom: 0, right: 0, borderTopWidth: 0,    borderLeftWidth: 0,   borderBottomRightRadius: 12 },
+  hint: {
+    color: "#fff",
     fontSize: 15,
-  },
-
-  // Permisos
-  permissionContainer: {
-    flex: 1,
-    justifyContent: "center",
-    padding: 32,
-    backgroundColor: colors.background,
-  },
-  permissionText: {
-    fontSize: 16,
+    fontWeight: "600",
     textAlign: "center",
-    marginBottom: 24,
-    color: colors.textPrimary,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
   },
 
-  // --- MODAL ---
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(15, 23, 42, 0.4)",
-    justifyContent: "flex-end",
-  },
-  modalContent: {
-    backgroundColor: colors.surface,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    height: "90%",
-  },
+  // Permiso
+  permissionContainer: { flex: 1, justifyContent: "center", alignItems: "center", padding: 32, backgroundColor: colors.background },
+  permissionText: { fontSize: 16, textAlign: "center", marginBottom: 24, color: colors.textPrimary },
+
+  // Modal
+  modalOverlay: { flex: 1, backgroundColor: "rgba(15,23,42,0.5)", justifyContent: "flex-end" },
+  modalContent: { backgroundColor: colors.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: "88%" },
   modalHeader: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    padding: 24,
+    padding: 20,
     borderBottomWidth: 1,
     borderBottomColor: "#f1f5f9",
   },
-  modalTitle: { fontSize: 22, fontWeight: "800", color: colors.primary },
-  modalScroll: { padding: 24, paddingBottom: 40 },
-  sectionSubtitle: {
-    fontSize: 20,
-    fontWeight: "800",
-    color: colors.primary,
-    textAlign: "center",
-    marginBottom: 20,
-  },
+  modalTitle: { fontSize: 18, fontWeight: "800", color: colors.primary },
+  modalScroll: { padding: 20, paddingBottom: 40 },
 
+  // Asset card
   assetCard: {
-    backgroundColor: "#e2e8f0",
+    backgroundColor: "#f8fafc",
     borderRadius: 16,
     padding: 20,
+    alignItems: "center",
     marginBottom: 24,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
   },
-  assetHeader: { flexDirection: "row", alignItems: "center", marginBottom: 20 },
   imagePlaceholder: {
-    width: 80,
-    height: 80,
-    backgroundColor: colors.surface,
-    borderRadius: 8,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 16,
-  },
-  assetTitles: { flex: 1 },
-  assetName: {
-    fontSize: 20,
-    fontWeight: "800",
-    color: colors.primary,
-    marginBottom: 4,
-  },
-  assetCode: { fontSize: 16, fontWeight: "700", color: colors.textSecondary },
-
-  assetDetails: { gap: 12 },
-  detailRow: { flexDirection: "row", alignItems: "center" },
-  detailIcon: { marginRight: 12 },
-  detailText: {
-    fontSize: 16,
-    color: colors.textSecondary,
-    flex: 1,
-    fontWeight: "600",
-  },
-  detailValue: { fontWeight: "700", color: colors.textPrimary },
-
-  evaluationContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 24,
-    gap: 12,
-  },
-  evalButton: {
-    flex: 1,
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    paddingVertical: 16,
-    alignItems: "center",
-    borderWidth: 2,
-    justifyContent: "center",
-  },
-  evalButtonText: {
-    marginTop: 8,
-    fontSize: 14,
-    fontWeight: "800",
-    textAlign: "center",
-  },
-
-  observationInput: {
+    width: 72,
+    height: 72,
     backgroundColor: "#e2e8f0",
     borderRadius: 12,
-    padding: 16,
-    height: 60,
-    fontSize: 16,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  assetName: { fontSize: 18, fontWeight: "800", color: colors.primary, textAlign: "center" },
+  assetCode: { fontSize: 13, color: colors.textSecondary, fontWeight: "600", marginBottom: 16 },
+  divider: { width: "100%", height: 1, backgroundColor: "#e2e8f0", marginBottom: 16 },
+  detailRow: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 8, alignSelf: "flex-start" },
+  detailText: { fontSize: 14, color: colors.textSecondary, fontWeight: "600" },
+  detailValue: { color: colors.textPrimary, fontWeight: "700" },
+
+  // Evaluación
+  sectionLabel: { fontSize: 14, fontWeight: "700", color: colors.textSecondary, marginBottom: 12, textTransform: "uppercase", letterSpacing: 0.5 },
+  evalRow: { flexDirection: "row", gap: 10, marginBottom: 20 },
+  evalBtn: {
+    flex: 1,
+    borderWidth: 2,
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: "center",
+    gap: 6,
+  },
+  evalLabel: { fontSize: 12, fontWeight: "800", textAlign: "center" },
+
+  // Input
+  input: {
+    backgroundColor: "#f1f5f9",
+    borderRadius: 12,
+    padding: 14,
+    fontSize: 15,
     color: colors.textPrimary,
     fontWeight: "600",
-    marginBottom: 24,
+    marginBottom: 20,
+    minHeight: 56,
   },
 
+  // Botones
   primaryButton: {
-    backgroundColor: "#2563eb",
+    backgroundColor: colors.primary,
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: "center",
   },
-  primaryButtonText: { color: colors.surface, fontSize: 18, fontWeight: "800" },
+  disabledButton: { backgroundColor: "#94a3b8" },
+  primaryButtonText: { color: colors.surface, fontSize: 16, fontWeight: "800" },
 });

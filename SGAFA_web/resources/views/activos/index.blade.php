@@ -228,14 +228,14 @@ textarea.pf-field { resize:vertical; }
         </thead>
         <tbody>
             @php $activos=[
-                ['ACT-001','Escritorio','Bienes muebles','Oficina','Santiago Meneses','Funcional','blue',false],
+                ['ACT-001','Escritorio','Bienes muebles','Oficina','Santiago Meneses','Funcional','green',false],
                 ['ACT-002','Ventilador','Bienes muebles','Almacén','Carlos Chavez','Mantenimiento','yellow',false],
                 ['ACT-003','Impresora HP Laser','Bienes muebles','Sala IT','Ruth Piña','Mantenimiento','yellow',false],
                 ['ACT-004','Silla de escritorio','Bienes muebles','Oficina','Andre Martinez','Mantenimiento','yellow',false],
-                ['ACT-006','Monitor Dell 27','Bienes muebles','Oficina 204','Hannia Gonzales','Baja','green',false],
+                ['ACT-006','Monitor Dell 27','Bienes muebles','Oficina 204','Hannia Gonzales','Baja','red',false],
                 ['ACT-007','Cámara Sony Alpha','Bienes muebles','Oficina','Valeria Briones','Mantenimiento','yellow',false],
-                ['ACT-008','Proyector Epson','Bienes muebles','Aula 5','—','Baja','green',false],
-                ['ACT-009','Televisión Samsung 55"','Bienes muebles','Lab 3','—','Baja','green',false],
+                ['ACT-008','Proyector Epson','Bienes muebles','Aula 5','—','Baja','red',false],
+                ['ACT-009','Televisión Samsung 55"','Bienes muebles','Lab 3','—','Baja','red',false],
             ]; @endphp
             @foreach($activos as $i => $a)
             <tr>
