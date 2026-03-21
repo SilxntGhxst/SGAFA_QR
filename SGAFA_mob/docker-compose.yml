@@ -1,0 +1,23 @@
+version: '3.9'
+
+services:
+  sgafa_mobile:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sgafa_expo_app
+    # Mapeo de puertos para que tu PC escuche lo que hace el contenedor
+    ports:
+      - "8081:8081"
+    volumes:
+      # Sincroniza tu código de Windows con el contenedor en tiempo real
+      - .:/app
+      # Bloquea node_modules para que use los de Linux (creados en el Dockerfile) y no los de Windows
+      - /app/node_modules
+    environment:
+          - NODE_ENV=development
+          - EXPO_DEVTOOLS_LISTEN_ADDRESS=0.0.0.0
+          - REACT_NATIVE_PACKAGER_HOSTNAME=${REACT_NATIVE_PACKAGER_HOSTNAME}
+          - EXPO_PUBLIC_API_IP=${EXPO_PUBLIC_API_IP}
+    stdin_open: true
+    tty: true
