@@ -17,12 +17,15 @@ class DashboardController extends Controller
             $stats = Http::get("$apiBase/stats")->json();
             $catalogos = Http::get("$apiBase/catalogos")->json(); 
             
-            $activos = Http::get("$apiBase/", [
+            $params = array_filter([
                 'search' => $request->search,
                 'categoria_id' => $request->categoria_id,
                 'estado' => $request->estado,
                 'limit' => 5 
-            ])->json();
+            ], fn($val) => !is_null($val) && $val !== '');
+
+            $response = Http::get("$apiBase/", $params)->json();
+            $activos = $response['data'] ?? [];
             
         } catch (\Exception $e) {
             $stats = ['total_activos' => 0, 'activos_faltantes' => 0, 'solicitudes_pendientes' => 0];

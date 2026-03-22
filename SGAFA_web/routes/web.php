@@ -24,6 +24,9 @@ Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard
 // ── Activos ─────────────────────────────────────────────────────
 Route::prefix('activos')->name('activos.')->group(function () {
     Route::get('/', [ActivoController::class, 'index'])->name('index');
+    Route::post('/', [ActivoController::class, 'store'])->name('store');
+    Route::put('/{id}', [ActivoController::class, 'update'])->name('update');
+    Route::delete('/{id}', [ActivoController::class, 'destroy'])->name('destroy');
     Route::get('/{id}',  fn() => view('activos.show', ['id' => 1]))->name('show');
 });
 

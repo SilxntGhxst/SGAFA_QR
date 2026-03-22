@@ -18,25 +18,4 @@ class UsuarioSchema(BaseModel):
     nombre: str
     apellidos: str
 
-# Basado en la tabla 'bienes_muebles' del PDF
-class BienMuebleSchema(BaseModel):
-    id: str # UUID
-    codigo_inventario: str
-    nombre: str
-    descripcion: Optional[str] = None
-    categoria_id: int
-    ubicacion_id: int
-    usuario_responsable_id: Optional[str] = None
-    estado: str # funcional, mantenimiento, baja
-    creado_en: str
-    
-    
-class BienMuebleEnriquecido(BaseModel):
-    id: str
-    codigo: str
-    nombre: str
-    categoria: str
-    ubicacion: str
-    usuario: str
-    estado: str
-    fecha: str
+# ... Bienes Muebles han sido movidos a ActivoModel.py

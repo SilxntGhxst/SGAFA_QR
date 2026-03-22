@@ -13,6 +13,7 @@
         /* ── VARIABLES ── */
         :root {
             --sidebar-w:      260px;
+            --sidebar-w-collapsed: 88px;
             --sidebar-bg:     #3a6ea8;
             --sidebar-active: rgba(255,255,255,0.18);
             --sidebar-hover:  rgba(255,255,255,0.10);
@@ -50,8 +51,25 @@
             position: fixed;
             top: 0; left: 0; bottom: 0;
             z-index: 100;
-            transition: transform 0.3s ease;
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s ease;
             overflow: hidden;
+        }
+
+        body.sidebar-collapsed .sidebar {
+            width: var(--sidebar-w-collapsed);
+        }
+
+        body.sidebar-collapsed .sidebar-logo { justify-content: center; padding-left: 0; padding-right: 0;}
+        body.sidebar-collapsed .sidebar-logo-text { opacity: 0; width: 0; pointer-events: none; overflow: hidden; margin: 0; }
+        body.sidebar-collapsed .nav-text { opacity: 0; width: 0; pointer-events: none; overflow: hidden; margin: 0; }
+        body.sidebar-collapsed .nav-arrow { opacity: 0; width: 0; overflow: hidden; margin: 0; }
+        body.sidebar-collapsed .nav-item { justify-content: center; padding-left: 0; padding-right: 0; gap: 0;}
+        body.sidebar-collapsed .subnav { max-height: 0 !important; }
+        body.sidebar-collapsed .sidebar-toggle { margin-left: auto; margin-right: auto; }
+        
+        .sidebar-logo-text, .nav-text, .nav-arrow {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            white-space: nowrap;
         }
 
         .sidebar-logo {
@@ -132,6 +150,10 @@
             margin-left: var(--sidebar-w);
             flex: 1; display: flex;
             flex-direction: column; min-height: 100vh;
+            transition: margin-left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        body.sidebar-collapsed .main-wrapper {
+            margin-left: var(--sidebar-w-collapsed);
         }
 
         /* ── TOPBAR ── */
@@ -442,9 +464,10 @@
         .sidebar-overlay.visible { display: block; }
 
         @media (max-width: 1024px) {
-            .sidebar      { transform: translateX(-100%); }
+            .sidebar      { transform: translateX(-100%); width: var(--sidebar-w); }
             .sidebar.open { transform: translateX(0); }
-            .main-wrapper { margin-left: 0; }
+            .main-wrapper { margin-left: 0 !important; }
+            body.sidebar-collapsed .main-wrapper { margin-left: 0 !important; }
             .topbar       { padding: 0 20px; }
             .page-content { padding: 0 20px 28px; }
         }
@@ -488,7 +511,7 @@
                 <rect x="3" y="14" width="7" height="7" rx="1"/>
                 <rect x="14" y="14" width="7" height="7" rx="1"/>
             </svg>
-            Dashboard
+            <span class="nav-text">Dashboard</span>
         </a>
 
         <a href="{{ url('/activos') }}" class="nav-item {{ request()->is('activos*') ? 'active' : '' }}">
@@ -497,7 +520,7 @@
                 <line x1="2" y1="12" x2="22" y2="12"/>
                 <path d="M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"/>
             </svg>
-            Activos
+            <span class="nav-text">Activos</span>
         </a>
 
         <div>
@@ -509,7 +532,7 @@
                     <line x1="9" y1="12" x2="15" y2="12"/>
                     <line x1="9" y1="16" x2="13" y2="16"/>
                 </svg>
-                Solicitudes
+                <span class="nav-text">Solicitudes</span>
                 <svg class="nav-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                     <polyline points="6 9 12 15 18 9"/>
                 </svg>
@@ -532,7 +555,7 @@
                 <circle cx="9" cy="7" r="4"/>
                 <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
             </svg>
-            Usuarios
+            <span class="nav-text">Usuarios</span>
         </a>
 
         <a href="{{ url('/reportes') }}" class="nav-item {{ request()->is('reportes*') ? 'active' : '' }}">
@@ -540,7 +563,7 @@
                 <path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4z"/>
                 <path d="M14 17h6M17 14v6"/>
             </svg>
-            Reportes
+            <span class="nav-text">Reportes</span>
         </a>
 
     </nav>
@@ -636,6 +659,10 @@
 <script>
     // ── SIDEBAR ──
     function toggleSubnav(id, el) {
+        if (window.innerWidth > 1024 && document.body.classList.contains('sidebar-collapsed')) {
+            document.body.classList.remove('sidebar-collapsed'); // Auto-expand when clicking a subnav
+        }
+        
         const sub    = document.getElementById(id);
         const isOpen = sub.classList.contains('open');
         document.querySelectorAll('.subnav').forEach(s => s.classList.remove('open'));
@@ -647,10 +674,21 @@
     }
 
     function toggleSidebar() {
-        const s = document.getElementById('sidebar');
-        const o = document.getElementById('sidebarOverlay');
-        s.classList.toggle('open');
-        o.classList.toggle('visible', s.classList.contains('open'));
+        if (window.innerWidth <= 1024) {
+            // Comportamiento Mobile
+            const s = document.getElementById('sidebar');
+            const o = document.getElementById('sidebarOverlay');
+            s.classList.toggle('open');
+            o.classList.toggle('visible', s.classList.contains('open'));
+        } else {
+            // Comportamiento Desktop
+            document.body.classList.toggle('sidebar-collapsed');
+            if (document.body.classList.contains('sidebar-collapsed')) {
+                // Cierra los submenus si decides contraer la barra
+                document.querySelectorAll('.subnav').forEach(s => s.classList.remove('open'));
+                document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('open'));
+            }
+        }
     }
 
     function closeSidebar() {

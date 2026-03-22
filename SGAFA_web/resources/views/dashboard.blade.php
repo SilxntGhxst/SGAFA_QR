@@ -217,7 +217,7 @@
             <div class="filter-select" style="padding:0; position:relative; display:flex; align-items:center;">
                 <select name="estado" onchange="this.form.submit()" style="border:none; background:transparent; padding:9px 34px 9px 14px; width:100%; appearance:none; outline:none; cursor:pointer; font-family:inherit; font-size:inherit; color:inherit;">
                     <option value="">Estado</option>
-                    @foreach(['Disponible', 'Asignado', 'Mantenimiento', 'Prestado', 'Faltante', 'Funcional'] as $est)
+                    @foreach(['Funcional', 'En mantenimiento', 'Baja', 'Faltante'] as $est)
                         <option value="{{ $est }}" {{ request('estado') == $est ? 'selected' : '' }}>{{ $est }}</option>
                     @endforeach
                 </select>
@@ -238,15 +238,13 @@
                 </tr>
             </thead>
             <tbody>
-                @forelse($activos as $it)
+                @forelse($activos as $index => $it)
                 @php
                     $color = match(strtolower($it['estado'] ?? '')) {
-                        'disponible' => 'green',
-                        'asignado' => 'blue',
-                        'mantenimiento' => 'yellow',
-                        'prestado' => 'purple',
+                        'funcional' => 'green',
+                        'en mantenimiento' => 'yellow',
+                        'baja' => 'gray',
                         'faltante' => 'red',
-                        'funcional' => 'cyan',
                         default => 'gray'
                     };
                     $fecha = isset($it['fecha']) ? \Carbon\Carbon::parse($it['fecha'])->format('d M Y') : 'N/A';
@@ -262,13 +260,13 @@
                     <td><span class="badge badge-{{ $color }} badge-dot">{{ $it['estado'] ?? 'N/A' }}</span></td>
                     <td>
                         <div style="display:flex;gap:6px;">
-                            <a href="/activos/{{ $it['id'] ?? 1 }}" class="action-btn" title="Ver detalle">
+                            <a href="javascript:void(0)" onclick="abrirPanel('ver', {{ $index }})" class="action-btn" title="Ver detalle">
                                 <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                                     <circle cx="12" cy="12" r="3"/>
                                 </svg>
                             </a>
-                            <a href="/activos/{{ $it['id'] ?? 1 }}/edit" class="action-btn" title="Editar">
+                            <a href="javascript:void(0)" onclick="abrirPanel('editar', {{ $index }})" class="action-btn" title="Editar">
                                 <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                     <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
                                     <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
@@ -288,7 +286,7 @@
         </table>
 
         <div style="padding:12px 20px;border-top:1px solid #f0f2f5;display:flex;align-items:center;justify-content:space-between;">
-            <span style="font-size:.8rem;color:#9ca3af;">Mostrando 5 de 42 activos</span>
+            <span style="font-size:.8rem;color:#9ca3af;">Mostrando {{ count($activos) }} de {{ $stats['total_activos'] ?? 42 }} activos</span>
             <a href="/activos" class="see-all" style="font-size:.82rem;">Ver todos los activos →</a>
         </div>
     </div>
@@ -310,12 +308,10 @@
                     
                     // Colores sincronizados con los badges de la tabla
                     $colores = [
-                        'Asignado' => '#3b82f6',      // badge-blue
-                        'Mantenimiento' => '#eab308', // badge-yellow
-                        'Disponible' => '#10b981',    // badge-green
-                        'Prestado' => '#8b5cf6',      // badge-purple
-                        'Faltante' => '#ef4444',      // badge-red
-                        'Funcional' => '#06b6d4'      // badge-cyan
+                        'Funcional' => '#10b981',        // badge-green
+                        'En mantenimiento' => '#eab308', // badge-yellow
+                        'Baja' => '#6b7a8d',             // badge-gray
+                        'Faltante' => '#ef4444'          // badge-red
                     ];
                     
                     $offset_actual = 0;
@@ -415,4 +411,6 @@
 
     </div>
 </div>
+
+@include('components.activos-panel')
 @endsection
