@@ -19,6 +19,8 @@ import { Feather } from "@expo/vector-icons";
 import { colors } from "../theme/colors";
 
 const API_BASE_URL = `http://${process.env.EXPO_PUBLIC_API_IP}:8080/api`;
+const TIPOS = ["Activo Fantasma", "Activo sin registro", "Reporte de Daño"];
+
 
 export default function IncidenciaScreen({ navigation }) {
   const [permission, requestPermission] = useCameraPermissions();

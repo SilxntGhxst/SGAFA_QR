@@ -316,7 +316,7 @@ async function cargarBuzon() {
     document.getElementById('buzonTableBody').innerHTML =
         `<tr><td colspan="9" style="text-align:center;padding:30px;color:#6b7a8d;">Cargando...</td></tr>`;
     try {
-        const res  = await fetch(`${API_URL}/buzon`);
+        const res  = await fetch(`${API_URL}/buzon/`);
         const json = await res.json();
         todosLosRegistros = json.data ?? [];
         renderTabla(todosLosRegistros);
