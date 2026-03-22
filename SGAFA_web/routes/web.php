@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\ActivoController;
 
 /*
 |--------------------------------------------------------------------------
@@ -15,12 +16,14 @@ Route::get('/login',  fn() => view('auth.login'))->name('login.show');
 Route::post('/login', fn() => redirect('/dashboard'))->name('login.post');
 Route::get('/logout', fn() => redirect('/'))->name('logout');
 
+use App\Http\Controllers\DashboardController;
+
 // ── Dashboard ───────────────────────────────────────────────────
-Route::get('/dashboard', fn() => view('dashboard'))->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
 // ── Activos ─────────────────────────────────────────────────────
 Route::prefix('activos')->name('activos.')->group(function () {
-    Route::get('/',      fn() => view('activos.index'))->name('index');
+    Route::get('/', [ActivoController::class, 'index'])->name('index');
     Route::get('/{id}',  fn() => view('activos.show', ['id' => 1]))->name('show');
 });
 

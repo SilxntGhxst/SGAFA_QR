@@ -5,8 +5,10 @@ from datetime import datetime
 from app.routers import buzon
 from app.models.BuzonModel import BuzonCreate, BuzonUpdate
 from app.database.dbImaginary import buzon_db
-from app.routers import varios
 from fastapi.middleware.cors import CORSMiddleware
+
+from app.routers import varios
+from app.routers import activos
 
 app = FastAPI(
     title="SGAFA QR - Buzón de Discrepancias",
@@ -27,4 +29,4 @@ app.add_middleware(
 
 app.include_router(varios.router)
 app.include_router(buzon.router)
-
+app.include_router(activos.router)

@@ -7,7 +7,7 @@
 /* ── STATS ── */
 .stats-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 16px;
     margin-bottom: 24px;
 }
@@ -135,7 +135,7 @@
             </svg>
         </div>
         <div>
-            <div class="stat-value">42</div>
+            <div class="stat-value" id="stat-total-activos">{{ $stats['total_activos'] ?? 0 }}</div>
             <div class="stat-label">Total Activos</div>
         </div>
         <div class="stat-card-body">
@@ -155,7 +155,7 @@
             </svg>
         </div>
         <div>
-            <div class="stat-value" style="color:#dc2626;">8</div>
+            <div class="stat-value" style="color:#dc2626;" id="stat-faltantes">{{ $stats['activos_faltantes'] ?? 0 }}</div>
             <div class="stat-label">Activos Faltantes</div>
         </div>
         <div class="stat-card-body">
@@ -176,33 +176,13 @@
             </svg>
         </div>
         <div>
-            <div class="stat-value" style="color:#a16207;">10</div>
+            <div class="stat-value" style="color:#a16207;" id="stat-pendientes">{{ $stats['solicitudes_pendientes'] ?? 0 }}</div>
             <div class="stat-label">Solicitudes Pendientes</div>
         </div>
         <div class="stat-card-body">
             <span class="stat-trend warn">
                 <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="18 9 12 15 6 9"/></svg>
                 5 sin revisar
-            </span>
-        </div>
-    </div>
-
-    {{-- Valor Total --}}
-    <div class="stat-card" style="border-top: 3px solid #22c55e;">
-        <div class="stat-card-icon" style="background:#dcfce7; color:#15803d;">
-            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <line x1="12" y1="1" x2="12" y2="23"/>
-                <path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>
-            </svg>
-        </div>
-        <div>
-            <div class="stat-value" style="color:#15803d;">S/240,500</div>
-            <div class="stat-label">Valor Total</div>
-        </div>
-        <div class="stat-card-body">
-            <span class="stat-trend up">
-                <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>
-                +S/12,000
             </span>
         </div>
     </div>
@@ -218,22 +198,33 @@
             <span class="section-title">Inventario reciente</span>
             <a href="/activos" class="see-all">Ver todo →</a>
         </div>
-        <div class="inv-filters">
+        <form class="inv-filters" method="GET" action="{{ route('dashboard') }}">
             <div class="search-bar" style="max-width:220px;padding:9px 14px;">
                 <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
                 </svg>
-                <input type="text" placeholder="Buscar activo...">
+                <input type="text" name="search" placeholder="Buscar activo..." value="{{ request('search') }}">
             </div>
-            <div class="filter-select">
-                Categoría
-                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+            <div class="filter-select" style="padding:0; position:relative; display:flex; align-items:center;">
+                <select name="categoria_id" onchange="this.form.submit()" style="border:none; background:transparent; padding:9px 34px 9px 14px; width:100%; appearance:none; outline:none; cursor:pointer; font-family:inherit; font-size:inherit; color:inherit;">
+                    <option value="">Categoría</option>
+                    @foreach($catalogos['categorias'] ?? [] as $cat)
+                        <option value="{{ $cat['id'] }}" {{ request('categoria_id') == $cat['id'] ? 'selected' : '' }}>{{ $cat['categoria'] }}</option>
+                    @endforeach
+                </select>
+                <svg style="position:absolute; right:10px; pointer-events:none;" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
             </div>
-            <div class="filter-select">
-                Estado
-                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+            <div class="filter-select" style="padding:0; position:relative; display:flex; align-items:center;">
+                <select name="estado" onchange="this.form.submit()" style="border:none; background:transparent; padding:9px 34px 9px 14px; width:100%; appearance:none; outline:none; cursor:pointer; font-family:inherit; font-size:inherit; color:inherit;">
+                    <option value="">Estado</option>
+                    @foreach(['Disponible', 'Asignado', 'Mantenimiento', 'Prestado', 'Faltante', 'Funcional'] as $est)
+                        <option value="{{ $est }}" {{ request('estado') == $est ? 'selected' : '' }}>{{ $est }}</option>
+                    @endforeach
+                </select>
+                <svg style="position:absolute; right:10px; pointer-events:none;" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
             </div>
-        </div>
+            <noscript><button type="submit">Filtrar</button></noscript>
+        </form>
 
         <table class="data-table">
             <thead>
@@ -247,33 +238,37 @@
                 </tr>
             </thead>
             <tbody>
-                @php $items = [
-                    ['ACT-001','Escritorio',        'Santiago Meneses','Oficina',        '16 Feb 2026','Asignado',     'blue'],
-                    ['ACT-002','Ventilador',         'Carlos Chavez',   'Almacén',        '18 Feb 2026','Disponible',   'green'],
-                    ['ACT-003','Impresora HP Laser', 'Ruth Piña',       'Sala IT',        '17 Feb 2026','Mantenimiento','yellow'],
-                    ['ACT-004','Silla de escritorio','Andre Martinez',  'Oficina',        '19 Feb 2026','Asignado',     'blue'],
-                    ['ACT-005','Proyector',          'Valeria Briones', 'Sala Reuniones', '16 Feb 2026','Prestado',     'purple'],
-                ]; @endphp
-
-                @foreach($items as $it)
+                @forelse($activos as $it)
+                @php
+                    $color = match(strtolower($it['estado'] ?? '')) {
+                        'disponible' => 'green',
+                        'asignado' => 'blue',
+                        'mantenimiento' => 'yellow',
+                        'prestado' => 'purple',
+                        'faltante' => 'red',
+                        'funcional' => 'cyan',
+                        default => 'gray'
+                    };
+                    $fecha = isset($it['fecha']) ? \Carbon\Carbon::parse($it['fecha'])->format('d M Y') : 'N/A';
+                @endphp
                 <tr>
                     <td>
-                        <div style="font-weight:600;font-size:.88rem;">{{ $it[1] }}</div>
-                        <div style="font-size:.76rem;color:#9ca3af;font-family:'DM Mono',monospace;">{{ $it[0] }}</div>
+                        <div style="font-weight:600;font-size:.88rem;">{{ $it['nombre'] ?? 'N/A' }}</div>
+                        <div style="font-size:.76rem;color:#9ca3af;font-family:'DM Mono',monospace;">{{ $it['codigo'] ?? 'N/A' }}</div>
                     </td>
-                    <td style="font-size:.88rem;">{{ $it[2] }}</td>
-                    <td style="font-size:.88rem;color:#6b7a8d;">{{ $it[3] }}</td>
-                    <td style="font-size:.83rem;color:#9ca3af;white-space:nowrap;">{{ $it[4] }}</td>
-                    <td><span class="badge badge-{{ $it[6] }} badge-dot">{{ $it[5] }}</span></td>
+                    <td style="font-size:.88rem;">{{ $it['usuario'] ?? 'N/A' }}</td>
+                    <td style="font-size:.88rem;color:#6b7a8d;">{{ $it['ubicacion'] ?? 'N/A' }}</td>
+                    <td style="font-size:.83rem;color:#9ca3af;white-space:nowrap;">{{ $fecha }}</td>
+                    <td><span class="badge badge-{{ $color }} badge-dot">{{ $it['estado'] ?? 'N/A' }}</span></td>
                     <td>
                         <div style="display:flex;gap:6px;">
-                            <a href="/activos/1" class="action-btn" title="Ver detalle">
+                            <a href="/activos/{{ $it['id'] ?? 1 }}" class="action-btn" title="Ver detalle">
                                 <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                                     <circle cx="12" cy="12" r="3"/>
                                 </svg>
                             </a>
-                            <a href="/activos/1/edit" class="action-btn" title="Editar">
+                            <a href="/activos/{{ $it['id'] ?? 1 }}/edit" class="action-btn" title="Editar">
                                 <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                     <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
                                     <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
@@ -282,7 +277,13 @@
                         </div>
                     </td>
                 </tr>
-                @endforeach
+                @empty
+                <tr>
+                    <td colspan="6">
+                        <div class="empty-state">No se encontraron activos.</div>
+                    </td>
+                </tr>
+                @endforelse
             </tbody>
         </table>
 
@@ -299,43 +300,64 @@
         <div class="card">
             <div class="section-header">
                 <span class="section-title">Estado de Activos</span>
-                <span style="font-size:.78rem;color:#9ca3af;">42 total</span>
+                <span style="font-size:.78rem;color:#9ca3af;">{{ $stats['total_activos'] ?? 0 }} total</span>
             </div>
             <div class="donut-wrap">
+                @php
+                    $total_grafico = max($stats['total_activos'] ?? 1, 1);
+                    $circunferencia = 2 * pi() * 54; // aprox 339.292
+                    $estado_counts = $stats['estado_counts'] ?? [];
+                    
+                    // Colores sincronizados con los badges de la tabla
+                    $colores = [
+                        'Asignado' => '#3b82f6',      // badge-blue
+                        'Mantenimiento' => '#eab308', // badge-yellow
+                        'Disponible' => '#10b981',    // badge-green
+                        'Prestado' => '#8b5cf6',      // badge-purple
+                        'Faltante' => '#ef4444',      // badge-red
+                        'Funcional' => '#06b6d4'      // badge-cyan
+                    ];
+                    
+                    $offset_actual = 0;
+                @endphp
                 <svg class="donut-svg" width="140" height="140" viewBox="0 0 140 140">
                     <circle cx="70" cy="70" r="54" fill="none" stroke="#f0f2f5" stroke-width="22"/>
-                    <circle cx="70" cy="70" r="54" fill="none" stroke="#4a86b5" stroke-width="22"
-                        stroke-dasharray="152.7 186.6" stroke-dashoffset="0"
-                        stroke-linecap="butt" transform="rotate(-90 70 70)"/>
-                    <circle cx="70" cy="70" r="54" fill="none" stroke="#34d399" stroke-width="22"
-                        stroke-dasharray="101.8 237.5" stroke-dashoffset="-154.7"
-                        stroke-linecap="butt" transform="rotate(-90 70 70)"/>
-                    <circle cx="70" cy="70" r="54" fill="none" stroke="#f59e0b" stroke-width="22"
-                        stroke-dasharray="44.1 295.2" stroke-dashoffset="-258.5"
-                        stroke-linecap="butt" transform="rotate(-90 70 70)"/>
-                    <circle cx="70" cy="70" r="54" fill="none" stroke="#a78bfa" stroke-width="22"
-                        stroke-dasharray="40.7 298.6" stroke-dashoffset="-302.6"
-                        stroke-linecap="butt" transform="rotate(-90 70 70)"/>
-                    <text x="70" y="66" text-anchor="middle" font-family="Sora" font-size="20" font-weight="800" fill="#0f1f35">42</text>
+                    
+                    @if(isset($stats['estado_counts']))
+                        @foreach($colores as $estado => $color)
+                            @php
+                                $valor = $estado_counts[$estado] ?? 0;
+                                if ($valor == 0) continue;
+                                
+                                $longitud_arco = ($valor / $total_grafico) * $circunferencia;
+                                $espacio_restante = $circunferencia - $longitud_arco;
+                                
+                                $dasharray = "{$longitud_arco} {$espacio_restante}";
+                                $dashoffset = -$offset_actual;
+                                
+                                $offset_actual += $longitud_arco;
+                            @endphp
+                            <circle cx="70" cy="70" r="54" fill="none" stroke="{{ $color }}" stroke-width="22"
+                                stroke-dasharray="{{ $dasharray }}" stroke-dashoffset="{{ $dashoffset }}"
+                                stroke-linecap="butt" transform="rotate(-90 70 70)"/>
+                        @endforeach
+                    @endif
+                    
+                    <text x="70" y="66" text-anchor="middle" font-family="Sora" font-size="20" font-weight="800" fill="#0f1f35">{{ $stats['total_activos'] ?? 0 }}</text>
                     <text x="70" y="82" text-anchor="middle" font-family="DM Sans" font-size="9" fill="#9ca3af">activos</text>
                 </svg>
                 <div class="legend">
-                    <div class="legend-item">
-                        <div class="legend-dot" style="background:#4a86b5"></div>
-                        <span>Asignado <strong style="color:#0f1f35;">19</strong></span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-dot" style="background:#06b6d4"></div>
-                        <span>Mant. <strong style="color:#0f1f35;">5</strong></span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-dot" style="background:#34d399"></div>
-                        <span>Disponible <strong style="color:#0f1f35;">13</strong></span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-dot" style="background:#a78bfa"></div>
-                        <span>Prestado <strong style="color:#0f1f35;">5</strong></span>
-                    </div>
+                    @if(isset($stats['estado_counts']))
+                        @foreach($colores as $estado => $color)
+                            @php $v = $estado_counts[$estado] ?? 0; @endphp
+                            @if($v > 0)
+                            <div class="legend-item">
+                                <div class="legend-dot" style="background:{{ $color }}"></div>
+                                <span>{{ $estado == 'Mantenimiento' ? 'Mant.' : $estado }} <strong style="color:#0f1f35;">{{ $v }}</strong></span>
+                            </div>
+                            @endif
+                        @endforeach
+                    @endif
                 </div>
             </div>
         </div>
