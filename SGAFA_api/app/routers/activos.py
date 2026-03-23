@@ -45,6 +45,7 @@ def get_activos(
     search: Optional[str] = Query(None, description="Búsqueda general"),
     categoria_id: Optional[int] = Query(None, description="Filtro por ID de categoría"),
     estado: Optional[str] = Query(None, description="Filtro por estado"),
+    ubicacion_id: Optional[int] = Query(None, description="Filtro por ID de ubicación"),
     limit: Optional[int] = Query(None, description="Límite de resultados"),
     offset: Optional[int] = Query(0, description="Para paginación"),
     db = None # TODO: Inyectar DB `db: Session = Depends(get_db)` para consulta a PostgreSQL
@@ -58,6 +59,8 @@ def get_activos(
         resultados = [b for b in resultados if b["categoria_id"] == categoria_id]
     if estado:
         resultados = [b for b in resultados if b["estado"].lower() == estado.lower()]
+    if ubicacion_id:
+        resultados = [b for b in resultados if b["ubicacion_id"] == ubicacion_id]
 
     total_count = len(resultados)
 

@@ -112,6 +112,9 @@
                 <option value="Activo Faltante">Activo Faltante</option>
                 <option value="Reporte de Daño">Reporte de Daño</option>
                 <option value="Activo Fantasma">Activo Fantasma</option>
+                <option value="Activo sin registro">Activo sin registro</option>
+                <option value="fuera_de_lugar">Activo Fuera de Lugar</option>
+                <option value="Solicitud de Prórroga">Solicitud de Prórroga</option>
             </select>
             <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
@@ -191,8 +194,11 @@
                 <label>Tipo</label>
                 <select id="edit-tipo">
                     <option>Activo sin registro</option>
+                    <option>Activo Faltante</option>
                     <option>Reporte de Daño</option>
                     <option>Activo Fantasma</option>
+                    <option value="fuera_de_lugar">Activo Fuera de Lugar</option>
+                    <option>Solicitud de Prórroga</option>
                 </select>
             </div>
             <div class="form-group">
@@ -254,8 +260,11 @@ let currentDeleteId   = null;
 
 const coloresTipo = {
     'Activo Faltante': 'orange',
+    'Activo sin registro': 'orange',
     'Reporte de Daño': 'red',
     'Activo Fantasma': 'purple',
+    'fuera_de_lugar': 'teal',
+    'Solicitud de Prórroga': 'indigo',
 };
 const coloresEstado = {
     'Pendiente':   'yellow',

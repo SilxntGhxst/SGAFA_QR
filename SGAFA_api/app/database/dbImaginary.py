@@ -40,6 +40,37 @@ buzon_db: List[dict] = [
     },
 ]
 
+auditorias_db = [
+    {
+        "id": 1,
+        "folio": "AUD-2026-001",
+        "ubicacion_id": 4, # Laboratorio Redes
+        "usuario_id": "uuid-user-1",
+        "fecha": "2026-03-22",
+        "fecha_inicio": "2026-03-22",
+        "fecha_fin": "2026-03-26",
+        "estado": "En Progreso",
+        "escaneados": 3,
+        "total_esperados": 6,
+        "resumen_final": "",
+        "activos_escaneados": ["uuid-bien-27", "uuid-bien-20", "uuid-bien-16"]
+    },
+    {
+        "id": 2,
+        "folio": "AUD-2026-002",
+        "ubicacion_id": 1, 
+        "usuario_id": "uuid-user-1",
+        "fecha": "2026-03-25",
+        "fecha_inicio": "2026-03-28",
+        "fecha_fin": "2026-03-30",
+        "estado": "Pendiente",
+        "escaneados": 0,
+        "total_esperados": 5,
+        "resumen_final": "",
+        "activos_escaneados": []
+    }
+]
+
 activos_db = [
     {"id": 1, "codigo": "ACT-001", "nombre": "Escritorio", "usuario": "Santiago Meneses", "ubicacion": "Oficina", "fecha": "2026-02-16", "estado": "Asignado", "categoria": "Mobiliario", "color_badge": "blue"},
     {"id": 2, "codigo": "ACT-002", "nombre": "Ventilador", "usuario": "Carlos Chavez", "ubicacion": "Almacén", "fecha": "2026-02-18", "estado": "Disponible", "categoria": "Electrónica", "color_badge": "green"},

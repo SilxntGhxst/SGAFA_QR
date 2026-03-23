@@ -33,7 +33,8 @@ Route::prefix('activos')->name('activos.')->group(function () {
 // ── Solicitudes ─────────────────────────────────────────────────
 Route::prefix('solicitudes')->name('solicitudes.')->group(function () {
     Route::get('/',                  fn() => redirect('/solicitudes/administrativos'));
-    Route::get('/administrativos',   fn() => view('solicitudes.administrativos'))->name('administrativos');
+    Route::get('/administrativos',   [\App\Http\Controllers\AuditoriaController::class, 'index'])->name('administrativos');
+    Route::post('/administrativos',  [\App\Http\Controllers\AuditoriaController::class, 'store'])->name('administrativos.store');
     Route::get('/buzon',             fn() => view('solicitudes.buzon'))->name('buzon');
     Route::get('/nueva',             fn() => view('solicitudes.administrativos'))->name('nueva');
     Route::get('/{id}',              fn() => view('solicitudes.administrativos'))->name('show');

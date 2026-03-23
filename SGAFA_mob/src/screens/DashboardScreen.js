@@ -6,167 +6,53 @@ import {
   TouchableOpacity,
   ScrollView,
   Modal,
+  ActivityIndicator,
+  RefreshControl,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import { colors } from "../theme/colors";
-
-const mockData = {
-  usuario: { nombre: "Santiago", rol: "Resguardante / Auditor" },
-  metricas: { auditoriasPendientes: 3, activosAsignados: 124 },
-  actividadReciente: [
-    {
-      id: "1",
-      tipo: "alerta",
-      titulo: "Auditoría Laboratorio A",
-      fecha: "Hoy, 10:00 AM",
-      estado: "Pendiente",
-    },
-    {
-      id: "2",
-      tipo: "exito",
-      titulo: "Laptop Dell XPS 15",
-      fecha: "Ayer, 16:30 PM",
-      estado: "Escaneado",
-    },
-    {
-      id: "3",
-      tipo: "aviso",
-      titulo: "Proyector Epson",
-      fecha: "Ayer, 11:15 AM",
-      estado: "Reporte Daño",
-    },
-  ],
-};
-
-const mockActividadExtendida = [
-  ...mockData.actividadReciente,
-  {
-    id: "4",
-    tipo: "exito",
-    titulo: "Silla Ergonómica",
-    fecha: "01 Mar, 09:00 AM",
-    estado: "Escaneado",
-  },
-  {
-    id: "5",
-    tipo: "exito",
-    titulo: 'Monitor LG 24"',
-    fecha: "01 Mar, 08:45 AM",
-    estado: "Escaneado",
-  },
-  {
-    id: "6",
-    tipo: "aviso",
-    titulo: "Router Cisco",
-    fecha: "28 Feb, 14:20 PM",
-    estado: "Faltante",
-  },
-  {
-    id: "7",
-    tipo: "alerta",
-    titulo: "Auditoría Sala Juntas",
-    fecha: "27 Feb, 11:00 AM",
-    estado: "Pendiente",
-  },
-  {
-    id: "8",
-    tipo: "exito",
-    titulo: "Impresora HP LaserJet",
-    fecha: "26 Feb, 16:15 PM",
-    estado: "Escaneado",
-  },
-  {
-    id: "9",
-    tipo: "aviso",
-    titulo: "Escritorio Dirección",
-    fecha: "25 Feb, 10:30 AM",
-    estado: "Dañado",
-  },
-  {
-    id: "10",
-    tipo: "exito",
-    titulo: "Teléfono IP",
-    fecha: "25 Feb, 09:00 AM",
-    estado: "Escaneado",
-  },
-  {
-    id: "11",
-    tipo: "exito",
-    titulo: "Pizarra Magnética",
-    fecha: "24 Feb, 12:00 PM",
-    estado: "Escaneado",
-  },
-];
+import { useDashboard } from "../domain/useCases/useDashboard";
+import MetricCard from "../components/Dashboard/MetricCard";
+import ActivityItem from "../components/Dashboard/ActivityItem";
 
 export default function DashboardScreen({ navigation }) {
   const [modalVisible, setModalVisible] = useState(false);
+  const { data, isLoading, error, refetch } = useDashboard();
 
-  const renderActivityIcon = (tipo) => {
-    switch (tipo) {
-      case "alerta":
-        return <Feather name="clock" size={20} color={colors.warning} />;
-      case "exito":
-        return <Feather name="check-circle" size={20} color={colors.success} />;
-      case "aviso":
-        return (
-          <Feather name="alert-triangle" size={20} color={colors.danger} />
-        );
-      default:
-        return <Feather name="info" size={20} color={colors.info} />;
-    }
-  };
-
-  // --- NUEVA FUNCIÓN PARA LOS COLORES DE LAS ETIQUETAS ---
-  const getBadgeStyle = (tipo) => {
-    switch (tipo) {
-      case "alerta":
-        return { bg: colors.warningBg, text: colors.warning };
-      case "exito":
-        return { bg: colors.successBg, text: colors.success };
-      case "aviso":
-        return { bg: colors.dangerBg, text: colors.danger };
-      default:
-        return { bg: colors.infoBg, text: colors.info };
-    }
-  };
-
-  // Función auxiliar para renderizar cada fila (usada en Dashboard y Modal)
-  const renderItem = (item) => {
-    const badgeStyle = getBadgeStyle(item.tipo);
+  if (isLoading && !data) {
     return (
-      <View key={item.id} style={styles.activityItem}>
-        <View style={styles.activityIconContainer}>
-          {renderActivityIcon(item.tipo)}
-        </View>
-        <View style={styles.activityDetails}>
-          <Text style={styles.activityTitle}>{item.titulo}</Text>
-          <Text style={styles.activityDate}>{item.fecha}</Text>
-        </View>
-        <View style={styles.activityStatus}>
-          {/* Aquí aplicamos el recuadro con color dinámico */}
-          <View
-            style={[styles.statusBadge, { backgroundColor: badgeStyle.bg }]}
-          >
-            <Text style={[styles.statusText, { color: badgeStyle.text }]}>
-              {item.estado}
-            </Text>
-          </View>
-        </View>
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={colors.accent} />
+        <Text style={styles.loadingText}>Cargando panel...</Text>
       </View>
     );
-  };
+  }
+
+  if (error) {
+    return (
+      <View style={styles.errorContainer}>
+        <Feather name="alert-circle" size={48} color={colors.danger} />
+        <Text style={styles.errorText}>{error}</Text>
+        <TouchableOpacity style={styles.retryButton} onPress={refetch}>
+          <Text style={styles.retryText}>Reintentar</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.safeArea}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContainer}
+        refreshControl={
+          <RefreshControl refreshing={isLoading && !!data} onRefresh={refetch} tintColor={colors.accent} />
+        }
       >
         <View style={styles.header}>
           <View>
-            <Text style={styles.greeting}>Hola, {mockData.usuario.nombre}</Text>
-            <Text style={styles.role}>{mockData.usuario.rol}</Text>
+            <Text style={styles.greeting}>Hola, {data?.usuario?.nombre || "Usuario"}</Text>
+            <Text style={styles.role}>{data?.usuario?.rol || ""}</Text>
           </View>
           <TouchableOpacity
             style={styles.avatarPlaceholder}
@@ -177,18 +63,14 @@ export default function DashboardScreen({ navigation }) {
         </View>
 
         <View style={styles.metricsContainer}>
-          <View style={styles.metricCard}>
-            <Text style={styles.metricValue}>
-              {mockData.metricas.auditoriasPendientes}
-            </Text>
-            <Text style={styles.metricLabel}>Auditorías{"\n"}Pendientes</Text>
-          </View>
-          <View style={styles.metricCard}>
-            <Text style={styles.metricValue}>
-              {mockData.metricas.activosAsignados}
-            </Text>
-            <Text style={styles.metricLabel}>Activos{"\n"}Asignados</Text>
-          </View>
+          <MetricCard
+            value={data?.metricas?.auditoriasPendientes || 0}
+            label={"Auditorías\nPendientes"}
+          />
+          <MetricCard
+            value={data?.metricas?.activosAsignados || 0}
+            label={"Activos\nAsignados"}
+          />
         </View>
 
         <Text style={styles.sectionTitle}>Acciones Rápidas</Text>
@@ -222,7 +104,9 @@ export default function DashboardScreen({ navigation }) {
         </View>
 
         <View style={styles.activityList}>
-          {mockData.actividadReciente.map(renderItem)}
+          {data?.actividadReciente?.map((item) => (
+            <ActivityItem key={item.id} item={item} />
+          ))}
         </View>
       </ScrollView>
 
@@ -247,7 +131,9 @@ export default function DashboardScreen({ navigation }) {
               showsVerticalScrollIndicator={false}
               contentContainerStyle={{ paddingBottom: 24 }}
             >
-              {mockActividadExtendida.map(renderItem)}
+              {data?.historial?.map((item) => (
+                <ActivityItem key={item.id} item={item} />
+              ))}
             </ScrollView>
           </View>
         </View>
@@ -258,11 +144,18 @@ export default function DashboardScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: colors.background },
+  loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: colors.background },
+  loadingText: { marginTop: 12, fontSize: 16, color: colors.textSecondary, fontWeight: "600" },
+  errorContainer: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: colors.background, padding: 24 },
+  errorText: { marginTop: 16, fontSize: 16, color: colors.danger, textAlign: "center", fontWeight: "600", marginBottom: 24 },
+  retryButton: { backgroundColor: colors.accent, paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12 },
+  retryText: { color: colors.surface, fontWeight: "700" },
+
   scrollContainer: { 
-  paddingHorizontal: 24, 
-  paddingTop: 20,
-  paddingBottom: 40 
-},
+    paddingHorizontal: 24, 
+    paddingTop: 40,
+    paddingBottom: 40 
+  },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -293,32 +186,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     marginBottom: 32,
-  },
-  metricCard: {
-    flex: 1,
-    backgroundColor: colors.surface,
-    padding: 20,
-    borderRadius: 16,
-    marginHorizontal: 4,
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: "#f1f5f9",
-  },
-  metricValue: {
-    fontSize: 32,
-    fontWeight: "800",
-    color: colors.accent,
-    marginBottom: 8,
-  },
-  metricLabel: {
-    fontSize: 13,
-    color: colors.textSecondary,
-    fontWeight: "600",
-    lineHeight: 18,
   },
   sectionTitle: {
     fontSize: 18,
@@ -377,34 +244,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#f1f5f9",
   },
-  activityItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f1f5f9",
-  },
-  activityIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: "#f8fafc",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-  },
-  activityDetails: { flex: 1 },
-  // --- ESTILOS NUEVOS PARA EL BADGE ---
-  activityStatus: { paddingLeft: 8 },
-  statusBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  statusText: { fontSize: 11, fontWeight: "800", textTransform: "uppercase" },
-
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(15, 23, 42, 0.6)",

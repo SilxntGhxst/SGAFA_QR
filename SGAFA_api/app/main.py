@@ -9,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.routers import varios
 from app.routers import activos
+from app.routers import auditorias
 
 app = FastAPI(
     title="SGAFA QR - Buzón de Discrepancias",
@@ -30,3 +31,4 @@ app.add_middleware(
 app.include_router(varios.router)
 app.include_router(buzon.router)
 app.include_router(activos.router)
+app.include_router(auditorias.router)

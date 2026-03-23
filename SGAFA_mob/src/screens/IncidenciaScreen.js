@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -17,13 +17,20 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { Feather } from "@expo/vector-icons";
 import { colors } from "../theme/colors";
+import { useIncidencias } from "../domain/useCases/useIncidencias";
 
-const API_BASE_URL = `http://${process.env.EXPO_PUBLIC_API_IP}:8080/api`;
-const TIPOS = ["Activo Fantasma", "Activo sin registro", "Reporte de Daño"];
+const TIPOS = [
+  "Activo Fantasma",
+  "Activo sin registro",
+  "Reporte de Daño",
+  "Activo Fuera de Lugar", // Added this type
+];
 
-
-export default function IncidenciaScreen({ navigation }) {
+export default function IncidenciaScreen({ route, navigation }) {
   const [permission, requestPermission] = useCameraPermissions();
+  
+  // Custom Hook (Domain Layer)
+  const { submitIncidencia, isSubmitting, isSuccess, errorApi, resetState } = useIncidencias();
 
   // Campos del formulario
   const [descripcion, setDescripcion] = useState("");
@@ -36,10 +43,14 @@ export default function IncidenciaScreen({ navigation }) {
   const [photoUri, setPhotoUri]               = useState(null);
   const cameraRef = useRef(null);
 
-  // Estado de envío
-  const [enviando, setEnviando]   = useState(false);
-  const [enviado, setEnviado]     = useState(false);
-  const [errorApi, setErrorApi]   = useState(null);
+  // Auto-fill from route params
+  const { autoFill } = route.params || {};
+  useEffect(() => {
+    if (autoFill) {
+      if (autoFill.tipo_incidencia) setTipo(autoFill.tipo_incidencia);
+      if (autoFill.descripcion) setDescripcion(autoFill.descripcion);
+    }
+  }, [autoFill]);
 
   // ── Cámara ──────────────────────────────────────────────────
   const handleAbrirCamara = async () => {
@@ -67,49 +78,25 @@ export default function IncidenciaScreen({ navigation }) {
 
   // ── Enviar al API ────────────────────────────────────────────
   const handleEnviar = async () => {
-    setErrorApi(null);
-
     if (!descripcion.trim() || !ubicacion.trim()) {
       Alert.alert("Campos incompletos", "Por favor ingresa la descripción y la ubicación.");
       return;
     }
 
-    setEnviando(true);
+    const result = await submitIncidencia({
+      activo:        descripcion,
+      tipo:          tipo,
+      reportado_por: responsable,
+      area:          ubicacion,
+      descripcion:   descripcion,
+      foto:          photoUri ?? null,
+    });
 
-    try {
-      const response = await fetch(`${API_BASE_URL}/buzon`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept":        "application/json",
-        },
-        body: JSON.stringify({
-          activo:        descripcion,
-          tipo:          tipo,
-          reportado_por: responsable,
-          area:          ubicacion,
-          descripcion:   descripcion,
-          foto:          photoUri ?? null,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Error al enviar el reporte.");
-      }
-
-      // Éxito
-      setEnviado(true);
-
-    } catch (error) {
-      setErrorApi(error.message || "No se pudo conectar al servidor.");
+    if (!result.success) {
       Alert.alert(
         "Error de conexión",
-        error.message || "Verifica que el servidor esté activo.",
+        result.error || "Verifica que el servidor esté activo.",
       );
-    } finally {
-      setEnviando(false);
     }
   };
 
@@ -119,12 +106,11 @@ export default function IncidenciaScreen({ navigation }) {
     setResponsable("Santiago");
     setTipo(TIPOS[0]);
     setPhotoUri(null);
-    setEnviado(false);
-    setErrorApi(null);
+    resetState();
   };
 
   // ── Pantalla de éxito ────────────────────────────────────────
-  if (enviado) {
+  if (isSuccess) {
     return (
       <SafeAreaView style={styles.safeArea} edges={["top"]}>
         <View style={styles.headerContainer}>
@@ -284,11 +270,11 @@ export default function IncidenciaScreen({ navigation }) {
 
           {/* Botón enviar */}
           <TouchableOpacity
-            style={[styles.submitButton, enviando && styles.submitButtonDisabled]}
+            style={[styles.submitButton, isSubmitting && styles.submitButtonDisabled]}
             onPress={handleEnviar}
-            disabled={enviando}
+            disabled={isSubmitting}
           >
-            {enviando ? (
+            {isSubmitting ? (
               <ActivityIndicator color={colors.surface} size="small" />
             ) : (
               <>
