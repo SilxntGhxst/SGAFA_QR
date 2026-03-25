@@ -1,197 +1,179 @@
-from fastapi import APIRouter, Query, HTTPException, status
-from typing import Optional, List
+from fastapi import APIRouter, Query, HTTPException, status, Depends
+from typing import Optional
+from sqlalchemy.orm import Session
 from app.models.ActivoModel import ActivoCreate, ActivoUpdate, ActivoResponse
-from app.database.dbImaginary import (
-    bienes_muebles_db, categorias_db, ubicaciones_db, usuarios_db,
-    solicitudes_cambio_db, detalle_auditoria_db # <--- Agregamos estas dos para las stats
-)
+from app.database.db import get_db
+from app.database.models import BienMueble, Categoria, Ubicacion, Usuario, EstadoActivo
 
 router = APIRouter(prefix="/api/activos", tags=["Gestión de Activos"])
 
-contador_activo_id = 4 # Empezamos simulando ID's incrementales (uuid-bien-4)
+color_map = {
+    "funcional":     "green",
+    "mantenimiento": "yellow",
+    "baja":          "gray",
+}
+
+
+def _enriquecer(bien: BienMueble, db: Session) -> dict:
+    cat  = db.query(Categoria).filter(Categoria.id == bien.categoria_id).first()
+    ubi  = db.query(Ubicacion).filter(Ubicacion.id == bien.ubicacion_id).first()
+    user = db.query(Usuario).filter(Usuario.id == bien.usuario_responsable_id).first() if bien.usuario_responsable_id else None
+
+    cat_nombre  = cat.categoria if cat else "Sin categoría"
+    ubi_nombre  = ubi.nombre if ubi else "Sin ubicación"
+    user_nombre = f"{user.nombre} {user.apellidos}" if user else "Sin asignar"
+    estado_str  = bien.estado.value if bien.estado else "funcional"
+    color       = color_map.get(estado_str, "blue")
+
+    return ActivoResponse(
+        id=str(bien.id),
+        codigo=bien.codigo_inventario,
+        nombre=bien.nombre,
+        categoria=cat_nombre,
+        ubicacion=ubi_nombre,
+        usuario=user_nombre,
+        estado=estado_str.capitalize(),
+        fecha=str(bien.creado_at)[:10] if bien.creado_at else "",
+        color_badge=color
+    ).model_dump()
+
+
+# 1. STATS — para el dashboard
 @router.get("/stats")
-def get_stats(db = None): # TODO: Reemplazar db=None por `db: Session = Depends(get_db)` para PostgreSQL
-    # TODO: Cuando haya BD, ejecutar `db.query(BienMueble).count()` etc.
-    
-    total = len(bienes_muebles_db)
-    
-    estado_counts = {
-        "Funcional": len([b for b in bienes_muebles_db if b["estado"].lower() == "funcional"]),
-        "En mantenimiento": len([b for b in bienes_muebles_db if b["estado"].lower() == "en mantenimiento"]),
-        "Baja": len([b for b in bienes_muebles_db if b["estado"].lower() == "baja"]),
-        "Faltante": len([b for b in bienes_muebles_db if b["estado"].lower() == "faltante"]),
-    }
+def get_stats(db: Session = Depends(get_db)):
+    total         = db.query(BienMueble).count()
+    funcional     = db.query(BienMueble).filter(BienMueble.estado == EstadoActivo.funcional).count()
+    mantenimiento = db.query(BienMueble).filter(BienMueble.estado == EstadoActivo.mantenimiento).count()
+    baja          = db.query(BienMueble).filter(BienMueble.estado == EstadoActivo.baja).count()
 
     return {
         "total_activos": total,
-        "activos_faltantes": estado_counts["Faltante"],
-        "solicitudes_pendientes": len([s for s in solicitudes_cambio_db if s["estatus"] == "Pendiente"]),
-        "estado_counts": estado_counts
+        "activos_faltantes": 0,
+        "solicitudes_pendientes": 0,
+        "estado_counts": {
+            "Funcional":        funcional,
+            "En mantenimiento": mantenimiento,
+            "Baja":             baja,
+        }
     }
 
-# 2. ENDPOINT DE CATÁLOGOS (Para llenar los Selects en el Frontend)
+
+# 2. CATÁLOGOS — para llenar los selects en el frontend
 @router.get("/catalogos")
-def get_catalogos(db = None): # TODO: Inyectar DB (PostgreSQL)
-
+def get_catalogos(db: Session = Depends(get_db)):
+    categorias = db.query(Categoria).all()
+    ubicaciones = db.query(Ubicacion).all()
+    usuarios    = db.query(Usuario).all()
     return {
-        "categorias": categorias_db,
-        "ubicaciones": ubicaciones_db,
-        "usuarios": usuarios_db
+        "categorias": [{"id": c.id, "categoria": c.categoria} for c in categorias],
+        "ubicaciones": [{"id": u.id, "nombre": u.nombre, "edificio": u.edificio} for u in ubicaciones],
+        "usuarios":    [{"id": str(u.id), "nombre": u.nombre, "apellidos": u.apellidos} for u in usuarios],
     }
 
-# 3. ENDPOINT UNIVERSAL DE INVENTARIO (Para Dashboard, Web y Móvil)
+
+# 3. LISTAR con filtros y paginación
 @router.get("/")
 def get_activos(
-    search: Optional[str] = Query(None, description="Búsqueda general"),
-    categoria_id: Optional[int] = Query(None, description="Filtro por ID de categoría"),
-    estado: Optional[str] = Query(None, description="Filtro por estado"),
-    ubicacion_id: Optional[int] = Query(None, description="Filtro por ID de ubicación"),
-    limit: Optional[int] = Query(None, description="Límite de resultados"),
-    offset: Optional[int] = Query(0, description="Para paginación"),
-    db = None # TODO: Inyectar DB `db: Session = Depends(get_db)` para consulta a PostgreSQL
+    search:       Optional[str] = Query(None),
+    categoria_id: Optional[int] = Query(None),
+    estado:       Optional[str] = Query(None),
+    ubicacion_id: Optional[int] = Query(None),
+    limit:        Optional[int] = Query(None),
+    offset:       Optional[int] = Query(0),
+    db: Session = Depends(get_db)
 ):
-    resultados = bienes_muebles_db
+    query = db.query(BienMueble)
 
     if search:
-        s = search.lower()
-        resultados = [b for b in resultados if s in b["nombre"].lower() or s in b["codigo_inventario"].lower()]
-    if categoria_id:
-        resultados = [b for b in resultados if b["categoria_id"] == categoria_id]
-    if estado:
-        resultados = [b for b in resultados if b["estado"].lower() == estado.lower()]
-    if ubicacion_id:
-        resultados = [b for b in resultados if b["ubicacion_id"] == ubicacion_id]
-
-    total_count = len(resultados)
-
-    if limit:
-        resultados = resultados[offset : offset + limit]
-    else:
-        resultados = resultados[offset:]
-
-    inventario_enriquecido = []
-    
-    # Asignación de colores para el dashboard/badges
-    color_map = {
-        'funcional': 'green',
-        'en mantenimiento': 'yellow',
-        'baja': 'gray',
-        'faltante': 'red'
-    }
-
-    for bien in resultados:
-        cat = next((c["categoria"] for c in categorias_db if c["id"] == bien["categoria_id"]), "Sin categoría")
-        ubi = next((u["nombre"] for u in ubicaciones_db if u["id"] == bien["ubicacion_id"]), "Sin ubicación")
-        user_obj = next((u for u in usuarios_db if u["id"] == bien.get("usuario_responsable_id")), None)
-        user_name = f"{user_obj['nombre']} {user_obj['apellidos']}" if user_obj else "Sin asignar"
-        
-        c_badge = color_map.get(bien["estado"].lower(), "blue")
-
-        inventario_enriquecido.append(
-            ActivoResponse(
-                id=bien["id"],
-                codigo=bien["codigo_inventario"],
-                nombre=bien["nombre"],
-                categoria=cat,
-                ubicacion=ubi,
-                usuario=user_name,
-                estado=bien["estado"].capitalize(),
-                fecha=bien["creado_en"],
-                color_badge=c_badge
-            ).model_dump()
+        s = f"%{search.lower()}%"
+        query = query.filter(
+            BienMueble.nombre.ilike(s) | BienMueble.codigo_inventario.ilike(s)
         )
+    if categoria_id:
+        query = query.filter(BienMueble.categoria_id == categoria_id)
+    if estado:
+        query = query.filter(BienMueble.estado == estado.lower())
+    if ubicacion_id:
+        query = query.filter(BienMueble.ubicacion_id == ubicacion_id)
+
+    total = query.count()
+    bienes = query.offset(offset).limit(limit).all() if limit else query.offset(offset).all()
 
     return {
-        "data": inventario_enriquecido,
-        "total": total_count
+        "data":  [_enriquecer(b, db) for b in bienes],
+        "total": total
     }
 
-def procesar_nuevos_catalogos(payload):
-    if isinstance(payload.categoria_id, str):
-        if payload.categoria_id.isdigit():
-            payload.categoria_id = int(payload.categoria_id)
-        else:
-            nuevo_id = max([c["id"] for c in categorias_db]) + 1 if categorias_db else 1
-            categorias_db.append({"id": nuevo_id, "categoria": payload.categoria_id})
-            payload.categoria_id = nuevo_id
 
-    if isinstance(payload.ubicacion_id, str):
-        if payload.ubicacion_id.isdigit():
-            payload.ubicacion_id = int(payload.ubicacion_id)
-        else:
-            nuevo_id = max([u["id"] for u in ubicaciones_db]) + 1 if ubicaciones_db else 1
-            ubicaciones_db.append({"id": nuevo_id, "nombre": payload.ubicacion_id, "edificio": "Otro"})
-            payload.ubicacion_id = nuevo_id
+# 4. OBTENER por código (usado al escanear QR)
+@router.get("/{codigo}")
+def get_activo_por_codigo(codigo: str, db: Session = Depends(get_db)):
+    bien = db.query(BienMueble).filter(BienMueble.codigo_inventario == codigo).first()
+    if not bien:
+        raise HTTPException(status_code=404, detail="Activo no encontrado.")
+    return {"success": True, "data": _enriquecer(bien, db)}
 
-    if payload.usuario_responsable_id and not payload.usuario_responsable_id.startswith("uuid-"):
-        nuevo_id = f"uuid-user-{len(usuarios_db) + 1}"
-        parts = payload.usuario_responsable_id.split(" ", 1)
-        nombre = parts[0]
-        apellidos = parts[1] if len(parts) > 1 else ""
-        usuarios_db.append({"id": nuevo_id, "nombre": nombre, "apellidos": apellidos})
-        payload.usuario_responsable_id = nuevo_id
 
-    return payload
-
-# 4. ENDPOINT POST - CREAR ACTIVO
+# 5. CREAR activo
 @router.post("/", status_code=status.HTTP_201_CREATED)
-def crear_activo(payload: ActivoCreate, db = None):
-    global contador_activo_id
-    from datetime import datetime
-    
-    nuevo_id = f"uuid-bien-{contador_activo_id}"
-    codigo_gen = f"ACT-{str(contador_activo_id).zfill(3)}"
-    
-    payload = procesar_nuevos_catalogos(payload)
+def crear_activo(payload: ActivoCreate, db: Session = Depends(get_db)):
+    total = db.query(BienMueble).count()
+    codigo = f"ACT-{str(total + 1).zfill(3)}"
 
-    nuevo = {
-        "id": nuevo_id,
-        "codigo_inventario": codigo_gen,
-        "nombre": payload.nombre,
-        "descripcion": payload.descripcion,
-        "categoria_id": payload.categoria_id,
-        "ubicacion_id": payload.ubicacion_id,
-        "usuario_responsable_id": payload.usuario_responsable_id,
-        "estado": payload.estado.lower(),
-        "creado_en": datetime.now().strftime("%Y-%m-%d")
-    }
-    
-    bienes_muebles_db.append(nuevo)
-    contador_activo_id += 1
-    
+    nuevo = BienMueble(
+        codigo_inventario=codigo,
+        nombre=payload.nombre,
+        descripcion=payload.descripcion,
+        categoria_id=int(payload.categoria_id),
+        ubicacion_id=int(payload.ubicacion_id),
+        usuario_responsable_id=payload.usuario_responsable_id if payload.usuario_responsable_id else None,
+        estado=payload.estado.lower(),
+    )
+    db.add(nuevo)
+    db.commit()
+    db.refresh(nuevo)
     return {
         "success": True,
         "message": "Activo creado exitosamente.",
-        "data": nuevo
+        "data": _enriquecer(nuevo, db)
     }
 
-# 5. ENDPOINT PUT - EDITAR ACTIVO
+
+# 6. EDITAR activo
 @router.put("/{id}")
-def actualizar_activo(id: str, payload: ActivoUpdate, db = None):
-    payload = procesar_nuevos_catalogos(payload)
+def actualizar_activo(id: str, payload: ActivoUpdate, db: Session = Depends(get_db)):
+    import uuid as _uuid
+    bien = db.query(BienMueble).filter(BienMueble.id == _uuid.UUID(id)).first()
+    if not bien:
+        raise HTTPException(status_code=404, detail="Activo no encontrado.")
 
-    for registro in bienes_muebles_db:
-        if registro["id"] == id:
-            campos = payload.dict(exclude_unset=True)
-            if "estado" in campos and campos["estado"]:
-                campos["estado"] = campos["estado"].lower()
-            registro.update(campos)
-            return {
-                "success": True,
-                "message": "Activo actualizado exitosamente.",
-                "data": registro
-            }
-    raise HTTPException(status_code=404, detail="Activo no encontrado.")
+    campos = payload.dict(exclude_unset=True)
+    if "estado" in campos and campos["estado"]:
+        campos["estado"] = campos["estado"].lower()
+    if "categoria_id" in campos and campos["categoria_id"]:
+        campos["categoria_id"] = int(campos["categoria_id"])
+    if "ubicacion_id" in campos and campos["ubicacion_id"]:
+        campos["ubicacion_id"] = int(campos["ubicacion_id"])
 
-# 6. ENDPOINT DELETE - ELIMINAR ACTIVO
+    for campo, valor in campos.items():
+        setattr(bien, campo, valor)
+
+    db.commit()
+    db.refresh(bien)
+    return {
+        "success": True,
+        "message": "Activo actualizado exitosamente.",
+        "data": _enriquecer(bien, db)
+    }
+
+
+# 7. ELIMINAR activo
 @router.delete("/{id}")
-def eliminar_activo(id: str, db = None):
-    for i, registro in enumerate(bienes_muebles_db):
-        if registro["id"] == id:
-            eliminado = bienes_muebles_db.pop(i)
-            return {
-                "success": True,
-                "message": "Activo eliminado exitosamente.",
-                "data": eliminado
-            }
-    raise HTTPException(status_code=404, detail="Activo no encontrado.")
+def eliminar_activo(id: str, db: Session = Depends(get_db)):
+    import uuid as _uuid
+    bien = db.query(BienMueble).filter(BienMueble.id == _uuid.UUID(id)).first()
+    if not bien:
+        raise HTTPException(status_code=404, detail="Activo no encontrado.")
+    db.delete(bien)
+    db.commit()
+    return {"success": True, "message": "Activo eliminado exitosamente."}

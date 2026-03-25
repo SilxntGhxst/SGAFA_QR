@@ -1,7 +1,8 @@
 from fastapi import status, HTTPException, Depends, APIRouter
+from sqlalchemy.orm import Session
 from app.models.BuzonModel import BuzonCreate, BuzonUpdate
-from app.database.dbImaginary import buzon_db
-from datetime import datetime
+from app.database.db import get_db
+from app.database.models import Buzon as BuzonDB
 
 router = APIRouter(
     prefix="/api/buzon",
@@ -9,48 +10,45 @@ router = APIRouter(
 )
 
 
-contador_id = 4  
-
-# GET todos
-@router.get("/", tags=["Buzón"])
-async def listar_buzon():
+# GET - Listar todos los reportes
+@router.get("/")
+async def listar_buzon(db: Session = Depends(get_db)):
+    registros = db.query(BuzonDB).all()
     return {
         "success": True,
-        "total": len(buzon_db),
-        "data": buzon_db
+        "total": len(registros),
+        "data": registros
     }
 
 
-# GET por ID
-@router.get("/{id}", tags=["Buzón"])
-async def obtener_buzon(id: int):
-    for registro in buzon_db:
-        if registro["id"] == id:
-            return {"success": True, "data": registro}
-    raise HTTPException(status_code=404, detail="Reporte no encontrado.")
+# GET - Obtener reporte por ID
+@router.get("/{id}")
+async def obtener_buzon(id: int, db: Session = Depends(get_db)):
+    registro = db.query(BuzonDB).filter(BuzonDB.id == id).first()
+    if not registro:
+        raise HTTPException(status_code=404, detail="Reporte no encontrado.")
+    return {"success": True, "data": registro}
 
 
-# POST - Insertar nuevo reporte (usado desde la app móvil)
-@router.post("/", tags=["Buzón"], status_code=201)
-async def crear_buzon(payload: BuzonCreate):
-    global contador_id
+# POST - Crear nuevo reporte (desde la app móvil)
+@router.post("/", status_code=201)
+async def crear_buzon(payload: BuzonCreate, db: Session = Depends(get_db)):
+    ultimo = db.query(BuzonDB).order_by(BuzonDB.id.desc()).first()
+    nuevo_id = (ultimo.id + 1) if ultimo else 1
 
-    nuevo = {
-        "id":           contador_id,
-        "codigo":       f"COD-{str(contador_id).zfill(3)}",
-        "activo":       payload.activo,
-        "tipo":         payload.tipo,
-        "reportado_por": payload.reportado_por,
-        "area":         payload.area,
-        "estado":       "Pendiente",
-        "descripcion":  payload.descripcion,
-        "foto":         payload.foto,
-        "created_at":   datetime.now().isoformat(),
-    }
-
-    buzon_db.append(nuevo)
-    contador_id += 1
-
+    nuevo = BuzonDB(
+        codigo=f"COD-{str(nuevo_id).zfill(3)}",
+        activo=payload.activo,
+        tipo=payload.tipo,
+        reportado_por=payload.reportado_por,
+        area=payload.area,
+        estado="Pendiente",
+        descripcion=payload.descripcion,
+        foto=payload.foto,
+    )
+    db.add(nuevo)
+    db.commit()
+    db.refresh(nuevo)
     return {
         "success": True,
         "message": "Reporte creado exitosamente.",
@@ -58,30 +56,32 @@ async def crear_buzon(payload: BuzonCreate):
     }
 
 
-# PUT - Editar reporte
-@router.put("/{id}", tags=["Buzón"])
-async def actualizar_buzon(id: int, payload: BuzonUpdate):
-    for registro in buzon_db:
-        if registro["id"] == id:
-            campos = payload.dict(exclude_unset=True)
-            registro.update(campos)
-            return {
-                "success": True,
-                "message": "Reporte actualizado exitosamente.",
-                "data": registro
-            }
-    raise HTTPException(status_code=404, detail="Reporte no encontrado.")
+# PUT - Actualizar reporte
+@router.put("/{id}")
+async def actualizar_buzon(id: int, payload: BuzonUpdate, db: Session = Depends(get_db)):
+    registro = db.query(BuzonDB).filter(BuzonDB.id == id).first()
+    if not registro:
+        raise HTTPException(status_code=404, detail="Reporte no encontrado.")
+    for campo, valor in payload.dict(exclude_unset=True).items():
+        setattr(registro, campo, valor)
+    db.commit()
+    db.refresh(registro)
+    return {
+        "success": True,
+        "message": "Reporte actualizado exitosamente.",
+        "data": registro
+    }
 
 
 # DELETE - Eliminar reporte
-@router.delete("/{id}", tags=["Buzón"])
-async def eliminar_buzon(id: int):
-    for i, registro in enumerate(buzon_db):
-        if registro["id"] == id:
-            eliminado = buzon_db.pop(i)
-            return {
-                "success": True,
-                "message": "Reporte eliminado exitosamente.",
-                "data": eliminado
-            }
-    raise HTTPException(status_code=404, detail="Reporte no encontrado.")
+@router.delete("/{id}")
+async def eliminar_buzon(id: int, db: Session = Depends(get_db)):
+    registro = db.query(BuzonDB).filter(BuzonDB.id == id).first()
+    if not registro:
+        raise HTTPException(status_code=404, detail="Reporte no encontrado.")
+    db.delete(registro)
+    db.commit()
+    return {
+        "success": True,
+        "message": "Reporte eliminado exitosamente."
+    }
