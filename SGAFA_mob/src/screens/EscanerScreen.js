@@ -397,10 +397,8 @@ const styles = StyleSheet.create({
 
   overlay: {
     flex: 1,
-    justifyContent: "space-between",
+    justifyContent: "center",
     alignItems: "center",
-    paddingTop: 60,
-    paddingBottom: 40
   },
 
   frameWrapper: { alignItems: "center", gap: 20 },
@@ -434,6 +432,8 @@ const styles = StyleSheet.create({
   },
 
   floatingActions: {
+      position: "absolute",
+      bottom: 40,
       width: "100%",
       alignItems: "center",
   },
