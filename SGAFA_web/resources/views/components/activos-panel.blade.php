@@ -429,9 +429,8 @@ function renderFormNuevo() {
             <div><label class="pf-label">Estado *</label>
                 <select name="estado" class="pf-field">
                     <option value="funcional">Funcional</option>
-                    <option value="en mantenimiento">En mantenimiento</option>
+                    <option value="mantenimiento">En mantenimiento</option>
                     <option value="baja">Baja</option>
-                    <option value="faltante">Faltante</option>
                 </select></div>
             <div><label class="pf-label">Usuario asignado</label>
                 <select name="usuario_responsable_id" class="pf-field" onchange="if(this.value==='NEW'){this.nextElementSibling.style.display='block';this.nextElementSibling.name='usuario_responsable_id';this.name='';this.nextElementSibling.focus()}else{this.nextElementSibling.style.display='none';this.nextElementSibling.name='';this.name='usuario_responsable_id'}">
@@ -559,10 +558,9 @@ function renderFormEditar(a) {
         <div class="pf-row">
             <div><label class="pf-label">Estado *</label>
                 <select name="estado" class="pf-field">
-                    <option value="funcional" ${st==='funcional'?'selected':''}>Funcional</option>
-                    <option value="en mantenimiento" ${st==='en mantenimiento'?'selected':''}>En mantenimiento</option>
-                    <option value="baja" ${st==='baja'?'selected':''}>Baja</option>
-                    <option value="faltante" ${st==='faltante'?'selected':''}>Faltante</option>
+                    <option value="funcional"     ${st==='funcional'?'selected':''}>Funcional</option>
+                    <option value="mantenimiento" ${st==='mantenimiento'||st==='en mantenimiento'?'selected':''}>En mantenimiento</option>
+                    <option value="baja"          ${st==='baja'?'selected':''}>Baja</option>
                 </select></div>
             <div><label class="pf-label">Usuario asignado</label>
                 <select name="usuario_responsable_id" class="pf-field" onchange="if(this.value==='NEW'){this.nextElementSibling.style.display='block';this.nextElementSibling.name='usuario_responsable_id';this.name='';this.nextElementSibling.focus()}else{this.nextElementSibling.style.display='none';this.nextElementSibling.name='';this.name='usuario_responsable_id'}">
