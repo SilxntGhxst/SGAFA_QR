@@ -44,10 +44,9 @@
         </select>
         <select name="estado" class="filter-select" onchange="this.form.submit()" style="appearance:none; padding-right:32px; background:transparent url('data:image/svg+xml;utf8,<svg width=\'14\' height=\'14\' fill=\'none\' stroke=\'%236b7a8d\' stroke-width=\'2.5\' viewBox=\'0 0 24 24\' xmlns=\'http://www.w3.org/2000/svg\'><polyline points=\'6 9 12 15 18 9\'></polyline></svg>') no-repeat right 12px center; cursor:pointer;">
             <option value="">Estado</option>
-            <option value="funcional" {{ request('estado') == 'funcional' ? 'selected' : '' }}>Funcional</option>
-            <option value="en mantenimiento" {{ request('estado') == 'en mantenimiento' ? 'selected' : '' }}>En mantenimiento</option>
-            <option value="baja" {{ request('estado') == 'baja' ? 'selected' : '' }}>Baja</option>
-            <option value="faltante" {{ request('estado') == 'faltante' ? 'selected' : '' }}>Faltante</option>
+            <option value="funcional"     {{ request('estado') == 'funcional'     ? 'selected' : '' }}>Funcional</option>
+            <option value="mantenimiento" {{ request('estado') == 'mantenimiento' ? 'selected' : '' }}>En mantenimiento</option>
+            <option value="baja"          {{ request('estado') == 'baja'          ? 'selected' : '' }}>Baja</option>
         </select>
         <select name="ubicacion_id" class="filter-select" onchange="this.form.submit()" style="appearance:none; padding-right:32px; background:transparent url('data:image/svg+xml;utf8,<svg width=\'14\' height=\'14\' fill=\'none\' stroke=\'%236b7a8d\' stroke-width=\'2.5\' viewBox=\'0 0 24 24\' xmlns=\'http://www.w3.org/2000/svg\'><polyline points=\'6 9 12 15 18 9\'></polyline></svg>') no-repeat right 12px center; cursor:pointer;">
             <option value="">Ubicación</option>

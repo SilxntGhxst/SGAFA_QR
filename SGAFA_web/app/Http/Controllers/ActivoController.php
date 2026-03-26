@@ -4,65 +4,93 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 
 class ActivoController extends Controller
 {
+    private string $apiBase = 'http://host.docker.internal:8080/api';
+
     public function index(Request $request)
     {
-        $apiBase = 'http://host.docker.internal:8080/api';
-
-        // Capturamos la página actual y el límite personalizable
-        $limit = $request->input('limit', 10);
-        $page = $request->input('page', 1);
+        $limit  = $request->input('limit', 10);
+        $page   = $request->input('page', 1);
         $offset = ($page - 1) * $limit;
 
         try {
-            // Pedimos los catálogos para llenar los filtros (Corrigiendo endpoint)
-            $catalogos = Http::get("$apiBase/activos/catalogos")->json();
-            
+            $catalogos = Http::timeout(5)->get("{$this->apiBase}/activos/catalogos")->json();
+
             $params = array_filter([
-                'search' => $request->search,
+                'search'       => $request->search,
                 'categoria_id' => $request->categoria_id,
-                'estado' => $request->estado,
+                'estado'       => $request->estado,
                 'ubicacion_id' => $request->ubicacion_id,
-                'limit' => $limit,
-                'offset' => $offset
+                'limit'        => $limit,
+                'offset'       => $offset,
             ], fn($val) => !is_null($val) && $val !== '');
-            
-            // Pedimos los activos a nuestro super-endpoint reutilizable
-            $response = Http::get("$apiBase/activos", $params)->json();
-            
-            $activos = $response['data'] ?? [];
-            $total = $response['total'] ?? 0;
-            
+
+            $response = Http::timeout(5)->get("{$this->apiBase}/activos", $params)->json();
+            $activos  = $response['data']  ?? [];
+            $total    = $response['total'] ?? 0;
+
         } catch (\Exception $e) {
             $catalogos = ['categorias' => [], 'ubicaciones' => [], 'usuarios' => []];
-            $activos = [];
-            $total = 0;
+            $activos   = [];
+            $total     = 0;
         }
 
-        // Pasamos todo a la vista, incluyendo variables para calcular la paginación manual
         return view('activos.index', compact('activos', 'catalogos', 'page', 'limit', 'total'));
     }
 
     public function store(Request $request)
     {
-        $apiBase = 'http://host.docker.internal:8080/api';
-        Http::post("$apiBase/activos", $request->all());
+        // Campos de texto que van a la API
+        $data = $request->only([
+            'nombre', 'descripcion', 'categoria_id',
+            'ubicacion_id', 'usuario_responsable_id', 'estado',
+        ]);
+
+        // Subir foto a Laravel Storage y enviar URL a la API
+        if ($request->hasFile('foto') && $request->file('foto')->isValid()) {
+            $path = $request->file('foto')->store('activos', 'public');
+            $data['foto'] = asset('storage/' . $path);
+        }
+
+        // Limpiar campos vacíos
+        $data = array_filter($data, fn($v) => !is_null($v) && $v !== '');
+
+        $response = Http::timeout(10)->post("{$this->apiBase}/activos", $data);
+
+        if (!$response->successful()) {
+            return redirect()->back()
+                ->with('error', 'Error al crear: ' . $response->body())
+                ->withInput();
+        }
+
         return redirect()->back()->with('success', 'Activo creado correctamente.');
     }
 
     public function update(Request $request, $id)
     {
-        $apiBase = 'http://host.docker.internal:8080/api';
-        Http::put("$apiBase/activos/$id", $request->all());
+        $data = $request->only([
+            'nombre', 'descripcion', 'categoria_id',
+            'ubicacion_id', 'usuario_responsable_id', 'estado',
+        ]);
+
+        if ($request->hasFile('foto') && $request->file('foto')->isValid()) {
+            $path = $request->file('foto')->store('activos', 'public');
+            $data['foto'] = asset('storage/' . $path);
+        }
+
+        $data = array_filter($data, fn($v) => !is_null($v) && $v !== '');
+
+        Http::timeout(10)->put("{$this->apiBase}/activos/{$id}", $data);
+
         return redirect()->back()->with('success', 'Activo actualizado correctamente.');
     }
 
     public function destroy($id)
     {
-        $apiBase = 'http://host.docker.internal:8080/api';
-        Http::delete("$apiBase/activos/$id");
+        Http::timeout(5)->delete("{$this->apiBase}/activos/{$id}");
         return redirect()->back()->with('success', 'Activo eliminado correctamente.');
     }
 }

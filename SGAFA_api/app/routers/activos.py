@@ -29,6 +29,8 @@ def _enriquecer(bien: BienMueble, db: Session) -> dict:
         id=str(bien.id),
         codigo=bien.codigo_inventario,
         nombre=bien.nombre,
+        descripcion=bien.descripcion or "",
+        foto=bien.foto or None,
         categoria=cat_nombre,
         ubicacion=ubi_nombre,
         usuario=user_nombre,
@@ -114,18 +116,45 @@ def get_activo_por_codigo(codigo: str, db: Session = Depends(get_db)):
     return {"success": True, "data": _enriquecer(bien, db)}
 
 
+def _resolver_categoria(valor, db: Session) -> int:
+    """Acepta ID numérico o nombre de categoría y devuelve el ID."""
+    if isinstance(valor, int):
+        return valor
+    if str(valor).isdigit():
+        return int(valor)
+    cat = db.query(Categoria).filter(Categoria.categoria.ilike(str(valor))).first()
+    if not cat:
+        raise HTTPException(status_code=400, detail=f"Categoría '{valor}' no encontrada. Verifica que exista en la BD.")
+    return cat.id
+
+def _resolver_ubicacion(valor, db: Session) -> int:
+    """Acepta ID numérico o nombre de ubicación y devuelve el ID."""
+    if isinstance(valor, int):
+        return valor
+    if str(valor).isdigit():
+        return int(valor)
+    ubi = db.query(Ubicacion).filter(Ubicacion.nombre.ilike(str(valor))).first()
+    if not ubi:
+        raise HTTPException(status_code=400, detail=f"Ubicación '{valor}' no encontrada. Verifica que exista en la BD.")
+    return ubi.id
+
+
 # 5. CREAR activo
 @router.post("/", status_code=status.HTTP_201_CREATED)
 def crear_activo(payload: ActivoCreate, db: Session = Depends(get_db)):
     total = db.query(BienMueble).count()
     codigo = f"ACT-{str(total + 1).zfill(3)}"
 
+    cat_id = _resolver_categoria(payload.categoria_id, db)
+    ubi_id = _resolver_ubicacion(payload.ubicacion_id, db)
+
     nuevo = BienMueble(
         codigo_inventario=codigo,
         nombre=payload.nombre,
         descripcion=payload.descripcion,
-        categoria_id=int(payload.categoria_id),
-        ubicacion_id=int(payload.ubicacion_id),
+        foto=payload.foto,
+        categoria_id=cat_id,
+        ubicacion_id=ubi_id,
         usuario_responsable_id=payload.usuario_responsable_id if payload.usuario_responsable_id else None,
         estado=payload.estado.lower(),
     )
@@ -151,9 +180,9 @@ def actualizar_activo(id: str, payload: ActivoUpdate, db: Session = Depends(get_
     if "estado" in campos and campos["estado"]:
         campos["estado"] = campos["estado"].lower()
     if "categoria_id" in campos and campos["categoria_id"]:
-        campos["categoria_id"] = int(campos["categoria_id"])
+        campos["categoria_id"] = _resolver_categoria(campos["categoria_id"], db)
     if "ubicacion_id" in campos and campos["ubicacion_id"]:
-        campos["ubicacion_id"] = int(campos["ubicacion_id"])
+        campos["ubicacion_id"] = _resolver_ubicacion(campos["ubicacion_id"], db)
 
     for campo, valor in campos.items():
         setattr(bien, campo, valor)
