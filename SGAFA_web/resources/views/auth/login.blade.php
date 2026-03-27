@@ -477,7 +477,8 @@
             <h2 class="card-title">Iniciar sesión</h2>
             <p class="card-sub">Bienvenido de nuevo al panel de control</p>
 
-            <form action="/login" method="POST">
+            <form action="{{ route('login.post') }}" method="POST">
+                @csrf
                 <div class="form-group">
                     <span class="input-icon">
                         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
@@ -502,8 +503,21 @@
                     </button>
                 </div>
 
+                {{-- Mensajes de error de validación / autenticación --}}
+                @if ($errors->any())
+                <div style="background:#fff0f0;border:1px solid #fca5a5;border-radius:10px;padding:0.75rem 1rem;margin-bottom:1rem;">
+                    <p style="color:#dc2626;font-size:.875rem;font-weight:600;margin:0;">{{ $errors->first() }}</p>
+                </div>
+                @endif
+
+                @if (session('error'))
+                <div style="background:#fff0f0;border:1px solid #fca5a5;border-radius:10px;padding:0.75rem 1rem;margin-bottom:1rem;">
+                    <p style="color:#dc2626;font-size:.875rem;font-weight:600;margin:0;">{{ session('error') }}</p>
+                </div>
+                @endif
+
                 {{-- Solo para navegación sin auth --}}
-                <button type="button" class="btn-submit" onclick="window.location='/dashboard'">
+                <button type="submit" class="btn-submit">
                     Iniciar Sesión
                 </button>
 

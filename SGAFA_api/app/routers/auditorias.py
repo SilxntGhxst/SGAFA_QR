@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, Query, status, Depends
 from typing import Optional
 from datetime import datetime
 from sqlalchemy.orm import Session
+import uuid as _uuid
 from app.models.AuditoriaModel import AuditoriaCreate, AuditoriaEscaneo, AuditoriaFinalizar
 from app.database.db import get_db
 from app.database.models import Auditoria, AuditoriaActivo, BienMueble, Ubicacion, Usuario
@@ -19,7 +20,11 @@ def listar_auditorias(
 ):
     query = db.query(Auditoria)
     if usuario_id:
-        query = query.filter(Auditoria.usuario_id == _uuid.UUID(usuario_id))
+        try:
+            val_uuid = _uuid.UUID(usuario_id.strip())
+            query = query.filter(Auditoria.usuario_id == val_uuid)
+        except ValueError:
+            pass # Si no es un UUID válido, simplemente no filtramos por usuario
     if estado:
         query = query.filter(Auditoria.estado.ilike(estado))
 
@@ -76,7 +81,7 @@ def crear_auditoria(payload: AuditoriaCreate, db: Session = Depends(get_db)):
     nueva = Auditoria(
         folio=folio,
         ubicacion_id=payload.ubicacion_id,
-        usuario_id=_uuid.UUID(payload.usuario_id),
+        usuario_id=_uuid.UUID(payload.usuario_id.strip()) if isinstance(payload.usuario_id, str) and len(payload.usuario_id.strip()) > 10 else None,
         fecha_inicio=payload.fecha_inicio,
         fecha_fin=payload.fecha_fin,
         estado="Pendiente",
@@ -101,7 +106,10 @@ def procesar_escaneo(id: int, payload: AuditoriaEscaneo, db: Session = Depends(g
     if not aud:
         raise HTTPException(status_code=404, detail="Auditoría no encontrada.")
 
-    bien_uuid = _uuid.UUID(payload.activo_id)
+    try:
+        bien_uuid = _uuid.UUID(payload.activo_id.strip())
+    except ValueError:
+        raise HTTPException(status_code=400, detail="El ID del activo no tiene formato UUID válido.")
     ya_escaneado = db.query(AuditoriaActivo).filter(
         AuditoriaActivo.auditoria_id == id,
         AuditoriaActivo.bien_id == bien_uuid

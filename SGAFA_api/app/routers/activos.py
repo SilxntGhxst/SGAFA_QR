@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Query, HTTPException, status, Depends
 from typing import Optional
 from sqlalchemy.orm import Session
+import uuid as _uuid
 from app.models.ActivoModel import ActivoCreate, ActivoUpdate, ActivoResponse
 from app.database.db import get_db
 from app.database.models import BienMueble, Categoria, Ubicacion, Usuario, EstadoActivo
@@ -22,8 +23,12 @@ def _enriquecer(bien: BienMueble, db: Session) -> dict:
     cat_nombre  = cat.categoria if cat else "Sin categoría"
     ubi_nombre  = ubi.nombre if ubi else "Sin ubicación"
     user_nombre = f"{user.nombre} {user.apellidos}" if user else "Sin asignar"
-    estado_str  = bien.estado.value if bien.estado else "funcional"
-    color       = color_map.get(estado_str, "blue")
+    if hasattr(bien.estado, "value"):
+        estado_str = bien.estado.value
+    else:
+        estado_str = str(bien.estado) if bien.estado else "funcional"
+    
+    color = color_map.get(estado_str, "blue")
 
     return ActivoResponse(
         id=str(bien.id),
@@ -171,14 +176,29 @@ def crear_activo(payload: ActivoCreate, db: Session = Depends(get_db)):
 # 6. EDITAR activo
 @router.put("/{id}")
 def actualizar_activo(id: str, payload: ActivoUpdate, db: Session = Depends(get_db)):
-    import uuid as _uuid
-    bien = db.query(BienMueble).filter(BienMueble.id == _uuid.UUID(id)).first()
+    try:
+        val_uuid = _uuid.UUID(id.strip())
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Formato de ID inválido.")
+    
+    bien = db.query(BienMueble).filter(BienMueble.id == val_uuid).first()
     if not bien:
         raise HTTPException(status_code=404, detail="Activo no encontrado.")
 
     campos = payload.dict(exclude_unset=True)
     if "estado" in campos and campos["estado"]:
-        campos["estado"] = campos["estado"].lower()
+        val = campos["estado"].lower().strip()
+        # Mapear estados comunes o prevenir errores de Enum
+        if "óptimo" in val or "optimo" in val: val = "funcional"
+        if "desgaste" in val: val = "mantenimiento"
+        if "dañado" in val: val = "baja"
+        
+        # Validar contra el Enum real
+        if val not in ["funcional", "mantenimiento", "baja"]:
+            val = "funcional" # Fallback seguro
+            
+        campos["estado"] = val
+        
     if "categoria_id" in campos and campos["categoria_id"]:
         campos["categoria_id"] = _resolver_categoria(campos["categoria_id"], db)
     if "ubicacion_id" in campos and campos["ubicacion_id"]:
@@ -199,8 +219,12 @@ def actualizar_activo(id: str, payload: ActivoUpdate, db: Session = Depends(get_
 # 7. ELIMINAR activo
 @router.delete("/{id}")
 def eliminar_activo(id: str, db: Session = Depends(get_db)):
-    import uuid as _uuid
-    bien = db.query(BienMueble).filter(BienMueble.id == _uuid.UUID(id)).first()
+    try:
+        val_uuid = _uuid.UUID(id.strip())
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Formato de ID inválido.")
+    
+    bien = db.query(BienMueble).filter(BienMueble.id == val_uuid).first()
     if not bien:
         raise HTTPException(status_code=404, detail="Activo no encontrado.")
     db.delete(bien)

@@ -1,6 +1,6 @@
 import uuid
 import enum
-from sqlalchemy import Column, Integer, String, Text, ForeignKey, Enum, TIMESTAMP
+from sqlalchemy import Column, Integer, String, Text, ForeignKey, Enum, TIMESTAMP, Boolean
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
 from app.database.db import Base
@@ -81,6 +81,7 @@ class BienMueble(Base):
     marca                  = Column(Text)
     modelo                 = Column(Text)
     QR                     = Column(Integer)
+    foto                   = Column(Text, nullable=True)
     categoria_id           = Column(Integer, ForeignKey("categorias.id"), nullable=False)
     ubicacion_id           = Column(Integer, ForeignKey("ubicaciones.id"), nullable=False)
     usuario_responsable_id = Column(UUID(as_uuid=True), ForeignKey("usuarios.id"), nullable=True)
@@ -153,3 +154,15 @@ class Buzon(Base):
     descripcion   = Column(Text)
     foto          = Column(Text)
     created_at    = Column(TIMESTAMP, server_default=func.now())
+
+
+# ─── TABLA: sesiones ────────────────────────────────────────────────────────────
+class Sesion(Base):
+    __tablename__ = "sesiones"
+
+    id          = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    usuario_id  = Column(UUID(as_uuid=True), ForeignKey("usuarios.id", ondelete="CASCADE"), nullable=False)
+    token_hash  = Column(Text, nullable=False, index=True)   # SHA256 del JWT
+    creado_en   = Column(TIMESTAMP, server_default=func.now())
+    expira_en   = Column(TIMESTAMP, nullable=False)
+    activo      = Column(Boolean, default=True)

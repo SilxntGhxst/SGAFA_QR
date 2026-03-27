@@ -12,42 +12,47 @@ const mapBuzonToActivity = (item) => {
     tipoBadge = "exito";
   }
 
-  // Formato de fecha legible (DD/MM HH:MM)
   const d = new Date(item.created_at || Date.now());
-  const dia = String(d.getDate()).padStart(2, '0');
-  const mes = String(d.getMonth() + 1).padStart(2, '0');
+  const dia  = String(d.getDate()).padStart(2, '0');
+  const mes  = String(d.getMonth() + 1).padStart(2, '0');
   const hora = String(d.getHours()).padStart(2, '0');
-  const min = String(d.getMinutes()).padStart(2, '0');
+  const min  = String(d.getMinutes()).padStart(2, '0');
   const fmtDate = `${dia}/${mes}, ${hora}:${min}`;
 
   return {
-    id: String(item.id),
-    tipo: tipoBadge,
+    id:     String(item.id),
+    tipo:   tipoBadge,
     titulo: item.activo || item.tipo,
-    fecha: fmtDate,
+    fecha:  fmtDate,
     estado: item.estado || "Pendiente"
   };
 };
 
-export const fetchDashboardData = async () => {
+/**
+ * Fetch dashboard data.
+ * @param {object|null} authUser - user object from AuthContext (si es null no se incluye)
+ */
+export const fetchDashboardData = async (authUser = null) => {
   try {
     const [statsRes, buzonRes] = await Promise.all([
       apiClient('/activos/stats'),
       apiClient('/buzon')
     ]);
     
-    // Ordenar para mostrar los más recientes primero
     const buzonList = (buzonRes.data || []).sort((a, b) => b.id - a.id);
     const mappedActivities = buzonList.map(mapBuzonToActivity);
     
     return {
-      usuario: { nombre: "Santiago", rol: "Resguardante / Auditor" },
+      // Usar datos reales del usuario autenticado
+      usuario: authUser
+        ? { nombre: authUser.nombre, rol: authUser.rol || 'Resguardante' }
+        : { nombre: 'Usuario', rol: '' },
       metricas: { 
         auditoriasPendientes: statsRes.solicitudes_pendientes || 0, 
-        activosAsignados: statsRes.total_activos || 0 
+        activosAsignados:     statsRes.total_activos || 0 
       },
-      actividadReciente: mappedActivities.slice(0, 3), // En la vista principal solo 3
-      historial: mappedActivities // En el modal todos
+      actividadReciente: mappedActivities.slice(0, 3),
+      historial:         mappedActivities
     };
   } catch (error) {
     console.error("Dashboard fetch error:", error);

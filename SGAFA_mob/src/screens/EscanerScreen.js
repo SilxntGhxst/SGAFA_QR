@@ -102,7 +102,7 @@ export default function EscanerScreen({ route, navigation }) {
       // Mapear color al picker por consistencia
       const normalizedState = activoData.estado.toLowerCase();
       if (normalizedState.includes("funcional")) setEstadoSeleccionado("funcional");
-      else if (normalizedState.includes("mantenimiento")) setEstadoSeleccionado("en mantenimiento");
+      else if (normalizedState.includes("mantenimiento")) setEstadoSeleccionado("mantenimiento");
       else if (normalizedState.includes("baja")) setEstadoSeleccionado("baja");
       else setEstadoSeleccionado("funcional");
 
@@ -282,9 +282,9 @@ export default function EscanerScreen({ route, navigation }) {
               <Text style={styles.sectionLabel}>Validar Estado Físico Visual</Text>
               <View style={styles.evalRow}>
                 {[
-                  { key: "funcional",        label: "Óptimo", icon: "check",  color: colors.success },
-                  { key: "en mantenimiento", label: "Desgaste", icon: "tool",   color: "#eab308" },
-                  { key: "baja",             label: "Dañado", icon: "x",      color: colors.danger },
+                  { key: "funcional",     label: "Óptimo", icon: "check",  color: colors.success },
+                  { key: "mantenimiento", label: "Desgaste", icon: "tool",   color: "#eab308" },
+                  { key: "baja",          label: "Dañado", icon: "x",      color: colors.danger },
                 ].map(({ key, label, icon, color }) => {
                   const active = estadoSeleccionado === key;
                   return (

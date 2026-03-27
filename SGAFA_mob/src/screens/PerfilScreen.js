@@ -13,25 +13,23 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import { colors } from "../theme/colors";
+import { useAuth } from "../domain/AuthContext";
 
 export default function PerfilScreen({ navigation }) {
+  const { user, logout } = useAuth();
+
   // --- ESTADOS DE LOS MODALES ---
   const [modalEditarVisible, setModalEditarVisible] = useState(false);
   const [modalPasswordVisible, setModalPasswordVisible] = useState(false);
   const [modalAcercaVisible, setModalAcercaVisible] = useState(false);
 
-  // --- DATOS SIMULADOS EXTENDIDOS DEL USUARIO ---
-  const [usuario, setUsuario] = useState({
-    nombre: "Santiago",
-    email: "santiago@empresa.com",
-    rol: "Resguardante",
-    ingreso: "Enero 2026",
-    activosAsignados: 124,
-    auditoriasPendientes: 3,
-  });
+  // Datos del usuario desde el contexto (fallback si aún carga)
+  const nombreCompleto = user ? `${user.nombre} ${user.apellidos}` : "Usuario";
+  const correo = user?.email || "";
+  const rol    = user?.rol   || "Resguardante";
 
-  const [editNombre, setEditNombre] = useState(usuario.nombre);
-  const [editEmail, setEditEmail] = useState(usuario.email);
+  const [editNombre, setEditNombre] = useState(user?.nombre || "");
+  const [editEmail,  setEditEmail]  = useState(user?.email  || "");
 
   const [passActual, setPassActual] = useState("");
   const [passNueva, setPassNueva] = useState("");
@@ -47,11 +45,9 @@ export default function PerfilScreen({ navigation }) {
         {
           text: "Salir",
           style: "destructive",
-          onPress: () => {
-            navigation.reset({
-              index: 0,
-              routes: [{ name: "Login" }],
-            });
+          onPress: async () => {
+            await logout(); // invalida la sesión en BD y limpia AsyncStorage
+            // AppNavigator detecta user=null y redirige a AuthStack automáticamente
           },
         },
       ],
@@ -63,7 +59,6 @@ export default function PerfilScreen({ navigation }) {
       Alert.alert("Error", "Los campos no pueden estar vacíos.");
       return;
     }
-    setUsuario({ ...usuario, nombre: editNombre, email: editEmail });
     setModalEditarVisible(false);
     Alert.alert("Éxito", "Perfil actualizado correctamente.");
   };
@@ -101,7 +96,7 @@ export default function PerfilScreen({ navigation }) {
           <View style={styles.avatarContainer}>
             <View style={styles.avatarCircle}>
               <Text style={styles.avatarInitial}>
-                {usuario.nombre.charAt(0).toUpperCase()}
+                {(user?.nombre || "U").charAt(0).toUpperCase()}
               </Text>
             </View>
             <View style={styles.verifiedBadge}>
@@ -109,29 +104,27 @@ export default function PerfilScreen({ navigation }) {
             </View>
           </View>
 
-          <Text style={styles.userName}>{usuario.nombre}</Text>
-          <Text style={styles.emailText}>{usuario.email}</Text>
+          <Text style={styles.userName}>{nombreCompleto}</Text>
+          <Text style={styles.emailText}>{correo}</Text>
 
           <View style={styles.roleBadge}>
-            <Text style={styles.roleText}>Rol: {usuario.rol}</Text>
+            <Text style={styles.roleText}>Rol: {rol}</Text>
           </View>
 
           {/* RESUMEN OPERATIVO */}
           <View style={styles.statsContainer}>
             <View style={styles.statBox}>
-              <Text style={styles.statNumber}>{usuario.activosAsignados}</Text>
+              <Text style={styles.statNumber}>—</Text>
               <Text style={styles.statLabel}>Activos</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statBox}>
-              <Text style={styles.statNumber}>
-                {usuario.auditoriasPendientes}
-              </Text>
+              <Text style={styles.statNumber}>—</Text>
               <Text style={styles.statLabel}>Auditorías</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statBox}>
-              <Text style={styles.statTextValue}>{usuario.ingreso}</Text>
+              <Text style={styles.statTextValue}>{user?.creado_en ? user.creado_en.substring(0, 7) : "—"}</Text>
               <Text style={styles.statLabel}>Ingreso</Text>
             </View>
           </View>

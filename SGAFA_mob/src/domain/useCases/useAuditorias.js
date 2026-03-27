@@ -1,18 +1,24 @@
 import { useState, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { fetchAuditorias } from '../../data/api/auditoriasApi';
+import { useAuth } from '../AuthContext';
 
 export const useAuditorias = () => {
+  const { user } = useAuth();
   const [data, setData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const loadAuditorias = useCallback(async () => {
+    if (!user?.id) {
+      setIsLoading(false);
+      return;
+    }
+    
     try {
       setIsLoading(true);
       setError(null);
-      // POR AHORA: Hardcodeamos un usuario responsabale ("uuid-user-1") hasta tener Auth
-      const result = await fetchAuditorias("uuid-user-1");
+      const result = await fetchAuditorias(user.id);
       
       // Ordenar las pendientes primero
       const ordenado = result.sort((a, b) => {
@@ -27,7 +33,7 @@ export const useAuditorias = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [user?.id]);
 
   useFocusEffect(
     useCallback(() => {
