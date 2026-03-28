@@ -602,15 +602,22 @@
                             Cargando...
                         </div>
                     </div>
-                    <a href="#" class="notif-ver-todas">Ver todas las notificaciones →</a>
+                    <a href="{{ url('/notificaciones/todas') }}" class="notif-ver-todas">Ver todas las notificaciones →</a>
                 </div>
             </div>
 
             {{-- ── PERFIL ── --}}
+            @php
+                $authU      = session('auth_user', []);
+                $uNombre    = trim(($authU['nombre'] ?? '') . ' ' . ($authU['apellidos'] ?? ''));
+                $uNombre    = $uNombre ?: 'Usuario';
+                $uEmail     = $authU['email'] ?? '';
+                $uInitials  = strtoupper(substr($authU['nombre'] ?? 'U', 0, 1)) . strtoupper(substr($authU['apellidos'] ?? '', 0, 1));
+            @endphp
             <div class="profile-dropdown-wrapper">
                 <div class="profile-btn" onclick="toggleProfileMenu()" id="profileBtn">
-                    <div class="profile-avatar">AP</div>
-                    <span class="profile-name">Adán Piña</span>
+                    <div class="profile-avatar">{{ $uInitials }}</div>
+                    <span class="profile-name">{{ $uNombre }}</span>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7a8d" stroke-width="2.5">
                         <polyline points="6 9 12 15 18 9"/>
                     </svg>
@@ -618,8 +625,8 @@
 
                 <div class="profile-menu" id="profileMenu">
                     <div class="profile-menu-header">
-                        <div class="profile-menu-name">Adán Piña</div>
-                        <div class="profile-menu-email">adan.pina@upq.edu.mx</div>
+                        <div class="profile-menu-name">{{ $uNombre }}</div>
+                        <div class="profile-menu-email">{{ $uEmail }}</div>
                     </div>
                     <a href="{{ url('/perfil') }}">
                         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -636,7 +643,7 @@
                         Editar perfil
                     </a>
                     <div class="profile-menu-logout">
-                        <a href="{{ url('/login') }}">
+                        <a href="{{ route('logout') }}">
                             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
                                 <polyline points="16 17 21 12 16 7"/>
@@ -778,7 +785,7 @@
     }
 
     async function abrirNotif(id, url) {
-        await fetch(`/notificaciones/${id}/leer`, {
+        await fetch(`/notificaciones/${id}/leida`, {
             method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
@@ -790,7 +797,7 @@
     }
 
     async function marcarTodas() {
-        await fetch('/notificaciones/leer-todas', {
+        await fetch('/notificaciones/todas-leidas', {
             method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,

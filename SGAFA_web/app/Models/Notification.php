@@ -24,21 +24,7 @@ class Notification extends Model
         'leida' => 'boolean',
     ];
 
-    // Relación con usuario
-    public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
+    // Sin relación para evitar problemas de tipo UUID vs Integer
+    // La relación se resuelve a nivel de sesión en los controllers
 
-    // Scope: solo no leídas
-    public function scopeNoLeidas($query)
-    {
-        return $query->where('leida', false);
-    }
-
-    // Scope: del usuario autenticado
-    public function scopeDelUsuario($query)
-    {
-        return $query->where('user_id', auth()->id());
-    }
 }

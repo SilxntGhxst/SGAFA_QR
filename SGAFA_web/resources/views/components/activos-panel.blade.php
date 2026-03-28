@@ -353,7 +353,8 @@ function cerrarPanel() {
     }, 280);
 }
 
-// --- CÓDIGO AUTOINCREMENTABLE ---
+
+// ─── CÓDIGO AUTOINCREMENTABLE ───────────────────────────────────────
 function nextCodigo() {
     const nums = ACTIVOS_DATA.map(a => {
         const m = a.codigo.match(/^ACT-(\d+)$/);
@@ -411,18 +412,18 @@ function renderFormNuevo() {
         </div>
         <div class="pf-row">
             <div><label class="pf-label">Categoría *</label>
-                <select name="categoria_id" class="pf-field" onchange="if(this.value==='NEW'){this.nextElementSibling.style.display='block';this.nextElementSibling.name='categoria_id';this.name='';this.nextElementSibling.focus()}else{this.nextElementSibling.style.display='none';this.nextElementSibling.name='';this.name='categoria_id'}">
+                <select name="categoria_id" class="pf-field" onchange="const inp=this.nextElementSibling; if(this.value==='NEW'){inp.style.display='block';inp.focus()}else{inp.style.display='none';inp.value=''}">
                     <option value="">Selecciona...</option>${optsCat}
                     <option value="NEW" style="font-weight:bold;color:#4a86b5;">+ Agregar nueva...</option>
                 </select>
-                <input type="text" style="display:none;margin-top:6px;" class="pf-field" placeholder="Nombre nueva categoría">
+                <input type="text" name="nueva_categoria" style="display:none;margin-top:6px;" class="pf-field" placeholder="Nombre nueva categoría">
             </div>
             <div><label class="pf-label">Ubicación *</label>
-                <select name="ubicacion_id" class="pf-field" onchange="if(this.value==='NEW'){this.nextElementSibling.style.display='block';this.nextElementSibling.name='ubicacion_id';this.name='';this.nextElementSibling.focus()}else{this.nextElementSibling.style.display='none';this.nextElementSibling.name='';this.name='ubicacion_id'}">
+                <select name="ubicacion_id" class="pf-field" onchange="const inp=this.nextElementSibling; if(this.value==='NEW'){inp.style.display='block';inp.focus()}else{inp.style.display='none';inp.value=''}">
                     <option value="">Selecciona...</option>${optsUbi}
                     <option value="NEW" style="font-weight:bold;color:#4a86b5;">+ Agregar nueva...</option>
                 </select>
-                <input type="text" style="display:none;margin-top:6px;" class="pf-field" placeholder="Nombre nueva ubicación">
+                <input type="text" name="nueva_ubicacion" style="display:none;margin-top:6px;" class="pf-field" placeholder="Nombre nueva ubicación">
             </div>
         </div>
         <div class="pf-row">
@@ -433,11 +434,11 @@ function renderFormNuevo() {
                     <option value="baja">Baja</option>
                 </select></div>
             <div><label class="pf-label">Usuario asignado</label>
-                <select name="usuario_responsable_id" class="pf-field" onchange="if(this.value==='NEW'){this.nextElementSibling.style.display='block';this.nextElementSibling.name='usuario_responsable_id';this.name='';this.nextElementSibling.focus()}else{this.nextElementSibling.style.display='none';this.nextElementSibling.name='';this.name='usuario_responsable_id'}">
+                <select name="usuario_responsable_id" class="pf-field" onchange="const inp=this.nextElementSibling; if(this.value==='NEW'){inp.style.display='block';inp.focus()}else{inp.style.display='none';inp.value=''}">
                     <option value="">Sin asignar</option>${optsUsu}
-                    <option value="NEW" style="font-weight:bold;color:#4a86b5;">+ Cambiar a nuevo...</option>
+                    <option value="NEW" style="font-weight:bold;color:#4a86b5;">+ Crear usuario rápido...</option>
                 </select>
-                <input type="text" style="display:none;margin-top:6px;" class="pf-field" placeholder="Nombre y Apellidos">
+                <input type="text" name="nuevo_usuario_nombre" style="display:none;margin-top:6px;" class="pf-field" placeholder="Nombre y Apellidos de nuevo usuario">
             </div>
         </div>
         <div class="pf-section" style="margin-top:8px;">Foto del activo</div>
