@@ -6,6 +6,8 @@ use App\Http\Controllers\ActivoController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AuditoriaController;
+use App\Http\Controllers\PerfilController;
+use App\Http\Controllers\UsuarioController;
 
 /*
 |--------------------------------------------------------------------------
@@ -50,21 +52,29 @@ Route::middleware('auth.token')->group(function () {
 
     // Usuarios
     Route::prefix('usuarios')->name('usuarios.')->group(function () {
-        Route::get('/',          fn() => view('usuarios.index'))->name('index');
-        Route::get('/crear',     fn() => view('usuarios.index'))->name('create');
-        Route::get('/{id}',      fn() => view('usuarios.index'))->name('show');
-        Route::get('/{id}/edit', fn() => view('usuarios.index'))->name('edit');
+        Route::get('/',          [UsuarioController::class, 'index'])->name('index');
+        Route::post('/',         [UsuarioController::class, 'store'])->name('store');
+        Route::put('/{id}',      [UsuarioController::class, 'update'])->name('update');
+        Route::delete('/{id}',   [UsuarioController::class, 'destroy'])->name('destroy');
+        Route::get('/{id}',      [UsuarioController::class, 'index'])->name('show');
     });
 
     // Reportes
     Route::get('/reportes', fn() => view('reportes.index'))->name('reportes');
 
+    // Notificaciones (AJAX y Vista)
+    Route::get('/notificaciones', [NotificationController::class, 'index'])->name('notificaciones.index');
+    Route::get('/notificaciones/todas', [NotificationController::class, 'todas'])->name('notificaciones.todas');
+    Route::post('/notificaciones/{id}/leida', [NotificationController::class, 'marcarLeida'])->name('notificaciones.leida');
+    Route::post('/notificaciones/todas-leidas', [NotificationController::class, 'marcarTodasLeidas'])->name('notificaciones.todasLeidas');
+
     // Perfil
-    Route::get('/perfil',      fn() => view('perfil.index'))->name('perfil');
-    Route::get('/perfil/edit', fn() => view('perfil.index'))->name('perfil.edit');
+    Route::get('/perfil',      [PerfilController::class, 'index'])->name('perfil');
+    Route::post('/perfil',     [PerfilController::class, 'update'])->name('perfil.update');
+    Route::get('/perfil/edit', [PerfilController::class, 'index'])->name('perfil.edit');
 
     // Notificaciones
-    Route::get('/notificaciones',             [NotificationController::class, 'index']);
-    Route::post('/notificaciones/{id}/leer',  [NotificationController::class, 'marcarLeida']);
-    Route::post('/notificaciones/leer-todas', [NotificationController::class, 'marcarTodasLeidas']);
+    Route::get('/notificaciones',             [NotificationController::class, 'index'])->name('notificaciones.index');
+    Route::post('/notificaciones/{id}/leer',  [NotificationController::class, 'marcarLeida'])->name('notificaciones.leer');
+    Route::post('/notificaciones/leer-todas', [NotificationController::class, 'marcarTodasLeidas'])->name('notificaciones.leer-todas');
 });

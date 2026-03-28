@@ -30,6 +30,21 @@
 @endpush
 
 @section('content')
+
+{{-- Alertas de éxito/error --}}
+@if(session('success'))
+<div style="display:flex;align-items:center;gap:10px;padding:14px 18px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;margin-bottom:16px;">
+    <svg width="16" height="16" fill="none" stroke="#15803d" stroke-width="2.2" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+    <span style="font-size:.88rem;font-weight:600;color:#15803d;">{{ session('success') }}</span>
+</div>
+@endif
+@if(session('error'))
+<div style="display:flex;align-items:center;gap:10px;padding:14px 18px;background:#fff5f5;border:1px solid #fecaca;border-radius:10px;margin-bottom:16px;">
+    <svg width="16" height="16" fill="none" stroke="#dc2626" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    <span style="font-size:.88rem;font-weight:600;color:#dc2626;">{{ session('error') }}</span>
+</div>
+@endif
+
 <div class="card">
     <form method="GET" action="{{ route('activos.index') }}" class="filters-bar" id="filtersForm">
         <div class="search-bar" style="max-width:260px;padding:9px 14px;">

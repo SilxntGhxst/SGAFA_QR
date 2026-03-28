@@ -78,6 +78,44 @@ def get_catalogos(db: Session = Depends(get_db)):
     }
 
 
+# 2b. CREAR nueva categoría
+@router.post("/catalogos/categoria", status_code=status.HTTP_201_CREATED)
+def crear_categoria(payload: dict, db: Session = Depends(get_db)):
+    nombre = (payload.get("categoria") or "").strip()
+    if not nombre:
+        raise HTTPException(status_code=400, detail="El nombre de la categoría es obligatorio.")
+    existing = db.query(Categoria).filter(Categoria.categoria.ilike(nombre)).first()
+    if existing:
+        return {"success": True, "id": existing.id, "categoria": existing.categoria, "nuevo": False}
+    nueva = Categoria(categoria=nombre)
+    db.add(nueva)
+    db.commit()
+    db.refresh(nueva)
+    return {"success": True, "id": nueva.id, "categoria": nueva.categoria, "nuevo": True}
+
+
+# 2c. CREAR nueva ubicación
+@router.post("/catalogos/ubicacion", status_code=status.HTTP_201_CREATED)
+def crear_ubicacion(payload: dict, db: Session = Depends(get_db)):
+    nombre = (payload.get("nombre") or "").strip()
+    if not nombre:
+        raise HTTPException(status_code=400, detail="El nombre de la ubicación es obligatorio.")
+    existing = db.query(Ubicacion).filter(Ubicacion.nombre.ilike(nombre)).first()
+    if existing:
+        return {"success": True, "id": existing.id, "nombre": existing.nombre, "nuevo": False}
+    nueva = Ubicacion(
+        nombre=nombre,
+        edificio=payload.get("edificio", nombre),
+        area=payload.get("area", "General"),
+        oficina=payload.get("oficina", "General"),
+    )
+    db.add(nueva)
+    db.commit()
+    db.refresh(nueva)
+    return {"success": True, "id": nueva.id, "nombre": nueva.nombre, "nuevo": True}
+
+
+
 # 3. LISTAR con filtros y paginación
 @router.get("/")
 def get_activos(
