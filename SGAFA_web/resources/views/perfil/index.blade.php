@@ -55,6 +55,26 @@
     width:32px; height:32px; border-radius:8px;
     display:flex; align-items:center; justify-content:center; flex-shrink:0;
 }
+
+/* Multi-use Password UX Styles */
+.input-wrapper { position: relative; display: flex; align-items: center; width: 100%; }
+.eye-btn { position: absolute; right: 0.8rem; background: none; border: none; cursor: pointer; color: #9ca3af; padding: 0.4rem; display: flex; align-items: center; transition: color 0.2s; z-index: 5; }
+.eye-btn:hover { color: #4a86b5; }
+
+.strength-meter { height: 4px; background: #e5e7eb; border-radius: 10px; margin-top: 8px; overflow: hidden; position: relative; width: 100%; display: none; }
+.strength-bar { height: 100%; width: 0; transition: all 0.4s ease; border-radius: 10px; }
+.strength-text { font-size: 0.65rem; font-weight: 700; margin-top: 4px; display: none; text-transform: uppercase; letter-spacing: 0.5px; }
+
+.weak { width: 33%; background: #ef4444; }
+.medium { width: 66%; background: #f59e0b; }
+.strong { width: 100%; background: #10b981; }
+
+.requirement-list { font-size: 0.65rem; color: #9ca3af; margin-top: 6px; list-style: none; padding: 0; display: none; flex-wrap: wrap; gap: 8px; }
+.requirement-list li { display: flex; align-items: center; gap: 4px; transition: color 0.2s; }
+.requirement-list li.met { color: #10b981; }
+.requirement-list li svg { width: 10px; height: 10px; }
+
+.btn-primary:disabled { background: #cbd5e1; cursor: not-allowed; box-shadow: none; border-color: #e2e8f0; color: #94a3b8; }
 </style>
 @endpush
 
@@ -146,11 +166,32 @@
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
                     <div>
                         <label class="form-label">Nueva contraseña</label>
-                        <input type="password" name="password" class="form-field" placeholder="••••••••">
+                        <div class="input-wrapper">
+                            <input type="password" id="p_new" name="password" class="form-field" placeholder="••••••••" style="padding-right:2.8rem;">
+                            <button type="button" class="eye-btn" onclick="toggleP('p_new', this)">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                            </button>
+                        </div>
+                        
+                        <div id="p_meter" class="strength-meter">
+                            <div id="p_bar" class="strength-bar"></div>
+                        </div>
+                        <span id="p_text" class="strength-text" style="color: #9ca3af;">Fuerza: —</span>
+
+                        <ul id="p_reqs" class="requirement-list">
+                            <li id="r_len"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> 8+ letras</li>
+                            <li id="r_up"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> Mayúscula</li>
+                            <li id="r_num"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> Un número</li>
+                        </ul>
                     </div>
                     <div>
                         <label class="form-label">Confirmar contraseña</label>
-                        <input type="password" name="password_confirm" class="form-field" placeholder="••••••••">
+                        <div class="input-wrapper">
+                            <input type="password" id="p_conf" name="password_confirm" class="form-field" placeholder="••••••••" style="padding-right:2.8rem;">
+                            <button type="button" class="eye-btn" onclick="toggleP('p_conf', this)">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -210,3 +251,61 @@
     </div>
 </div>
 @endsection
+@push('scripts')
+<script>
+function toggleP(id, btn) {
+    const input = document.getElementById(id);
+    const icon = btn.querySelector('svg');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>';
+    } else {
+        input.type = 'password';
+        icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>';
+    }
+}
+
+const nIn = document.getElementById('p_new');
+const cIn = document.getElementById('p_conf');
+const sBt = document.querySelector('button[type="submit"]');
+const sBa = document.getElementById('p_bar');
+const sTx = document.getElementById('p_text');
+const mtr = document.getElementById('p_meter');
+const rqs = document.getElementById('p_reqs');
+
+const rLn = document.getElementById('r_len');
+const rUp = document.getElementById('r_up');
+const rNu = document.getElementById('r_num');
+
+const valP = () => {
+    const v = nIn.value;
+    if(!v) { 
+        mtr.style.display='none'; sTx.style.display='none'; rqs.style.display='none';
+        sBt.disabled = false; return; 
+    }
+    
+    mtr.style.display='block'; sTx.style.display='block'; rqs.style.display='flex';
+    const matches = (cIn.value === v && v !== '');
+    
+    let sc = 0;
+    const mL = v.length >= 8;
+    const mU = /[A-Z]/.test(v);
+    const mN = /\d/.test(v);
+
+    if(mL){ sc++; rLn.classList.add('met'); } else { rLn.classList.remove('met'); }
+    if(mU){ sc++; rUp.classList.add('met'); } else { rUp.classList.remove('met'); }
+    if(mN){ sc++; rNu.classList.add('met'); } else { rNu.classList.remove('met'); }
+
+    sBa.className = 'strength-bar';
+    if(sc === 0){ sBa.style.width='0%'; sTx.innerText='Fuerza: —'; sTx.style.color='#9ca3af'; }
+    else if(sc === 1){ sBa.style.width='33%'; sBa.classList.add('weak'); sTx.innerText='Fuerza: Débil'; sTx.style.color='#ef4444'; }
+    else if(sc === 2){ sBa.style.width='66%'; sBa.classList.add('medium'); sTx.innerText='Fuerza: Media'; sTx.style.color='#f59e0b'; }
+    else if(sc === 3){ sBa.style.width='100%'; sBa.classList.add('strong'); sTx.innerText='Fuerza: Fuerte'; sTx.style.color='#10b981'; }
+
+    sBt.disabled = !(sc === 3 && matches);
+};
+
+nIn.addEventListener('input', valP);
+cIn.addEventListener('input', valP);
+</script>
+@endpush

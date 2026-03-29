@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,36 +7,72 @@ import {
   ScrollView,
   Image,
   ActivityIndicator,
+  Alert,
+  RefreshControl
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Feather } from "@expo/vector-icons";
+import { Feather, Ionicons } from "@expo/vector-icons";
 import { colors } from "../theme/colors";
+import { SyncManager } from "../data/sync/syncManager";
+import { apiClient } from "../data/api/apiClient";
 
 export default function SincronizacionScreen({ navigation }) {
-  // Estados simulados
+  const [queue, setQueue] = useState([]);
   const [isSyncing, setIsSyncing] = useState(false);
-  const [registros, setRegistros] = useState([
-    {
-      id: "1",
-      tipo: "Registro de auditoría",
-      estado: "Pendiente",
-      icon: "camera",
-    },
-    {
-      id: "2",
-      tipo: "Reporte de daño",
-      estado: "Pendiente",
-      icon: "clipboard",
-    },
-  ]);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const handleSincronizar = () => {
+  useEffect(() => {
+    loadQueue();
+  }, []);
+
+  const loadQueue = async () => {
+    const data = await SyncManager.getQueue();
+    setQueue(data);
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadQueue();
+    setRefreshing(false);
+  };
+
+  const handleSync = async () => {
+    if (queue.length === 0) {
+      Alert.alert('Info', 'No hay datos pendientes de sincronizar.');
+      return;
+    }
+
     setIsSyncing(true);
-    // Simulamos el tiempo de subida a la base de datos
-    setTimeout(() => {
-      setIsSyncing(false);
-      setRegistros([]); // Vaciamos la lista al terminar
-    }, 2500);
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const item of queue) {
+      try {
+        const response = await apiClient(item.endpoint, {
+          method: item.method,
+          body: JSON.stringify(item.data)
+        });
+
+        if (response) {
+          await SyncManager.removeFromQueue(item.id);
+          successCount++;
+        } else {
+          failCount++;
+        }
+      } catch (e) {
+        console.error('Error sincronizando item:', item.id, e);
+        failCount++;
+      }
+    }
+
+    setIsSyncing(false);
+    await loadQueue();
+
+    if (failCount === 0) {
+      Alert.alert('Éxito', `Se sincronizaron ${successCount} elementos correctamente.`);
+    } else {
+      Alert.alert('Sincronización parcial', `Éxito: ${successCount}, Fallos: ${failCount}. Revisa tu conexión.`);
+    }
   };
 
   return (
@@ -59,6 +95,7 @@ export default function SincronizacionScreen({ navigation }) {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContainer}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
         {/* NAVEGACIÓN Y TÍTULO */}
         <View style={styles.navHeader}>
@@ -75,68 +112,55 @@ export default function SincronizacionScreen({ navigation }) {
           Gestiona los registros capturados sin conexión
         </Text>
 
-        {/* ESTADO DE CONEXIÓN */}
+        {/* ESTADO DE LA COLA */}
         <View style={styles.connectionCard}>
           <View style={styles.connectionIconContainer}>
-            <Feather name="wifi-off" size={32} color={colors.warning} />
+            <Feather name="cloud-upload" size={32} color={colors.primary} />
           </View>
           <View style={styles.connectionTextContainer}>
-            <Text style={styles.connectionTitle}>Sin conexión</Text>
+            <Text style={styles.connectionTitle}>{queue.length} pendientes</Text>
             <Text style={styles.connectionTime}>
-              Última conexión: Hoy, 10:00 AM
+              Elementos esperando subir a la nube
             </Text>
           </View>
         </View>
 
         {/* LISTA DE PENDIENTES */}
         <View style={styles.listHeader}>
-          <Text style={styles.listTitle}>
-            {registros.length === 1
-              ? "1 registro pendiente de subir"
-              : `${registros.length} registros pendientes de subir`}
-          </Text>
+          <Text style={styles.listTitle}>Cola de Procesamiento</Text>
         </View>
 
-        {registros.length > 0 ? (
-          registros.map((item) => (
+        {queue.length > 0 ? (
+          queue.map((item) => (
             <View key={item.id} style={styles.recordCard}>
               <View style={styles.recordIcon}>
-                <Feather name={item.icon} size={24} color={colors.primary} />
+                <Feather name={item.method === 'POST' ? 'plus-circle' : 'edit'} size={24} color={colors.primary} />
               </View>
               <View style={styles.recordDetails}>
-                <Text style={styles.recordType}>{item.tipo}</Text>
-                <Text style={styles.recordStatus}>{item.estado}</Text>
+                <Text style={styles.recordType}>{item.endpoint}</Text>
+                <Text style={styles.recordStatus}>Pendiente - {new Date(item.timestamp).toLocaleTimeString()}</Text>
               </View>
-              <Feather
-                name="upload-cloud"
-                size={20}
-                color={colors.textSecondary}
-              />
+              <Feather name="clock" size={20} color={colors.textSecondary} />
             </View>
           ))
         ) : (
           <View style={styles.emptyState}>
-            <Feather
-              name="check-circle"
-              size={48}
-              color={colors.success}
-              style={{ marginBottom: 16 }}
-            />
+            <Feather name="check-circle" size={48} color={colors.success} style={{ marginBottom: 16 }} />
             <Text style={styles.emptyStateTitle}>Todo está al día</Text>
-            <Text style={styles.emptyStateText}>
-              No hay registros pendientes por sincronizar.
-            </Text>
+            <Text style={styles.emptyStateText}>No hay registros pendientes por sincronizar.</Text>
           </View>
         )}
+      </ScrollView>
 
-        {/* BOTÓN DE ACCIÓN */}
+      {/* BOTÓN DE ACCIÓN */}
+      <View style={{ padding: 24, backgroundColor: '#fff' }}>
         <TouchableOpacity
           style={[
             styles.syncButton,
-            (registros.length === 0 || isSyncing) && styles.syncButtonDisabled,
+            (queue.length === 0 || isSyncing) && styles.syncButtonDisabled,
           ]}
-          onPress={handleSincronizar}
-          disabled={registros.length === 0 || isSyncing}
+          onPress={handleSync}
+          disabled={queue.length === 0 || isSyncing}
         >
           {isSyncing ? (
             <ActivityIndicator color={colors.surface} size="small" />
@@ -147,20 +171,13 @@ export default function SincronizacionScreen({ navigation }) {
             {isSyncing ? "Sincronizando..." : "Sincronizar ahora"}
           </Text>
         </TouchableOpacity>
-
-        <Text style={styles.footerText}>
-          Los datos se sincronizarán automáticamente al recuperar la conexión a
-          internet.
-        </Text>
-      </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: colors.background },
-
-  // Header
   headerContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -168,107 +185,63 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     paddingVertical: 16,
     paddingHorizontal: 24,
-    zIndex: 10,
   },
   headerLeft: { flexDirection: "row", alignItems: "center" },
   headerLogo: { width: 44, height: 44, marginRight: 12 },
   headerTextContainer: { justifyContent: "center" },
-  headerTitle: {
-    color: colors.surface,
-    fontSize: 18,
-    fontWeight: "800",
-    letterSpacing: 0.5,
-  },
-  headerSubtitle: {
-    color: "#94a3b8",
-    fontSize: 13,
-    fontWeight: "600",
-    marginTop: 2,
-    textTransform: "uppercase",
-  },
-
+  headerTitle: { color: colors.surface, fontSize: 18, fontWeight: "800", letterSpacing: 0.5 },
+  headerSubtitle: { color: "#94a3b8", fontSize: 13, fontWeight: "600", marginTop: 2, textTransform: "uppercase" },
   scrollContainer: { padding: 24, paddingBottom: 40 },
-
   navHeader: { flexDirection: "row", alignItems: "center", marginBottom: 12 },
   backButton: { marginRight: 16, padding: 4 },
-  title: {
-    fontSize: 26,
-    fontWeight: "900",
-    color: colors.primary,
-    flex: 1,
-    lineHeight: 30,
-  },
-  subtitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: colors.textSecondary,
-    marginBottom: 32,
-    lineHeight: 22,
-  },
-
-  // Tarjeta de conexión
+  title: { fontSize: 26, fontWeight: "900", color: colors.primary, flex: 1, lineHeight: 30 },
+  subtitle: { fontSize: 16, fontWeight: "600", color: colors.textSecondary, marginBottom: 32, lineHeight: 22 },
   connectionCard: {
-    backgroundColor: colors.warningBg,
+    backgroundColor: "#eff6ff",
     borderRadius: 16,
     padding: 20,
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 32,
     borderWidth: 1,
-    borderColor: "#fde047",
+    borderColor: "#dbeafe",
   },
   connectionIconContainer: {
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: "rgba(255, 255, 255, 0.5)",
+    backgroundColor: colors.surface,
     justifyContent: "center",
     alignItems: "center",
     marginRight: 16,
+    elevation: 2
   },
   connectionTextContainer: { flex: 1 },
-  connectionTitle: {
-    fontSize: 18,
-    fontWeight: "800",
-    color: colors.warning,
-    marginBottom: 4,
-  },
-  connectionTime: { fontSize: 14, fontWeight: "600", color: "#a16207" },
-
-  // Lista
+  connectionTitle: { fontSize: 18, fontWeight: "800", color: colors.primary, marginBottom: 4 },
+  connectionTime: { fontSize: 14, fontWeight: "600", color: colors.textSecondary },
   listHeader: { marginBottom: 16 },
   listTitle: { fontSize: 18, fontWeight: "800", color: colors.primary },
-
   recordCard: {
-    backgroundColor: "#e2e8f0",
+    backgroundColor: "#fff",
     borderRadius: 16,
     padding: 16,
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 12,
+    elevation: 1
   },
   recordIcon: {
     width: 48,
     height: 48,
     borderRadius: 12,
-    backgroundColor: colors.surface,
+    backgroundColor: "#f8fafc",
     justifyContent: "center",
     alignItems: "center",
     marginRight: 16,
   },
   recordDetails: { flex: 1 },
-  recordType: {
-    fontSize: 16,
-    fontWeight: "800",
-    color: colors.primary,
-    marginBottom: 4,
-  },
-  recordStatus: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: colors.textSecondary,
-  },
-
+  recordType: { fontSize: 15, fontWeight: "800", color: colors.primary, marginBottom: 4 },
+  recordStatus: { fontSize: 13, fontWeight: "600", color: colors.textSecondary },
   emptyState: {
     backgroundColor: colors.surface,
     borderRadius: 16,
@@ -278,19 +251,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#f1f5f9",
   },
-  emptyStateTitle: {
-    fontSize: 18,
-    fontWeight: "800",
-    color: colors.primary,
-    marginBottom: 8,
-  },
-  emptyStateText: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    textAlign: "center",
-  },
-
-  // Botón
+  emptyStateTitle: { fontSize: 18, fontWeight: "800", color: colors.primary, marginBottom: 8 },
+  emptyStateText: { fontSize: 14, color: colors.textSecondary, textAlign: "center" },
   syncButton: {
     backgroundColor: colors.accent,
     borderRadius: 16,
@@ -298,27 +260,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 16,
-    marginBottom: 24,
-    shadowColor: colors.accent,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
     elevation: 4,
   },
-  syncButtonDisabled: { backgroundColor: "#94a3b8", shadowOpacity: 0 },
-  syncButtonText: {
-    color: colors.surface,
-    fontSize: 18,
-    fontWeight: "800",
-    marginLeft: 12,
-  },
-
-  footerText: {
-    fontSize: 13,
-    color: colors.textSecondary,
-    textAlign: "center",
-    lineHeight: 20,
-    paddingHorizontal: 16,
-  },
+  syncButtonDisabled: { backgroundColor: "#94a3b8" },
+  syncButtonText: { color: colors.surface, fontSize: 18, fontWeight: "800", marginLeft: 12 },
 });

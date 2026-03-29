@@ -3,92 +3,171 @@
 @section('page-title','Reportes')
 
 @section('content')
-{{-- Filtros --}}
+{{-- Filtros y Selección de Reporte --}}
 <div class="card" style="margin-bottom:20px;padding:20px 24px;">
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:16px;align-items:end;flex-wrap:wrap;">
-        <div>
-            <label style="font-size:.78rem;font-weight:600;color:#6b7a8d;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:6px;">Fecha de inicio</label>
-            <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:#f7f7f7;border:1.5px solid #e4e8ef;border-radius:10px;">
-                <input type="date" value="2026-02-01" style="border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:.9rem;color:#374151;outline:none;width:100%;">
+    <form action="{{ route('reportes.descargar') }}" method="GET" id="reportForm">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:16px;align-items:end;">
+            
+            <div>
+                <label class="form-label-mini">Tipo de Reporte</label>
+                <select name="tipo" id="tipoReporte" class="filter-select-input" onchange="actualizarInterfaz()">
+                    <option value="activos" selected>Inventario de Activos</option>
+                    <option value="auditorias">Resumen de Auditorías</option>
+                    <option value="discrepancias">Buzón de Discrepancias</option>
+                </select>
+            </div>
+
+            <div class="filter-group activos-only">
+                <label class="form-label-mini">Categoría</label>
+                <select name="categoria_id" class="filter-select-input">
+                    <option value="">Todas</option>
+                    @foreach($catalogos['categorias'] as $cat)
+                        <option value="{{ $cat['id'] }}">{{ $cat['categoria'] }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="filter-group activos-only">
+                <label class="form-label-mini">Ubicación</label>
+                <select name="ubicacion_id" class="filter-select-input">
+                    <option value="">Todas</option>
+                    @foreach($catalogos['ubicaciones'] as $ubi)
+                        <option value="{{ $ubi['id'] }}">{{ $ubi['nombre'] }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div style="display:flex;gap:12px;">
+                <button type="button" onclick="cargarVistaPrevia()" class="btn-secondary" style="flex:1;">
+                    Previsualizar
+                </button>
+                <button type="submit" class="btn-primary" style="flex:1;">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                    Descargar PDF
+                </button>
             </div>
         </div>
-        <div>
-            <label style="font-size:.78rem;font-weight:600;color:#6b7a8d;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:6px;">Fecha de fin</label>
-            <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:#f7f7f7;border:1.5px solid #e4e8ef;border-radius:10px;">
-                <input type="date" value="2026-02-28" style="border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:.9rem;color:#374151;outline:none;width:100%;">
-            </div>
-        </div>
-        <div>
-            <label style="font-size:.78rem;font-weight:600;color:#6b7a8d;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:6px;">Área</label>
-            <div class="filter-select" style="padding:10px 14px;border-radius:10px;border:1.5px solid #e4e8ef;background:#f7f7f7;width:100%;">
-                Todas
-                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" style="margin-left:auto;"><polyline points="6 9 12 15 18 9"/></svg>
-            </div>
-        </div>
-        <div style="grid-column:1/-1;display:flex;align-items:end;justify-content:space-between;gap:16px;flex-wrap:wrap;">
-            <div style="flex:1;max-width:360px;">
-                <label style="font-size:.78rem;font-weight:600;color:#6b7a8d;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:6px;">Tipo de reporte</label>
-                <div class="filter-select" style="padding:10px 14px;border-radius:10px;border:1.5px solid #e4e8ef;background:#f7f7f7;">
-                    Activos por estado
-                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" style="margin-left:auto;"><polyline points="6 9 12 15 18 9"/></svg>
-                </div>
-            </div>
-            <button class="btn-primary" style="padding:11px 22px;">
-                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                Generar y Descargar PDF
-            </button>
-        </div>
-    </div>
+    </form>
 </div>
 
-{{-- Tabla --}}
+{{-- Tabla de Vista Previa --}}
 <div class="card">
-    <table class="data-table">
-        <thead>
-            <tr>
-                <th><input type="checkbox"></th>
-                <th>Código</th>
-                <th>Nombre</th>
-                <th>Categoría</th>
-                <th>Ubicación</th>
-                <th>Estado</th>
-                <th>Fecha de creación</th>
-            </tr>
-        </thead>
-        <tbody>
-            @php $rep=[
-                ['ACT-001','Escritorio','Bienes muebles','Oficina','Funcional','blue',true,'10/02/2026'],
-                ['ACT-002','Ventilador','Bienes muebles','Almacén','Funcional','blue',false,'28/02/2026'],
-                ['ACT-003','Impresora HP Laser','Bienes muebles','Sala IT','Mantenimiento','yellow',false,'03/02/2026'],
-                ['ACT-004','Laptop Lenovo','Bienes muebles','Oficina 204','Mantenimiento','yellow',false,'05/02/2026'],
-                ['ACT-005','Dispensador de agua','Bienes muebles','Oficina','Funcional','blue',false,'05/02/2026'],
-                ['ACT-006','Impresora Canon Color','Bienes muebles','Laboratorio 3','Funcional','blue',false,'05/02/2026'],
-                ['ACT-007','Proyector Epson','Bienes muebles','Oficina','Baja','green',false,'05/02/2026'],
-                ['ACT-010','Televisión Samsung 55"','Bienes muebles','Laboratorio 3','Baja','green',false,'04/02/2026'],
-            ]; @endphp
-            @foreach($rep as $r)
-            <tr>
-                <td><input type="checkbox" {{ $r[6]?'checked':'' }}></td>
-                <td style="font-weight:700;font-size:.85rem;color:#4a86b5;">{{ $r[0] }}</td>
-                <td style="font-weight:600;">{{ $r[1] }}</td>
-                <td style="font-size:.88rem;color:#6b7a8d;">{{ $r[2] }}</td>
-                <td style="font-size:.88rem;">{{ $r[3] }}</td>
-                <td><span class="badge badge-{{ $r[5] }} badge-dot">{{ $r[4] }}</span></td>
-                <td style="font-size:.85rem;color:#6b7a8d;">{{ $r[7] }}</td>
-            </tr>
-            @endforeach
-        </tbody>
-    </table>
-
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid #f0f2f5;">
-        <span style="font-size:.85rem;color:#6b7a8d;">Mostrando 1–10 de 34 activos</span>
-        <div class="pagination">
-            <a href="#" class="page-btn">‹</a>
-            <a href="#" class="page-btn active">1</a>
-            <a href="#" class="page-btn">2</a>
-            <a href="#" class="page-btn">3</a>
-            <a href="#" class="page-btn">›</a>
-        </div>
+    <div id="loadingState" style="display:none;padding:40px;text-align:center;color:#6b7280;">
+        Cargando datos...
+    </div>
+    <div id="tableContainer">
+        <table class="data-table" id="previewTable">
+            <thead id="tableHead">
+                {{-- Se llena con JS --}}
+            </thead>
+            <tbody id="tableBody">
+                <tr id="emptyRow">
+                    <td colspan="7" style="text-align:center;padding:40px;color:#9ca3af;">
+                        Haz clic en "Previsualizar" para ver los datos antes de descargar el PDF
+                    </td>
+                </tr>
+            </tbody>
+        </table>
     </div>
 </div>
+
+<style>
+    .form-label-mini { font-size:.78rem;font-weight:600;color:#6b7a8d;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:6px; }
+    .filter-select-input { padding:10px 14px;border-radius:10px;border:1.5px solid #e4e8ef;background:#f7f7f7;width:100%;outline:none;font-family:inherit; }
+    .btn-secondary { display:flex;align-items:center;justify-content:center;gap:8px;padding:11px 22px;border-radius:12px;font-weight:700;font-size:.9rem;background:#f0f4f8;color:#1e40af;border:none;cursor:pointer;transition:all .2s; }
+    .btn-secondary:hover { background:#e1e7f0; }
+</style>
+
+<script>
+    function actualizarInterfaz() {
+        const tipo = document.getElementById('tipoReporte').value;
+        const activosFilters = document.querySelectorAll('.activos-only');
+        
+        activosFilters.forEach(el => {
+            el.style.display = (tipo === 'activos') ? 'block' : 'none';
+        });
+    }
+
+    async function cargarVistaPrevia() {
+        const form = document.getElementById('reportForm');
+        const formData = new FormData(form);
+        const params = new URLSearchParams(formData);
+        const tipo = formData.get('tipo');
+
+        document.getElementById('loadingState').style.display = 'block';
+        document.getElementById('tableContainer').style.opacity = '0.4';
+
+        try {
+            // Llamamos al proxy de Laravel en lugar de llamar directo a la API (evita CORS y fallos de red)
+            const response = await fetch("{{ route('reportes.preview') }}?" + params.toString());
+            const result = await response.json();
+            renderTable(tipo, result.data);
+
+        } catch (e) {
+            console.error(e);
+            alert("Error al cargar la vista previa.");
+        } finally {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('tableContainer').style.opacity = '1';
+        }
+    }
+
+    function renderTable(tipo, data) {
+        const head = document.getElementById('tableHead');
+        const body = document.getElementById('tableBody');
+        head.innerHTML = "";
+        body.innerHTML = "";
+
+        if (data.length === 0) {
+            body.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:40px;">No se encontraron registros.</td></tr>';
+            return;
+        }
+
+        let headers = [];
+        if (tipo === 'activos') {
+            headers = ['Código', 'Nombre', 'Categoría', 'Ubicación', 'Estado', 'Responsable'];
+            head.innerHTML = `<tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr>`;
+            data.forEach(item => {
+                body.innerHTML += `
+                    <tr>
+                        <td style="font-weight:700;color:#4a86b5;">${item.codigo}</td>
+                        <td style="font-weight:600;">${item.nombre}</td>
+                        <td>${item.categoria}</td>
+                        <td>${item.ubicacion}</td>
+                        <td><span class="badge badge-dot">${item.estado}</span></td>
+                        <td>${item.responsable}</td>
+                    </tr>`;
+            });
+        } else if (tipo === 'auditorias') {
+            headers = ['Folio', 'Ubicación', 'Fecha', 'Progreso', 'Estado'];
+            head.innerHTML = `<tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr>`;
+            data.forEach(item => {
+                body.innerHTML += `
+                    <tr>
+                        <td style="font-weight:700;">${item.folio}</td>
+                        <td>${item.ubicacion}</td>
+                        <td>${item.fecha}</td>
+                        <td>${item.progreso}</td>
+                        <td>${item.estado}</td>
+                    </tr>`;
+            });
+        } else {
+            headers = ['Activo', 'Tipo', 'Área', 'Estado', 'Fecha'];
+            head.innerHTML = `<tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr>`;
+            data.forEach(item => {
+                body.innerHTML += `
+                    <tr>
+                        <td style="font-weight:600;">${item.activo_nombre}</td>
+                        <td>${item.tipo_dano}</td>
+                        <td>${item.area}</td>
+                        <td>${item.estado}</td>
+                        <td>${item.fecha}</td>
+                    </tr>`;
+            });
+        }
+    }
+
+    // Inicializar
+    actualizarInterfaz();
+</script>
 @endsection

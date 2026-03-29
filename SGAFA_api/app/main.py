@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database.db import engine
 from app.database import models
-from app.routers import buzon, varios, activos, auditorias, auth, usuarios
+from app.routers import buzon, varios, activos, auditorias, auth, usuarios, reportes, ajustes
 
 # Crea todas las tablas en la BD si no existen
 models.Base.metadata.create_all(bind=engine)
@@ -28,3 +28,5 @@ app.include_router(varios.router)
 app.include_router(buzon.router)
 app.include_router(activos.router)
 app.include_router(auditorias.router)
+app.include_router(reportes.router)
+app.include_router(ajustes.router)

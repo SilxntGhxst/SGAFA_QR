@@ -2,7 +2,8 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\NotificationController;
-use App\Http\Controllers\ActivoController;
+use App\Http\Controllers\ReporteController;
+use App\Http\Controllers\AjustesController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AuditoriaController;
@@ -17,11 +18,17 @@ use App\Http\Controllers\UsuarioController;
 
 // ── Autenticación pública ─────────────────────────────────────────────────
 Route::get('/',              fn() => redirect('/login'));
-Route::get('/login',         fn() => session('api_token') ? redirect('/dashboard') : view('auth.login'))->name('login');
-Route::post('/login',        [AuthController::class, 'login'])->name('login.post');
-Route::get('/logout',        [AuthController::class, 'logout'])->name('logout');
-Route::get('/forgot-password',  fn() => view('auth.forgot-password'))->name('password.request');
-Route::post('/forgot-password', fn() => back()->with('status', 'Enlace enviado.'))->name('password.email');
+Route::get('/login',  [AuthController::class, 'showLogin'])->name('login');
+Route::post('/login', [AuthController::class, 'login'])->name('login.post');
+Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+Route::post('/register', [AuthController::class, 'register'])->name('register.post');
+Route::match(['get', 'post'], '/logout', [AuthController::class, 'logout'])->name('logout');
+
+// Password Recovery
+Route::get('/forgot-password', [AuthController::class, 'showForgotPassword'])->name('password.forgot');
+Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->name('password.forgot.post');
+Route::get('/reset-password', [AuthController::class, 'showResetPassword'])->name('password.reset.view');
+Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.reset.post');
 
 // ── Rutas protegidas — requieren sesión con token ─────────────────────────
 Route::middleware('auth.token')->group(function () {
@@ -32,11 +39,21 @@ Route::middleware('auth.token')->group(function () {
     // Activos
     Route::prefix('activos')->name('activos.')->group(function () {
         Route::get('/',          [ActivoController::class, 'index'])->name('index');
+        Route::get('/exportar',  [ActivoController::class, 'exportar'])->name('exportar');
         Route::post('/',         [ActivoController::class, 'store'])->name('store');
         Route::put('/{id}',      [ActivoController::class, 'update'])->name('update');
         Route::delete('/{id}',   [ActivoController::class, 'destroy'])->name('destroy');
         Route::get('/{id}',      fn() => view('activos.show', ['id' => 1]))->name('show');
     });
+
+    // Reportes
+    Route::get('/reportes', [ReporteController::class, 'index'])->name('reportes');
+    Route::get('/reportes/preview', [ReporteController::class, 'preview'])->name('reportes.preview');
+    Route::get('/reportes/descargar', [ReporteController::class, 'generarPdf'])->name('reportes.descargar');
+
+    // Ajustes del Sistema
+    Route::get('/ajustes', [AjustesController::class, 'index'])->name('ajustes.index');
+    Route::post('/ajustes/guardar', [AjustesController::class, 'guardar'])->name('ajustes.guardar');
 
     // Solicitudes / Auditorías
     Route::prefix('solicitudes')->name('solicitudes.')->group(function () {
@@ -59,8 +76,6 @@ Route::middleware('auth.token')->group(function () {
         Route::get('/{id}',      [UsuarioController::class, 'index'])->name('show');
     });
 
-    // Reportes
-    Route::get('/reportes', fn() => view('reportes.index'))->name('reportes');
 
     // Notificaciones (AJAX y Vista)
     Route::get('/notificaciones', [NotificationController::class, 'index'])->name('notificaciones.index');

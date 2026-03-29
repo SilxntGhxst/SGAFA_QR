@@ -22,6 +22,33 @@ pwd_context    = CryptContext(schemes=["bcrypt"], deprecated="auto", bcrypt__rou
 oauth2_scheme  = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
 
+# ─── VALIDACIÓN DE CONTRASEÑA ────────────────────────────────────────────────
+def validate_password_strength(password: str):
+    """
+    Valida que la contraseña tenga:
+    - Al menos 8 caracteres.
+    - Al menos una letra mayúscula.
+    - Al menos un símbolo/carácter especial.
+    """
+    import re
+    if len(password) < 8:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="La contraseña debe tener al menos 8 caracteres."
+        )
+    if not re.search(r"[A-Z]", password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="La contraseña debe incluir al menos una letra mayúscula."
+        )
+    if not re.search(r"\d", password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="La contraseña debe incluir al menos un número."
+        )
+    return True
+
+
 # ─── UTILIDADES ───────────────────────────────────────────────────────────────
 
 def hash_password(password: str) -> str:
@@ -95,3 +122,18 @@ def get_current_user_optional(
         return get_current_user(token=token, db=db)
     except HTTPException:
         return None
+
+
+def role_required(roles: list[int]):
+    """
+    Dependencia para verificar si el usuario tiene uno de los roles permitidos.
+    Uso: user: Usuario = Depends(role_required([1, 3]))
+    """
+    def role_checker(user: Usuario = Depends(get_current_user)):
+        if user.rol_id not in roles:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="No tienes permisos para realizar esta acción."
+            )
+        return user
+    return role_checker

@@ -510,6 +510,12 @@
                 </div>
                 @endif
 
+                @if (session('success'))
+                <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:0.75rem 1rem;margin-bottom:1rem;">
+                    <p style="color:#15803d;font-size:.875rem;font-weight:600;margin:0;">{{ session('success') }}</p>
+                </div>
+                @endif
+
                 @if (session('error'))
                 <div style="background:#fff0f0;border:1px solid #fca5a5;border-radius:10px;padding:0.75rem 1rem;margin-bottom:1rem;">
                     <p style="color:#dc2626;font-size:.875rem;font-weight:600;margin:0;">{{ session('error') }}</p>
@@ -521,8 +527,9 @@
                     Iniciar Sesión
                 </button>
 
-                <div class="forgot">
-                    <a href="/forgot-password">¿Olvidaste tu contraseña?</a>
+                <div class="forgot" style="display:flex; justify-content:space-between; align-items:center;">
+                    <a href="{{ route('password.forgot') }}">¿Olvidaste tu contraseña?</a>
+                    <a href="{{ route('register') }}" style="color:#e2834a; border-color:#e2834a; font-weight:600;">Registrarse</a>
                 </div>
             </form>
 

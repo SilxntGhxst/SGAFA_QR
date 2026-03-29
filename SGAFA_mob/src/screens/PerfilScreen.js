@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -11,9 +11,10 @@ import {
   Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Feather } from "@expo/vector-icons";
+import { Feather, Ionicons } from "@expo/vector-icons";
 import { colors } from "../theme/colors";
 import { useAuth } from "../domain/AuthContext";
+import { apiClient } from "../data/api/apiClient";
 
 export default function PerfilScreen({ navigation }) {
   const { user, logout } = useAuth();
@@ -34,6 +35,19 @@ export default function PerfilScreen({ navigation }) {
   const [passActual, setPassActual] = useState("");
   const [passNueva, setPassNueva] = useState("");
   const [passConfirmar, setPassConfirmar] = useState("");
+  
+  const [showActual, setShowActual] = useState(false);
+  const [showNueva, setShowNueva] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+
+  // Password Strength Logic
+  const strength = useMemo(() => {
+    let score = 0;
+    if (passNueva.length >= 8) score++;
+    if (/[A-Z]/.test(passNueva)) score++;
+    if (/\d/.test(passNueva)) score++;
+    return score;
+  }, [passNueva]);
 
   // --- LÓGICA ---
   const handleCerrarSesion = () => {
@@ -47,7 +61,6 @@ export default function PerfilScreen({ navigation }) {
           style: "destructive",
           onPress: async () => {
             await logout(); // invalida la sesión en BD y limpia AsyncStorage
-            // AppNavigator detecta user=null y redirige a AuthStack automáticamente
           },
         },
       ],
@@ -63,7 +76,7 @@ export default function PerfilScreen({ navigation }) {
     Alert.alert("Éxito", "Perfil actualizado correctamente.");
   };
 
-  const handleGuardarPassword = () => {
+  const handleGuardarPassword = async () => {
     if (!passActual || !passNueva || !passConfirmar) {
       Alert.alert(
         "Error",
@@ -71,6 +84,21 @@ export default function PerfilScreen({ navigation }) {
       );
       return;
     }
+    
+    // Validar requerimientos
+    if (passNueva.length < 8) {
+      Alert.alert('Seguridad', 'La nueva contraseña debe tener al menos 8 caracteres.');
+      return;
+    }
+    if (!/[A-Z]/.test(passNueva)) {
+      Alert.alert('Seguridad', 'La nueva contraseña debe incluir al menos una mayúscula.');
+      return;
+    }
+    if (!/\d/.test(passNueva)) {
+      Alert.alert('Seguridad', 'La nueva contraseña debe incluir al menos un número.');
+      return;
+    }
+
     if (passNueva !== passConfirmar) {
       Alert.alert(
         "Error",
@@ -78,12 +106,31 @@ export default function PerfilScreen({ navigation }) {
       );
       return;
     }
-    setModalPasswordVisible(false);
-    setPassActual("");
-    setPassNueva("");
-    setPassConfirmar("");
-    Alert.alert("Éxito", "Tu contraseña ha sido cambiada de forma segura.");
+
+    try {
+      await apiClient(`/usuarios/${user.id}`, {
+        method: "PUT",
+        body: JSON.stringify({
+          password: passNueva
+        })
+      });
+
+      setModalPasswordVisible(false);
+      setPassActual("");
+      setPassNueva("");
+      setPassConfirmar("");
+      Alert.alert("Éxito", "Tu contraseña ha sido cambiada de forma segura.");
+    } catch (error) {
+      Alert.alert("Error", "No se pudo actualizar la contraseña. Revisa tu conexión.");
+    }
   };
+
+  const renderRequirement = (text, met) => (
+    <View style={styles.reqRow}>
+      <Ionicons name={met ? "checkmark-circle" : "ellipse-outline"} size={12} color={met ? "#10b981" : "#94a3b8"} />
+      <Text style={[styles.reqText, met && { color: '#10b981' }]}>{text}</Text>
+    </View>
+  );
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
@@ -254,64 +301,95 @@ export default function PerfilScreen({ navigation }) {
         transparent={true}
         onRequestClose={() => setModalPasswordVisible(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Cambiar Contraseña</Text>
+        <ScrollView contentContainerStyle={{flexGrow: 1}} keyboardShouldPersistTaps="handled">
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Cambiar Contraseña</Text>
+                <TouchableOpacity
+                  onPress={() => setModalPasswordVisible(false)}
+                  style={styles.closeButton}
+                >
+                  <Feather name="x" size={24} color={colors.textSecondary} />
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Contraseña Actual</Text>
+                <View style={styles.inputWithIcon}>
+                  <TextInput
+                    style={[styles.input, { flex: 1, borderTopRightRadius: 0, borderBottomRightRadius: 0, borderRightWidth: 0 }]}
+                    placeholder="••••••••"
+                    placeholderTextColor={colors.textSecondary}
+                    secureTextEntry={!showActual}
+                    value={passActual}
+                    onChangeText={setPassActual}
+                  />
+                  <TouchableOpacity style={styles.eyeIcon} onPress={() => setShowActual(!showActual)}>
+                    <Ionicons name={showActual ? "eye-off" : "eye"} size={22} color="#94a3b8" />
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Nueva Contraseña</Text>
+                <View style={styles.inputWithIcon}>
+                  <TextInput
+                    style={[styles.input, { flex: 1, borderTopRightRadius: 0, borderBottomRightRadius: 0, borderRightWidth: 0 }]}
+                    placeholder="••••••••"
+                    placeholderTextColor={colors.textSecondary}
+                    secureTextEntry={!showNueva}
+                    value={passNueva}
+                    onChangeText={setPassNueva}
+                  />
+                  <TouchableOpacity style={styles.eyeIcon} onPress={() => setShowNueva(!showNueva)}>
+                    <Ionicons name={showNueva ? "eye-off" : "eye"} size={22} color="#94a3b8" />
+                  </TouchableOpacity>
+                </View>
+                
+                {passNueva.length > 0 && (
+                  <View style={{ marginTop: 8 }}>
+                    <View style={styles.strengthWrapper}>
+                      <View style={[styles.strengthBar, { width: `${(strength / 3) * 100}%`, backgroundColor: strength === 3 ? '#10b981' : strength === 2 ? '#f59e0b' : '#ef4444' }]} />
+                    </View>
+                    <View style={styles.reqContainer}>
+                      {renderRequirement('8+ car.', passNueva.length >= 8)}
+                      {renderRequirement('Mayús.', /[A-Z]/.test(passNueva))}
+                      {renderRequirement('Un número', /\d/.test(passNueva))}
+                    </View>
+                  </View>
+                )}
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Confirmar Nueva Contraseña</Text>
+                <View style={styles.inputWithIcon}>
+                  <TextInput
+                    style={[styles.input, { flex: 1, borderTopRightRadius: 0, borderBottomRightRadius: 0, borderRightWidth: 0 }]}
+                    placeholder="••••••••"
+                    placeholderTextColor={colors.textSecondary}
+                    secureTextEntry={!showConfirm}
+                    value={passConfirmar}
+                    onChangeText={setPassConfirmar}
+                  />
+                  <TouchableOpacity style={styles.eyeIcon} onPress={() => setShowConfirm(!showConfirm)}>
+                    <Ionicons name={showConfirm ? "eye-off" : "eye"} size={22} color="#94a3b8" />
+                  </TouchableOpacity>
+                </View>
+              </View>
+
               <TouchableOpacity
-                onPress={() => setModalPasswordVisible(false)}
-                style={styles.closeButton}
+                style={[styles.primaryButton, (passNueva.length > 0 && strength < 3) && styles.disabled]}
+                onPress={handleGuardarPassword}
+                disabled={passNueva.length > 0 && strength < 3}
               >
-                <Feather name="x" size={24} color={colors.textSecondary} />
+                <Text style={styles.primaryButtonText}>
+                  Actualizar Contraseña
+                </Text>
               </TouchableOpacity>
             </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Contraseña Actual</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="••••••••"
-                placeholderTextColor={colors.textSecondary}
-                secureTextEntry
-                value={passActual}
-                onChangeText={setPassActual}
-              />
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Nueva Contraseña</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="••••••••"
-                placeholderTextColor={colors.textSecondary}
-                secureTextEntry
-                value={passNueva}
-                onChangeText={setPassNueva}
-              />
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Confirmar Nueva Contraseña</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="••••••••"
-                placeholderTextColor={colors.textSecondary}
-                secureTextEntry
-                value={passConfirmar}
-                onChangeText={setPassConfirmar}
-              />
-            </View>
-
-            <TouchableOpacity
-              style={styles.primaryButton}
-              onPress={handleGuardarPassword}
-            >
-              <Text style={styles.primaryButtonText}>
-                Actualizar Contraseña
-              </Text>
-            </TouchableOpacity>
           </View>
-        </View>
+        </ScrollView>
       </Modal>
 
       {/* ========================================================= */}
@@ -545,6 +623,13 @@ const styles = StyleSheet.create({
     color: colors.primary,
     fontWeight: "600",
   },
+  inputWithIcon: { flexDirection: "row", alignItems: "center" },
+  eyeIcon: { backgroundColor: "#f8fafc", borderTopRightRadius: 12, borderBottomRightRadius: 12, borderTopWidth: 1, borderBottomWidth: 1, borderRightWidth: 1, borderColor: "#e2e8f0", height: 52, width: 50, justifyContent: "center", alignItems: "center" },
+  strengthWrapper: { height: 6, backgroundColor: "#e2e8f0", borderRadius: 3, overflow: "hidden" },
+  strengthBar: { height: "100%" },
+  reqContainer: { marginTop: 8, flexDirection: "row", flexWrap: "wrap", gap: 10 },
+  reqRow: { flexDirection: "row", alignItems: "center", gap: 4 },
+  reqText: { fontSize: 11, color: "#94a3b8" },
   primaryButton: {
     backgroundColor: colors.accent,
     borderRadius: 12,
@@ -558,6 +643,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
   },
+  disabled: { opacity: 0.5 },
   primaryButtonText: { color: colors.surface, fontSize: 16, fontWeight: "800" },
 
   // Modal Acerca de (Center Alert)

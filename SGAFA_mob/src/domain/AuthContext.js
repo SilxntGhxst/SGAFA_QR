@@ -17,7 +17,8 @@ export function AuthProvider({ children }) {
         const storedUser  = await AsyncStorage.getItem('auth_user');
         if (storedToken && storedUser) {
           setToken(storedToken);
-          setUser(JSON.parse(storedUser));
+          // Omitimos setUser para que siempre inicie en el Login según petición del usuario
+          // setUser(JSON.parse(storedUser)); 
         }
       } catch (e) {
         console.warn('Error al restaurar sesión:', e);
@@ -32,6 +33,12 @@ export function AuthProvider({ children }) {
   const login = async (email, password) => {
     const data = await loginApi(email, password);
     // data = { access_token, token_type, user }
+    
+    // Restricción de roles para la App Móvil: Solo Resguardante (2)
+    if (data.user.rol_id !== 2) {
+      throw new Error('Esta aplicación es exclusiva para resguardantes. Por favor, usa la plataforma web para administradores o auditores.');
+    }
+
     await AsyncStorage.setItem('auth_token', data.access_token);
     await AsyncStorage.setItem('auth_user',  JSON.stringify(data.user));
     setToken(data.access_token);

@@ -5,7 +5,7 @@ from typing import Optional
 from app.database.db import get_db
 from app.database.models import Usuario, Rol
 from app.models.UserModel import UserCreate, UserResponse
-from app.security.auth import hash_password, get_current_user
+from app.security.auth import hash_password, get_current_user, validate_password_strength
 
 router = APIRouter(prefix="/api/usuarios", tags=["Usuarios"])
 
@@ -50,6 +50,9 @@ def crear_usuario(payload: UserCreate, db: Session = Depends(get_db)):
     if db.query(Usuario).filter(Usuario.email == payload.email).first():
         raise HTTPException(status_code=400, detail="El correo ya está registrado.")
 
+    if payload.password:
+        validate_password_strength(payload.password)
+
     nuevo = Usuario(
         nombre=payload.nombre,
         apellidos=payload.apellidos,
@@ -76,6 +79,7 @@ def actualizar_usuario(id: str, payload: dict, db: Session = Depends(get_db)):
         if campo in campos_permitidos and valor is not None:
             setattr(usuario, campo, valor)
     if "password" in payload and payload["password"]:
+        validate_password_strength(payload["password"])
         usuario.clave_acceso = hash_password(payload["password"])
 
     db.commit()

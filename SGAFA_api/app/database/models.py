@@ -145,10 +145,11 @@ class Buzon(Base):
     __tablename__ = "buzon"
 
     id            = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    codigo        = Column(String(20))
+    bien_id       = Column(UUID(as_uuid=True), ForeignKey("bienes_muebles.id", ondelete="SET NULL"), nullable=True)
+    reportado_por = Column(String(100), nullable=True) # Nombre del usuario que reporta
+    codigo        = Column(String(20)) # Código manual o de referencia
     activo        = Column(String(100), nullable=False)
     tipo          = Column(String(100), nullable=False)
-    reportado_por = Column(String(100), nullable=False)
     area          = Column(String(100), nullable=False)
     estado        = Column(String(50), default="Pendiente")
     descripcion   = Column(Text)
@@ -166,3 +167,25 @@ class Sesion(Base):
     creado_en   = Column(TIMESTAMP, server_default=func.now())
     expira_en   = Column(TIMESTAMP, nullable=False)
     activo      = Column(Boolean, default=True)
+
+
+# ─── TABLA: ajustes_sistema ─────────────────────────────────────────────────────
+class AjusteSistema(Base):
+    __tablename__ = "ajustes_sistema"
+
+    id      = Column(Integer, primary_key=True, index=True)
+    clave   = Column(String(50), unique=True, index=True)  # Ej: "mail_username"
+    valor   = Column(Text)
+    grupo   = Column(String(50)) # Ej: "Smtp", "General"
+
+
+# ─── TABLA: password_resets ─────────────────────────────────────────────────────
+class PasswordReset(Base):
+    __tablename__ = "password_resets"
+
+    id         = Column(Integer, primary_key=True, index=True)
+    email      = Column(String(100), index=True)
+    codigo     = Column(String(10), nullable=False)
+    expira_en  = Column(TIMESTAMP, nullable=False)
+    utilizado  = Column(Boolean, default=False)
+    created_at = Column(TIMESTAMP, server_default=func.now())
