@@ -9,6 +9,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AuditoriaController;
 use App\Http\Controllers\PerfilController;
 use App\Http\Controllers\UsuarioController;
+use App\Http\Controllers\ActivoController;
 
 /*
 |--------------------------------------------------------------------------
@@ -60,6 +61,8 @@ Route::middleware('auth.token')->group(function () {
         Route::get('/',                  fn() => redirect('/solicitudes/administrativos'));
         Route::get('/administrativos',   [AuditoriaController::class, 'index'])->name('administrativos');
         Route::post('/administrativos',  [AuditoriaController::class, 'store'])->name('administrativos.store');
+        Route::put('/administrativos/{id}', [AuditoriaController::class, 'update'])->name('administrativos.update');
+        Route::delete('/administrativos/{id}', [AuditoriaController::class, 'destroy'])->name('administrativos.destroy');
         Route::get('/buzon',             fn() => view('solicitudes.buzon'))->name('buzon');
         Route::get('/nueva',             fn() => view('solicitudes.administrativos'))->name('nueva');
         Route::get('/{id}',              fn() => view('solicitudes.administrativos'))->name('show');

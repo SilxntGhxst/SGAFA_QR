@@ -83,9 +83,18 @@
                 </td>
                 <td><span class="badge badge-{{ $color }}">{{ $aud['estado'] }}</span></td>
                 <td>
-                    <button onclick="toggleDetails({{ $index }})" style="background:none;border:none;color:#4a86b5;cursor:pointer;font-weight:700;font-size:.8rem;">
-                        Ver Detalles ▼
-                    </button>
+                    <div style="display:flex;gap:12px;align-items:center;justify-content:flex-end;">
+                        <button onclick="toggleDetails({{ $index }})" style="background:none;border:none;color:#64748b;cursor:pointer;font-weight:600;font-size:.78rem;display:flex;align-items:center;gap:4px;">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                            Detalles
+                        </button>
+                        <button onclick="abrirEditarAuditoria({{ json_encode($aud) }})" style="background:none;border:none;color:#4a86b5;cursor:pointer;display:flex;align-items:center;padding:4px;" title="Editar">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                        </button>
+                        <button onclick="confirmarEliminarAuditoria({{ $aud['id'] }}, '{{ $aud['folio'] }}')" style="background:none;border:none;color:#ef4444;cursor:pointer;display:flex;align-items:center;padding:4px;" title="Eliminar">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+                        </button>
+                    </div>
                 </td>
             </tr>
             <tr id="details-{{ $index }}" style="display:none; background:#f8fafc;">
@@ -197,6 +206,101 @@
     </form>
 </div>
 
+{{-- Modal Editar Auditoría --}}
+<div id="modalEditarAuditoria" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.6);align-items:center;justify-content:center;z-index:9999;backdrop-filter:blur(4px);">
+    <form id="formEditarAuditoria" method="POST" style="background:#fff;border-radius:16px;padding:32px;width:500px;box-shadow:0 12px 40px rgba(0,0,0,0.25);" onclick="event.stopPropagation()">
+        @csrf
+        @method('PUT')
+
+        {{-- Header --}}
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;">
+            <div>
+                <h2 style="margin:0;font-size:1.2rem;font-weight:800;color:#0f1f35;font-family:'Sora',sans-serif;">Editar Auditoría</h2>
+                <p id="editFolio" style="margin:4px 0 0;font-size:0.8rem;color:#4a86b5;font-weight:700;"></p>
+            </div>
+            <button type="button" onclick="document.getElementById('modalEditarAuditoria').style.display='none'" style="border:none;background:#f1f5f9;border-radius:50%;width:32px;height:32px;cursor:pointer;color:#64748b;display:flex;align-items:center;justify-content:center;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
+        </div>
+
+        <div style="margin-bottom:20px;">
+            <label style="display:block;font-size:.85rem;font-weight:700;color:#334155;margin-bottom:8px;">Auditor / Resguardante Asignado</label>
+            <div style="position:relative;">
+                <select name="usuario_id" id="editUsuarioId" required style="width:100%;padding:12px 14px;border-radius:10px;border:1px solid #cbd5e1;font-size:.9rem;color:#0f1f35;appearance:none;outline:none;background:#fff;box-sizing:border-box;">
+                    <option value="">Seleccione a la persona encargada...</option>
+                    @foreach($catalogos['usuarios'] ?? [] as $user)
+                        <option value="{{ $user['id'] }}">{{ $user['nombre'] }} {{ $user['apellidos'] }}</option>
+                    @endforeach
+                </select>
+                <svg style="position:absolute; right:14px; top:12px; pointer-events:none; color:#64748b;" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+        </div>
+
+        <div style="margin-bottom:20px;">
+            <label style="display:block;font-size:.85rem;font-weight:700;color:#334155;margin-bottom:8px;">Ubicación a Evaluar</label>
+            <div style="position:relative;">
+                <select name="ubicacion_id" id="editUbicacionId" required style="width:100%;padding:12px 14px;border-radius:10px;border:1px solid #cbd5e1;font-size:.9rem;color:#0f1f35;appearance:none;outline:none;background:#fff;box-sizing:border-box;">
+                    <option value="">Seleccione el espacio físico...</option>
+                    @foreach($catalogos['ubicaciones'] ?? [] as $ubi)
+                        <option value="{{ $ubi['id'] }}">{{ $ubi['nombre'] }} ({{ $ubi['edificio'] }})</option>
+                    @endforeach
+                </select>
+                <svg style="position:absolute; right:14px; top:12px; pointer-events:none; color:#64748b;" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+        </div>
+
+        <div style="display:flex; gap:12px; margin-bottom:32px;">
+            <div style="flex:1;">
+                <label style="display:block;font-size:.85rem;font-weight:700;color:#334155;margin-bottom:8px;">Fecha de Inicio</label>
+                <input type="date" name="fecha_inicio" id="editFechaInicio" required style="width:100%;padding:11px 14px;border-radius:10px;border:1px solid #cbd5e1;font-size:.9rem;color:#0f1f35;box-sizing:border-box;font-family:inherit;">
+            </div>
+            <div style="flex:1;">
+                <label style="display:block;font-size:.85rem;font-weight:700;color:#334155;margin-bottom:8px;">Fecha Límite</label>
+                <input type="date" name="fecha_fin" id="editFechaFin" required style="width:100%;padding:11px 14px;border-radius:10px;border:1px solid #cbd5e1;font-size:.9rem;color:#0f1f35;box-sizing:border-box;font-family:inherit;">
+            </div>
+        </div>
+
+        <div style="display:flex;gap:12px;justify-content:flex-end;">
+            <button type="button" onclick="document.getElementById('modalEditarAuditoria').style.display='none'"
+                style="padding:10px 20px;border-radius:10px;border:1px solid #e2e8f0;background:#fff;color:#475569;font-weight:700;font-size:.9rem;cursor:pointer;">
+                Cancelar
+            </button>
+            <button type="submit"
+                style="padding:10px 24px;border-radius:10px;border:none;background:linear-gradient(135deg,#4f46e5,#3730a3);color:#fff;font-weight:700;font-size:.9rem;cursor:pointer;box-shadow:0 4px 12px rgba(79,70,229,.3);">
+                Guardar Cambios
+            </button>
+        </div>
+    </form>
+</div>
+
+{{-- Modal Confirmación Eliminar --}}
+<div id="modalEliminarAuditoria" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.6);align-items:center;justify-content:center;z-index:9999;backdrop-filter:blur(4px);">
+    <div style="background:#fff;border-radius:16px;padding:32px;width:400px;box-shadow:0 12px 40px rgba(0,0,0,0.25);text-align:center;">
+        <div style="width:60px;height:60px;background:#fee2e2;color:#ef4444;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+            <svg width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+        </div>
+        <h2 style="margin:0 0 12px;font-size:1.1rem;font-weight:800;color:#0f1f35;">¿Eliminar Auditoría?</h2>
+        <p style="margin:0 0 28px;font-size:0.9rem;color:#64748b;line-height:1.5;">Estás a punto de eliminar la auditoría <strong id="deleteFolio" style="color:#0f1f35;"></strong>. Esta acción no se puede deshacer.</p>
+        
+        <form id="formEliminarAuditoria" method="POST">
+            @csrf
+            @method('DELETE')
+            <div style="display:flex;gap:12px;justify-content:center;">
+                <button type="button" onclick="document.getElementById('modalEliminarAuditoria').style.display='none'"
+                    style="padding:10px 20px;border-radius:10px;border:1px solid #e2e8f0;background:#fff;color:#475569;font-weight:700;font-size:.9rem;cursor:pointer;">
+                    Cancelar
+                </button>
+                <button type="submit"
+                    style="padding:10px 24px;border-radius:10px;border:none;background:#ef4444;color:#fff;font-weight:700;font-size:.9rem;cursor:pointer;box-shadow:0 4px 12px rgba(239,68,68,.3);">
+                    Sí, Eliminar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
     function toggleDetails(index) {
         var el = document.getElementById('details-' + index);
@@ -205,6 +309,23 @@
         } else {
             el.style.display = 'none';
         }
+    }
+
+    function abrirEditarAuditoria(aud) {
+        document.getElementById('editFolio').textContent = aud.folio;
+        document.getElementById('editUsuarioId').value = aud.usuario_id;
+        document.getElementById('editUbicacionId').value = aud.ubicacion_id;
+        document.getElementById('editFechaInicio').value = aud.fecha_inicio;
+        document.getElementById('editFechaFin').value = aud.fecha_fin;
+        
+        document.getElementById('formEditarAuditoria').action = `/solicitudes/administrativos/${aud.id}`;
+        document.getElementById('modalEditarAuditoria').style.display = 'flex';
+    }
+
+    function confirmarEliminarAuditoria(id, folio) {
+        document.getElementById('deleteFolio').textContent = folio;
+        document.getElementById('formEliminarAuditoria').action = `/solicitudes/administrativos/${id}`;
+        document.getElementById('modalEliminarAuditoria').style.display = 'flex';
     }
 </script>
 @endsection

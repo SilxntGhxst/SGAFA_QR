@@ -52,4 +52,34 @@ class AuditoriaController extends Controller
         
         return redirect()->back()->with('success', 'Auditoría programada correctamente.');
     }
+
+    public function update(Request $request, $id)
+    {
+        $apiBase = 'http://host.docker.internal:8080/api';
+        
+        $request->validate([
+            'ubicacion_id' => 'required',
+            'usuario_id' => 'required',
+            'fecha_inicio' => 'required|date',
+            'fecha_fin' => 'required|date'
+        ]);
+
+        Http::put("$apiBase/auditorias/$id", [
+            'ubicacion_id' => (int) $request->ubicacion_id,
+            'usuario_id' => $request->usuario_id,
+            'fecha_inicio' => $request->fecha_inicio,
+            'fecha_fin' => $request->fecha_fin
+        ]);
+        
+        return redirect()->back()->with('success', 'Auditoría actualizada correctamente.');
+    }
+
+    public function destroy($id)
+    {
+        $apiBase = 'http://host.docker.internal:8080/api';
+        
+        Http::delete("$apiBase/auditorias/$id");
+        
+        return redirect()->back()->with('success', 'Auditoría eliminada correctamente.');
+    }
 }

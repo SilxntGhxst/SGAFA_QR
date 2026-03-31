@@ -148,3 +148,46 @@ def finalizar_auditoria(id: int, payload: AuditoriaFinalizar, db: Session = Depe
         "message": "Auditoría completada exitosamente.",
         "data": {"id": aud.id, "estado": aud.estado}
     }
+
+
+# PUT - Actualizar auditoría (genérico)
+@router.put("/{id}")
+def actualizar_auditoria(id: int, payload: AuditoriaCreate, db: Session = Depends(get_db)):
+    aud = db.query(Auditoria).filter(Auditoria.id == id).first()
+    if not aud:
+        raise HTTPException(status_code=404, detail="Auditoría no encontrada.")
+
+    # Recalcular total esperados si la ubicación ha cambiado
+    if aud.ubicacion_id != payload.ubicacion_id:
+        total_esperados = db.query(BienMueble).filter(
+            BienMueble.ubicacion_id == payload.ubicacion_id
+        ).count()
+        aud.total_esperados = total_esperados
+        aud.ubicacion_id    = payload.ubicacion_id
+
+    aud.usuario_id   = _uuid.UUID(payload.usuario_id.strip()) if isinstance(payload.usuario_id, str) and len(payload.usuario_id.strip()) > 10 else None
+    aud.fecha_inicio = payload.fecha_inicio
+    aud.fecha_fin    = payload.fecha_fin
+
+    db.commit()
+    db.refresh(aud)
+    return {
+        "success": True,
+        "message": "Auditoría actualizada con éxito.",
+        "data": {"id": aud.id, "folio": aud.folio}
+    }
+
+
+# DELETE - Eliminar auditoría
+@router.delete("/{id}")
+def eliminar_auditoria(id: int, db: Session = Depends(get_db)):
+    aud = db.query(Auditoria).filter(Auditoria.id == id).first()
+    if not aud:
+        raise HTTPException(status_code=404, detail="Auditoría no encontrada.")
+    
+    # Eliminar también los registros de activos escaneados (cascada manual si no está en el modelo)
+    db.query(AuditoriaActivo).filter(AuditoriaActivo.auditoria_id == id).delete()
+    
+    db.delete(aud)
+    db.commit()
+    return {"success": True, "message": "Auditoría eliminada permanentemente."}
