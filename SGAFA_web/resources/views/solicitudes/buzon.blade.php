@@ -4,7 +4,7 @@
 
 @push('styles')
 <style>
-.page-subtitle { font-size:.88rem; color:#6b7a8d; margin-top:-18px; margin-bottom:0; font-weight:500; }
+.page-subtitle { font-size:.88rem; color:var(--text-secondary,#6b7a8d); margin-top:-18px; margin-bottom:0; font-weight:500; }
 
 .modal-overlay {
     display: none; position: fixed; inset: 0;
@@ -13,7 +13,7 @@
 }
 .modal-overlay.active { display: flex; }
 .modal-card {
-    background: #fff; border-radius: 12px; width: 100%; max-width: 520px;
+    background: var(--card-bg,#fff); border-radius: 12px; width: 100%; max-width: 520px;
     box-shadow: 0 8px 40px rgba(0,0,0,0.18); overflow: hidden;
     animation: modalIn .18s ease;
 }
@@ -23,37 +23,37 @@
 }
 .modal-header {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 18px 22px 14px; border-bottom: 1px solid #f0f2f5;
+    padding: 18px 22px 14px; border-bottom: 1px solid var(--border,#f0f2f5);
 }
-.modal-header h3 { font-size: .98rem; font-weight: 700; color: #1a2233; margin: 0; }
+.modal-header h3 { font-size: .98rem; font-weight: 700; color: var(--text-primary,#1a2233); margin: 0; }
 .modal-close {
-    background: none; border: none; cursor: pointer; color: #6b7a8d;
+    background: none; border: none; cursor: pointer; color: var(--text-secondary,#6b7a8d);
     padding: 4px; border-radius: 6px; display: flex; align-items: center; transition: background .15s;
 }
-.modal-close:hover { background: #f0f2f5; }
+.modal-close:hover { background: var(--sk-bg,#f0f2f5); }
 .modal-body {
     padding: 20px 22px; display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
 }
 .modal-body .form-group { display: flex; flex-direction: column; gap: 5px; }
 .modal-body .form-group.full { grid-column: 1 / -1; }
 .modal-body label {
-    font-size: .78rem; font-weight: 600; color: #6b7a8d;
+    font-size: .78rem; font-weight: 600; color: var(--text-secondary,#6b7a8d);
     text-transform: uppercase; letter-spacing: .03em;
 }
 .modal-body input, .modal-body select {
-    border: 1px solid #e2e6ea; border-radius: 7px; padding: 8px 11px;
-    font-size: .87rem; color: #1a2233; background: #f8f9fb; outline: none; transition: border-color .15s;
+    border: 1px solid var(--border,#e2e6ea); border-radius: 7px; padding: 8px 11px;
+    font-size: .87rem; color: var(--text-primary,#1a2233); background: var(--sk-bg,#f8f9fb); outline: none; transition: border-color .15s;
 }
-.modal-body input:focus, .modal-body select:focus { border-color: #2563eb; background: #fff; }
+.modal-body input:focus, .modal-body select:focus { border-color: #2563eb; background: var(--card-bg,#fff); }
 .modal-footer {
     display: flex; align-items: center; justify-content: flex-end;
-    gap: 10px; padding: 14px 22px 18px; border-top: 1px solid #f0f2f5;
+    gap: 10px; padding: 14px 22px 18px; border-top: 1px solid var(--border,#f0f2f5);
 }
 .btn-cancel {
-    background: #f0f2f5; border: none; border-radius: 7px; padding: 8px 18px;
-    font-size: .86rem; font-weight: 600; color: #6b7a8d; cursor: pointer; transition: background .15s;
+    background: var(--sk-bg,#f0f2f5); border: none; border-radius: 7px; padding: 8px 18px;
+    font-size: .86rem; font-weight: 600; color: var(--text-secondary,#6b7a8d); cursor: pointer; transition: background .15s;
 }
-.btn-cancel:hover { background: #e2e6ea; }
+.btn-cancel:hover { background: var(--border,#e2e6ea); }
 .btn-save {
     background: #2563eb; border: none; border-radius: 7px; padding: 8px 20px;
     font-size: .86rem; font-weight: 600; color: #fff; cursor: pointer; transition: background .15s;
@@ -62,12 +62,12 @@
 .modal-card.modal-sm { max-width: 380px; }
 .modal-delete-body { padding: 22px 22px 10px; text-align: center; }
 .modal-delete-body .delete-icon {
-    width: 48px; height: 48px; background: #fef2f2; border-radius: 50%;
+    width: 48px; height: 48px; background: var(--sk-bg,#fef2f2); border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
     margin: 0 auto 14px; color: #ef4444;
 }
-.modal-delete-body h3 { font-size: .97rem; font-weight: 700; color: #1a2233; margin: 0 0 6px; }
-.modal-delete-body p  { font-size: .84rem; color: #6b7a8d; margin: 0; }
+.modal-delete-body h3 { font-size: .97rem; font-weight: 700; color: var(--text-primary,#1a2233); margin: 0 0 6px; }
+.modal-delete-body p  { font-size: .84rem; color: var(--text-secondary,#6b7a8d); margin: 0; }
 .btn-delete {
     background: #ef4444; border: none; border-radius: 7px; padding: 8px 20px;
     font-size: .86rem; font-weight: 600; color: #fff; cursor: pointer; transition: background .15s;
@@ -75,15 +75,15 @@
 .btn-delete:hover { background: #dc2626; }
 .action-btn-danger {
     display: inline-flex; align-items: center; justify-content: center;
-    width: 28px; height: 28px; border-radius: 6px; background: #fef2f2;
+    width: 28px; height: 28px; border-radius: 6px; background: var(--sk-bg,#fef2f2);
     color: #ef4444; border: none; cursor: pointer; text-decoration: none; transition: background .15s;
 }
-.action-btn-danger:hover { background: #fee2e2; }
+.action-btn-danger:hover { background: var(--sk-bg,#fee2e2); }
 
 /* Toast */
 .toast {
     position: fixed; bottom: 28px; right: 28px; z-index: 9999;
-    background: #1a2233; color: #fff; padding: 12px 20px;
+    background: var(--card-bg,#1a2233); color: var(--text-primary,#fff); padding: 12px 20px;
     border-radius: 8px; font-size: .87rem; font-weight: 600;
     box-shadow: 0 4px 20px rgba(0,0,0,0.2);
     opacity: 0; transform: translateY(10px);
@@ -155,8 +155,8 @@
         </tbody>
     </table>
 
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid #f0f2f5;flex-wrap:wrap;gap:12px;">
-        <span id="totalLabel" style="font-size:.85rem;color:#6b7a8d;">–</span>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--border,#f0f2f5);flex-wrap:wrap;gap:12px;">
+        <span id="totalLabel" style="font-size:.85rem;color:var(--text-secondary,#6b7a8d);">–</span>
         <div style="display:flex;align-items:center;gap:8px;">
             <div class="pagination">
                 <a href="#" class="page-btn">‹</a>
@@ -180,11 +180,11 @@
             <input type="hidden" id="edit-id">
             <div class="form-group">
                 <label>Código</label>
-                <input type="text" id="edit-codigo" readonly style="background:#f0f2f5;color:#6b7a8d;">
+                <input type="text" id="edit-codigo" readonly style="background:var(--border,#f0f2f5);color:var(--text-secondary,#6b7a8d);">
             </div>
             <div class="form-group">
                 <label>Fecha</label>
-                <input type="text" id="edit-fecha" readonly style="background:#f0f2f5;color:#6b7a8d;">
+                <input type="text" id="edit-fecha" readonly style="background:var(--border,#f0f2f5);color:var(--text-secondary,#6b7a8d);">
             </div>
             <div class="form-group full">
                 <label>Activo</label>

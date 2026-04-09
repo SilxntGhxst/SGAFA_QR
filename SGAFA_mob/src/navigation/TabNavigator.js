@@ -3,6 +3,7 @@ import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Feather } from "@expo/vector-icons";
 import { colors } from "../theme/colors";
+import { useTheme } from "../theme/ThemeContext";
 
 // Importación de las pantallas principales
 import DashboardScreen from "../screens/DashboardScreen";
@@ -12,6 +13,8 @@ import PerfilScreen from "../screens/PerfilScreen";
 const Tab = createBottomTabNavigator();
 
 export default function TabNavigator() {
+  const { colors } = useTheme();
+
   return (
     <Tab.Navigator
       screenOptions={({ route, navigation }) => ({
@@ -29,7 +32,7 @@ export default function TabNavigator() {
         tabBarStyle: {
           backgroundColor: colors.surface,
           borderTopWidth: 1,
-          borderTopColor: "#e2e8f0",
+          borderTopColor: colors.bottomTabBorder || "#e2e8f0",
           paddingBottom: 15,
           paddingTop: 8,
           height: 80,
@@ -57,7 +60,7 @@ export default function TabNavigator() {
               resizeMode="contain"
             />
             <View>
-              <Text style={styles.headerTitle}>S.G.A.F.A QR</Text>
+              <Text style={[styles.headerTitle, { color: "#ffffff" }]}>S.G.A.F.A QR</Text>
               <Text style={styles.headerSubtitle}>
                 {route.name.toUpperCase()}
               </Text>
@@ -71,7 +74,7 @@ export default function TabNavigator() {
             onPress={() => navigation.navigate("Sincronizacion")}
             style={styles.headerRight}
           >
-            <Feather name="refresh-cw" size={24} color={colors.surface} />
+            <Feather name="refresh-cw" size={24} color={"#ffffff"} />
           </TouchableOpacity>
         ),
       })}
@@ -95,7 +98,6 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   headerTitle: {
-    color: colors.surface,
     fontSize: 18,
     fontWeight: "800",
     letterSpacing: 0.5,

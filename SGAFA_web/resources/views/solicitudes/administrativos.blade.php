@@ -12,7 +12,7 @@
 @section('content')
 
 @if(session('success'))
-<div style="background:#dcfce7;color:#15803d;padding:12px 20px;border-radius:8px;margin-bottom:16px;font-weight:600;font-size:0.9rem;">
+<div style="background:var(--sk-bg,#dcfce7);color:var(--text-primary,#15803d);padding:12px 20px;border-radius:8px;margin-bottom:16px;font-weight:600;font-size:0.9rem;">
     {{ session('success') }}
 </div>
 @endif
@@ -62,7 +62,7 @@
                 <td style="font-weight:700;font-size:.88rem;color:#0f1f35;">{{ $aud['folio'] }}</td>
                 <td style="font-size:.88rem;">
                     <div style="display:flex;align-items:center;gap:8px;">
-                        <div style="width:26px;height:26px;border-radius:13px;background:#e2e8f0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#64748b;">
+                        <div style="width:26px;height:26px;border-radius:13px;background:var(--border,#e2e8f0);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--text-secondary,#64748b);">
                             {{ substr($aud['usuario_nombre'], 0, 1) }}
                         </div>
                         {{ $aud['usuario_nombre'] }}
@@ -76,7 +76,7 @@
                 <td style="font-size:.85rem;font-weight:600;font-family:'DM Mono',monospace;color:#4a86b5;">
                     {{ $aud['progreso'] }} activos
                     @if($aud['total_esperados'] > 0)
-                        <div style="width:100%;height:4px;background:#f1f5f9;border-radius:2px;margin-top:4px;overflow:hidden;">
+                        <div style="width:100%;height:4px;background:var(--border,#f1f5f9);border-radius:2px;margin-top:4px;overflow:hidden;">
                             <div style="height:100%;background:#4a86b5;width:{{ min(100, ($aud['escaneados'] / max(1, $aud['total_esperados'])) * 100) }}%;"></div>
                         </div>
                     @endif
@@ -97,12 +97,12 @@
                     </div>
                 </td>
             </tr>
-            <tr id="details-{{ $index }}" style="display:none; background:#f8fafc;">
-                <td colspan="7" style="padding:20px; border-bottom:1px solid #e2e8f0;">
+            <tr id="details-{{ $index }}" style="display:none; background:var(--sk-bg,#f8fafc);">
+                <td colspan="7" style="padding:20px; border-bottom:1px solid var(--border,#e2e8f0);">
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
                         <div>
-                            <h4 style="margin:0 0 10px; color:#0f1f35; font-size:0.9rem;">Resumen de Auditoría</h4>
-                            <p style="color:#475569; font-size:0.85rem; line-height:1.5; background:#fff; padding:12px; border:1px solid #e2e8f0; border-radius:8px; min-height:60px;">
+                            <h4 style="margin:0 0 10px; color:var(--text-primary, #0f1f35); font-size:0.9rem;">Resumen de Auditoría</h4>
+                            <p style="color:var(--text-primary, #475569); font-size:0.85rem; line-height:1.5; background:var(--card-bg, #fff); padding:12px; border:1px solid var(--border, #e2e8f0); border-radius:8px; min-height:60px;">
                                 @if(!empty($aud['resumen_final']))
                                     {{ $aud['resumen_final'] }}
                                 @else
@@ -111,8 +111,8 @@
                             </p>
                         </div>
                         <div>
-                            <h4 style="margin:0 0 10px; color:#0f1f35; font-size:0.9rem;">Activos Recolectados ({{ count($aud['activos_list']) }})</h4>
-                            <div style="background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:12px; max-height:140px; overflow-y:auto;">
+                            <h4 style="margin:0 0 10px; color:var(--text-primary, #0f1f35); font-size:0.9rem;">Activos Recolectados ({{ count($aud['activos_list']) }})</h4>
+                            <div style="background:var(--card-bg, #fff); border:1px solid var(--border, #e2e8f0); border-radius:8px; padding:12px; max-height:140px; overflow-y:auto;">
                                 @forelse($aud['activos_list'] as $activo)
                                     <div style="display:flex; justify-content:space-between; margin-bottom:8px; border-bottom:1px dashed #e2e8f0; padding-bottom:8px;">
                                         <span style="font-size:0.85rem; color:#334155; font-weight:600;">{{ $activo['nombre'] }}</span>
@@ -141,13 +141,13 @@
 
 {{-- Modal Nueva Auditoría --}}
 <div id="modalNuevaAuditoria" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.6);align-items:center;justify-content:center;z-index:9999;backdrop-filter:blur(4px);">
-    <form action="{{ route('solicitudes.administrativos.store') }}" method="POST" style="background:#fff;border-radius:16px;padding:32px;width:500px;box-shadow:0 12px 40px rgba(0,0,0,0.25);" onclick="event.stopPropagation()">
+    <form action="{{ route('solicitudes.administrativos.store') }}" method="POST" style="background:var(--card-bg, #fff);border-radius:16px;padding:32px;width:500px;box-shadow:0 12px 40px rgba(0,0,0,0.25);" onclick="event.stopPropagation()">
         @csrf
 
         {{-- Header --}}
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;">
-            <h2 style="margin:0;font-size:1.2rem;font-weight:800;color:#0f1f35;font-family:'Sora',sans-serif;">Programar Auditoría</h2>
-            <button type="button" onclick="document.getElementById('modalNuevaAuditoria').style.display='none'" style="border:none;background:#f1f5f9;border-radius:50%;width:32px;height:32px;cursor:pointer;color:#64748b;display:flex;align-items:center;justify-content:center;">
+            <h2 style="margin:0;font-size:1.2rem;font-weight:800;color:var(--text-primary,#0f1f35);font-family:'Sora',sans-serif;">Programar Auditoría</h2>
+            <button type="button" onclick="document.getElementById('modalNuevaAuditoria').style.display='none'" style="border:none;background:var(--sk-bg,#f1f5f9);border-radius:50%;width:32px;height:32px;cursor:pointer;color:var(--text-secondary,#64748b);display:flex;align-items:center;justify-content:center;">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                     <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
                 </svg>
@@ -155,9 +155,9 @@
         </div>
 
         <div style="margin-bottom:20px;">
-            <label style="display:block;font-size:.85rem;font-weight:700;color:#334155;margin-bottom:8px;">Auditor / Resguardante Asignado</label>
+            <label style="display:block;font-size:.85rem;font-weight:700;color:var(--text-secondary, #334155);margin-bottom:8px;">Auditor / Resguardante Asignado</label>
             <div style="position:relative;">
-                <select name="usuario_id" required style="width:100%;padding:12px 14px;border-radius:10px;border:1px solid #cbd5e1;font-size:.9rem;color:#0f1f35;appearance:none;outline:none;background:#fff;box-sizing:border-box;">
+                <select name="usuario_id" required style="width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--border, #cbd5e1);font-size:.9rem;color:var(--text-primary, #0f1f35);appearance:none;outline:none;background:var(--sk-bg, #fff);box-sizing:border-box;">
                     <option value="">Seleccione a la persona encargada...</option>
                     @foreach($catalogos['usuarios'] ?? [] as $user)
                         <option value="{{ $user['id'] }}">{{ $user['nombre'] }} {{ $user['apellidos'] }}</option>
@@ -169,9 +169,9 @@
         </div>
 
         <div style="margin-bottom:20px;">
-            <label style="display:block;font-size:.85rem;font-weight:700;color:#334155;margin-bottom:8px;">Ubicación a Evaluar</label>
+            <label style="display:block;font-size:.85rem;font-weight:700;color:var(--text-secondary, #334155);margin-bottom:8px;">Ubicación a Evaluar</label>
             <div style="position:relative;">
-                <select name="ubicacion_id" required style="width:100%;padding:12px 14px;border-radius:10px;border:1px solid #cbd5e1;font-size:.9rem;color:#0f1f35;appearance:none;outline:none;background:#fff;box-sizing:border-box;">
+                <select name="ubicacion_id" required style="width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--border, #cbd5e1);font-size:.9rem;color:var(--text-primary, #0f1f35);appearance:none;outline:none;background:var(--sk-bg, #fff);box-sizing:border-box;">
                     <option value="">Seleccione el espacio físico...</option>
                     @foreach($catalogos['ubicaciones'] ?? [] as $ubi)
                         <option value="{{ $ubi['id'] }}">{{ $ubi['nombre'] }} ({{ $ubi['edificio'] }})</option>
@@ -183,18 +183,18 @@
 
         <div style="display:flex; gap:12px; margin-bottom:32px;">
             <div style="flex:1;">
-                <label style="display:block;font-size:.85rem;font-weight:700;color:#334155;margin-bottom:8px;">Fecha de Inicio</label>
-                <input type="date" name="fecha_inicio" required style="width:100%;padding:11px 14px;border-radius:10px;border:1px solid #cbd5e1;font-size:.9rem;color:#0f1f35;box-sizing:border-box;font-family:inherit;">
+                <label style="display:block;font-size:.85rem;font-weight:700;color:var(--text-secondary, #334155);margin-bottom:8px;">Fecha de Inicio</label>
+                <input type="date" name="fecha_inicio" required style="width:100%;padding:11px 14px;border-radius:10px;border:1px solid var(--border, #cbd5e1);font-size:.9rem;color:var(--text-primary, #0f1f35);background:var(--sk-bg, #fff);box-sizing:border-box;font-family:inherit;">
             </div>
             <div style="flex:1;">
-                <label style="display:block;font-size:.85rem;font-weight:700;color:#334155;margin-bottom:8px;">Fecha Límite</label>
-                <input type="date" name="fecha_fin" required style="width:100%;padding:11px 14px;border-radius:10px;border:1px solid #cbd5e1;font-size:.9rem;color:#0f1f35;box-sizing:border-box;font-family:inherit;">
+                <label style="display:block;font-size:.85rem;font-weight:700;color:var(--text-secondary, #334155);margin-bottom:8px;">Fecha Límite</label>
+                <input type="date" name="fecha_fin" required style="width:100%;padding:11px 14px;border-radius:10px;border:1px solid var(--border, #cbd5e1);font-size:.9rem;color:var(--text-primary, #0f1f35);background:var(--sk-bg, #fff);box-sizing:border-box;font-family:inherit;">
             </div>
         </div>
 
         <div style="display:flex;gap:12px;justify-content:flex-end;">
             <button type="button" onclick="document.getElementById('modalNuevaAuditoria').style.display='none'"
-                style="padding:10px 20px;border-radius:10px;border:1px solid #e2e8f0;background:#fff;color:#475569;font-weight:700;font-size:.9rem;cursor:pointer;">
+                style="padding:10px 20px;border-radius:10px;border:1px solid var(--border, #e2e8f0);background:var(--sk-bg, #fff);color:var(--text-primary, #475569);font-weight:700;font-size:.9rem;cursor:pointer;">
                 Cancelar
             </button>
             <button type="submit"
@@ -208,17 +208,17 @@
 
 {{-- Modal Editar Auditoría --}}
 <div id="modalEditarAuditoria" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.6);align-items:center;justify-content:center;z-index:9999;backdrop-filter:blur(4px);">
-    <form id="formEditarAuditoria" method="POST" style="background:#fff;border-radius:16px;padding:32px;width:500px;box-shadow:0 12px 40px rgba(0,0,0,0.25);" onclick="event.stopPropagation()">
+    <form id="formEditarAuditoria" method="POST" style="background:var(--card-bg, #fff);border-radius:16px;padding:32px;width:500px;box-shadow:0 12px 40px rgba(0,0,0,0.25);" onclick="event.stopPropagation()">
         @csrf
         @method('PUT')
 
         {{-- Header --}}
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;">
             <div>
-                <h2 style="margin:0;font-size:1.2rem;font-weight:800;color:#0f1f35;font-family:'Sora',sans-serif;">Editar Auditoría</h2>
+                <h2 style="margin:0;font-size:1.2rem;font-weight:800;color:var(--text-primary, #0f1f35);font-family:'Sora',sans-serif;">Editar Auditoría</h2>
                 <p id="editFolio" style="margin:4px 0 0;font-size:0.8rem;color:#4a86b5;font-weight:700;"></p>
             </div>
-            <button type="button" onclick="document.getElementById('modalEditarAuditoria').style.display='none'" style="border:none;background:#f1f5f9;border-radius:50%;width:32px;height:32px;cursor:pointer;color:#64748b;display:flex;align-items:center;justify-content:center;">
+            <button type="button" onclick="document.getElementById('modalEditarAuditoria').style.display='none'" style="border:none;background:var(--sk-bg, #f1f5f9);border-radius:50%;width:32px;height:32px;cursor:pointer;color:var(--text-secondary, #64748b);display:flex;align-items:center;justify-content:center;">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                     <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
                 </svg>
@@ -226,45 +226,45 @@
         </div>
 
         <div style="margin-bottom:20px;">
-            <label style="display:block;font-size:.85rem;font-weight:700;color:#334155;margin-bottom:8px;">Auditor / Resguardante Asignado</label>
+            <label style="display:block;font-size:.85rem;font-weight:700;color:var(--text-secondary, #334155);margin-bottom:8px;">Auditor / Resguardante Asignado</label>
             <div style="position:relative;">
-                <select name="usuario_id" id="editUsuarioId" required style="width:100%;padding:12px 14px;border-radius:10px;border:1px solid #cbd5e1;font-size:.9rem;color:#0f1f35;appearance:none;outline:none;background:#fff;box-sizing:border-box;">
+                <select name="usuario_id" id="editUsuarioId" required style="width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--border, #cbd5e1);font-size:.9rem;color:var(--text-primary, #0f1f35);appearance:none;outline:none;background:var(--sk-bg, #fff);box-sizing:border-box;">
                     <option value="">Seleccione a la persona encargada...</option>
                     @foreach($catalogos['usuarios'] ?? [] as $user)
                         <option value="{{ $user['id'] }}">{{ $user['nombre'] }} {{ $user['apellidos'] }}</option>
                     @endforeach
                 </select>
-                <svg style="position:absolute; right:14px; top:12px; pointer-events:none; color:#64748b;" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+                <svg style="position:absolute; right:14px; top:12px; pointer-events:none; color:var(--text-secondary, #64748b);" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
             </div>
         </div>
 
         <div style="margin-bottom:20px;">
-            <label style="display:block;font-size:.85rem;font-weight:700;color:#334155;margin-bottom:8px;">Ubicación a Evaluar</label>
+            <label style="display:block;font-size:.85rem;font-weight:700;color:var(--text-secondary, #334155);margin-bottom:8px;">Ubicación a Evaluar</label>
             <div style="position:relative;">
-                <select name="ubicacion_id" id="editUbicacionId" required style="width:100%;padding:12px 14px;border-radius:10px;border:1px solid #cbd5e1;font-size:.9rem;color:#0f1f35;appearance:none;outline:none;background:#fff;box-sizing:border-box;">
+                <select name="ubicacion_id" id="editUbicacionId" required style="width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--border, #cbd5e1);font-size:.9rem;color:var(--text-primary, #0f1f35);appearance:none;outline:none;background:var(--sk-bg, #fff);box-sizing:border-box;">
                     <option value="">Seleccione el espacio físico...</option>
                     @foreach($catalogos['ubicaciones'] ?? [] as $ubi)
                         <option value="{{ $ubi['id'] }}">{{ $ubi['nombre'] }} ({{ $ubi['edificio'] }})</option>
                     @endforeach
                 </select>
-                <svg style="position:absolute; right:14px; top:12px; pointer-events:none; color:#64748b;" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+                <svg style="position:absolute; right:14px; top:12px; pointer-events:none; color:var(--text-secondary, #64748b);" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
             </div>
         </div>
 
         <div style="display:flex; gap:12px; margin-bottom:32px;">
             <div style="flex:1;">
-                <label style="display:block;font-size:.85rem;font-weight:700;color:#334155;margin-bottom:8px;">Fecha de Inicio</label>
-                <input type="date" name="fecha_inicio" id="editFechaInicio" required style="width:100%;padding:11px 14px;border-radius:10px;border:1px solid #cbd5e1;font-size:.9rem;color:#0f1f35;box-sizing:border-box;font-family:inherit;">
+                <label style="display:block;font-size:.85rem;font-weight:700;color:var(--text-secondary, #334155);margin-bottom:8px;">Fecha de Inicio</label>
+                <input type="date" name="fecha_inicio" id="editFechaInicio" required style="width:100%;padding:11px 14px;border-radius:10px;border:1px solid var(--border, #cbd5e1);font-size:.9rem;color:var(--text-primary, #0f1f35);background:var(--sk-bg, #fff);box-sizing:border-box;font-family:inherit;">
             </div>
             <div style="flex:1;">
-                <label style="display:block;font-size:.85rem;font-weight:700;color:#334155;margin-bottom:8px;">Fecha Límite</label>
-                <input type="date" name="fecha_fin" id="editFechaFin" required style="width:100%;padding:11px 14px;border-radius:10px;border:1px solid #cbd5e1;font-size:.9rem;color:#0f1f35;box-sizing:border-box;font-family:inherit;">
+                <label style="display:block;font-size:.85rem;font-weight:700;color:var(--text-secondary, #334155);margin-bottom:8px;">Fecha Límite</label>
+                <input type="date" name="fecha_fin" id="editFechaFin" required style="width:100%;padding:11px 14px;border-radius:10px;border:1px solid var(--border, #cbd5e1);font-size:.9rem;color:var(--text-primary, #0f1f35);background:var(--sk-bg, #fff);box-sizing:border-box;font-family:inherit;">
             </div>
         </div>
 
         <div style="display:flex;gap:12px;justify-content:flex-end;">
             <button type="button" onclick="document.getElementById('modalEditarAuditoria').style.display='none'"
-                style="padding:10px 20px;border-radius:10px;border:1px solid #e2e8f0;background:#fff;color:#475569;font-weight:700;font-size:.9rem;cursor:pointer;">
+                style="padding:10px 20px;border-radius:10px;border:1px solid var(--border, #e2e8f0);background:var(--sk-bg, #fff);color:var(--text-primary, #475569);font-weight:700;font-size:.9rem;cursor:pointer;">
                 Cancelar
             </button>
             <button type="submit"
@@ -277,19 +277,19 @@
 
 {{-- Modal Confirmación Eliminar --}}
 <div id="modalEliminarAuditoria" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.6);align-items:center;justify-content:center;z-index:9999;backdrop-filter:blur(4px);">
-    <div style="background:#fff;border-radius:16px;padding:32px;width:400px;box-shadow:0 12px 40px rgba(0,0,0,0.25);text-align:center;">
-        <div style="width:60px;height:60px;background:#fee2e2;color:#ef4444;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+    <div style="background:var(--card-bg, #fff);border-radius:16px;padding:32px;width:400px;box-shadow:0 12px 40px rgba(0,0,0,0.25);text-align:center;">
+        <div style="width:60px;height:60px;background:var(--sk-bg, #fee2e2);color:var(--text-secondary,#ef4444);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
             <svg width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
         </div>
-        <h2 style="margin:0 0 12px;font-size:1.1rem;font-weight:800;color:#0f1f35;">¿Eliminar Auditoría?</h2>
-        <p style="margin:0 0 28px;font-size:0.9rem;color:#64748b;line-height:1.5;">Estás a punto de eliminar la auditoría <strong id="deleteFolio" style="color:#0f1f35;"></strong>. Esta acción no se puede deshacer.</p>
+        <h2 style="margin:0 0 12px;font-size:1.1rem;font-weight:800;color:var(--text-primary, #0f1f35);">¿Eliminar Auditoría?</h2>
+        <p style="margin:0 0 28px;font-size:0.9rem;color:var(--text-secondary, #64748b);line-height:1.5;">Estás a punto de eliminar la auditoría <strong id="deleteFolio" style="color:var(--text-primary, #0f1f35);"></strong>. Esta acción no se puede deshacer.</p>
         
         <form id="formEliminarAuditoria" method="POST">
             @csrf
             @method('DELETE')
             <div style="display:flex;gap:12px;justify-content:center;">
                 <button type="button" onclick="document.getElementById('modalEliminarAuditoria').style.display='none'"
-                    style="padding:10px 20px;border-radius:10px;border:1px solid #e2e8f0;background:#fff;color:#475569;font-weight:700;font-size:.9rem;cursor:pointer;">
+                    style="padding:10px 20px;border-radius:10px;border:1px solid var(--border, #e2e8f0);background:var(--sk-bg, #fff);color:var(--text-primary, #475569);font-weight:700;font-size:.9rem;cursor:pointer;">
                     Cancelar
                 </button>
                 <button type="submit"

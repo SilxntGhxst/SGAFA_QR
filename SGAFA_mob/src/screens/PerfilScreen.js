@@ -9,15 +9,19 @@ import {
   TextInput,
   Alert,
   Image,
+  Switch,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { colors } from "../theme/colors";
 import { useAuth } from "../domain/AuthContext";
 import { apiClient } from "../data/api/apiClient";
+import { useTheme } from "../theme/ThemeContext";
 
 export default function PerfilScreen({ navigation }) {
   const { user, logout } = useAuth();
+  const { isDark, toggleTheme, colors } = useTheme();
+  const styles = React.useMemo(() => getStyles(colors, isDark), [colors, isDark]);
 
   // --- ESTADOS DE LOS MODALES ---
   const [modalEditarVisible, setModalEditarVisible] = useState(false);
@@ -133,13 +137,13 @@ export default function PerfilScreen({ navigation }) {
   );
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={["top"]}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]} edges={["top"]}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContainer}
       >
         {/* --- TARJETA DE PERFIL --- */}
-        <View style={styles.profileCard}>
+        <View style={[styles.profileCard, { backgroundColor: colors.surface }]}>
           <View style={styles.avatarContainer}>
             <View style={styles.avatarCircle}>
               <Text style={styles.avatarInitial}>
@@ -178,13 +182,13 @@ export default function PerfilScreen({ navigation }) {
         </View>
 
         {/* --- MENÚ DE OPCIONES --- */}
-        <View style={styles.menuContainer}>
+        <View style={[styles.menuContainer, { backgroundColor: colors.surface }]}>
           <TouchableOpacity
             style={styles.menuItem}
             onPress={() => setModalEditarVisible(true)}
           >
             <View style={styles.menuItemLeft}>
-              <Feather name="edit-2" size={24} color={colors.primary} />
+              <Feather name="edit-2" size={24} color={colors.textPrimary} />
               <Text style={styles.menuItemText}>Editar perfil</Text>
             </View>
             <Feather
@@ -199,7 +203,7 @@ export default function PerfilScreen({ navigation }) {
             onPress={() => setModalPasswordVisible(true)}
           >
             <View style={styles.menuItemLeft}>
-              <Feather name="lock" size={24} color={colors.primary} />
+              <Feather name="lock" size={24} color={colors.textPrimary} />
               <Text style={styles.menuItemText}>Cambiar contraseña</Text>
             </View>
             <Feather
@@ -215,7 +219,7 @@ export default function PerfilScreen({ navigation }) {
             onPress={() => setModalAcercaVisible(true)}
           >
             <View style={styles.menuItemLeft}>
-              <Feather name="info" size={24} color={colors.primary} />
+              <Feather name="info" size={24} color={colors.textPrimary} />
               <Text style={styles.menuItemText}>Acerca de la app</Text>
             </View>
             <Feather
@@ -224,20 +228,32 @@ export default function PerfilScreen({ navigation }) {
               color={colors.textSecondary}
             />
           </TouchableOpacity>
+          
+          <View style={[styles.menuItem, styles.menuItemNoBorder]}>
+            <View style={styles.menuItemLeft}>
+              <Feather name={isDark ? "moon" : "sun"} size={24} color={colors.textPrimary} />
+              <Text style={styles.menuItemText}>Modo Oscuro</Text>
+            </View>
+            <Switch
+              value={isDark}
+              onValueChange={toggleTheme}
+              trackColor={{ false: "#cbd5e1", true: colors.accent }}
+              thumbColor={"#f8fafc"}
+            />
+          </View>
         </View>
 
-        {/* --- BOTÓN DE CERRAR SESIÓN --- */}
         <TouchableOpacity
-          style={styles.logoutButton}
+          style={[styles.logoutButton, { backgroundColor: colors.dangerBg, borderColor: colors.danger }]}
           onPress={handleCerrarSesion}
         >
           <Feather
             name="log-out"
             size={22}
-            color={colors.surface}
+            color={colors.danger}
             style={styles.logoutIcon}
           />
-          <Text style={styles.logoutButtonText}>Cerrar Sesión</Text>
+          <Text style={[styles.logoutButtonText, { color: colors.danger }]}>Cerrar Sesión</Text>
         </TouchableOpacity>
       </ScrollView>
 
@@ -251,9 +267,9 @@ export default function PerfilScreen({ navigation }) {
         onRequestClose={() => setModalEditarVisible(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Editar Perfil</Text>
+          <View style={[styles.modalContent, { backgroundColor: colors.surface }]}>
+            <View style={[styles.modalHeader, { borderBottomColor: isDark ? colors.border : '#f1f5f9' }]}>
+              <Text style={[styles.modalTitle, { color: colors.textPrimary }]}>Editar Perfil</Text>
               <TouchableOpacity
                 onPress={() => setModalEditarVisible(false)}
                 style={styles.closeButton}
@@ -265,7 +281,7 @@ export default function PerfilScreen({ navigation }) {
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Nombre Completo</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { backgroundColor: isDark ? colors.background : "#f8fafc", borderColor: isDark ? colors.border : "#e2e8f0", color: colors.textPrimary }]}
                 value={editNombre}
                 onChangeText={setEditNombre}
               />
@@ -274,7 +290,7 @@ export default function PerfilScreen({ navigation }) {
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Correo Electrónico</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { backgroundColor: isDark ? colors.background : "#f8fafc", borderColor: isDark ? colors.border : "#e2e8f0", color: colors.textPrimary }]}
                 value={editEmail}
                 onChangeText={setEditEmail}
                 keyboardType="email-address"
@@ -303,9 +319,9 @@ export default function PerfilScreen({ navigation }) {
       >
         <ScrollView contentContainerStyle={{flexGrow: 1}} keyboardShouldPersistTaps="handled">
           <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Cambiar Contraseña</Text>
+            <View style={[styles.modalContent, { backgroundColor: colors.surface }]}>
+              <View style={[styles.modalHeader, { borderBottomColor: isDark ? colors.border : "#f1f5f9" }]}>
+                <Text style={[styles.modalTitle, { color: colors.textPrimary }]}>Cambiar Contraseña</Text>
                 <TouchableOpacity
                   onPress={() => setModalPasswordVisible(false)}
                   style={styles.closeButton}
@@ -318,15 +334,15 @@ export default function PerfilScreen({ navigation }) {
                 <Text style={styles.label}>Contraseña Actual</Text>
                 <View style={styles.inputWithIcon}>
                   <TextInput
-                    style={[styles.input, { flex: 1, borderTopRightRadius: 0, borderBottomRightRadius: 0, borderRightWidth: 0 }]}
+                    style={[styles.input, { flex: 1, borderTopRightRadius: 0, borderBottomRightRadius: 0, borderRightWidth: 0, backgroundColor: isDark ? colors.background : "#f8fafc", borderColor: isDark ? colors.border : "#e2e8f0", color: colors.textPrimary }]}
                     placeholder="••••••••"
                     placeholderTextColor={colors.textSecondary}
                     secureTextEntry={!showActual}
                     value={passActual}
                     onChangeText={setPassActual}
                   />
-                  <TouchableOpacity style={styles.eyeIcon} onPress={() => setShowActual(!showActual)}>
-                    <Ionicons name={showActual ? "eye-off" : "eye"} size={22} color="#94a3b8" />
+                  <TouchableOpacity style={[styles.eyeIcon, { backgroundColor: isDark ? colors.background : "#f8fafc", borderColor: isDark ? colors.border : "#e2e8f0" }]} onPress={() => setShowActual(!showActual)}>
+                    <Ionicons name={showActual ? "eye-off" : "eye"} size={22} color={colors.textSecondary} />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -335,15 +351,15 @@ export default function PerfilScreen({ navigation }) {
                 <Text style={styles.label}>Nueva Contraseña</Text>
                 <View style={styles.inputWithIcon}>
                   <TextInput
-                    style={[styles.input, { flex: 1, borderTopRightRadius: 0, borderBottomRightRadius: 0, borderRightWidth: 0 }]}
+                    style={[styles.input, { flex: 1, borderTopRightRadius: 0, borderBottomRightRadius: 0, borderRightWidth: 0, backgroundColor: isDark ? colors.background : "#f8fafc", borderColor: isDark ? colors.border : "#e2e8f0", color: colors.textPrimary }]}
                     placeholder="••••••••"
                     placeholderTextColor={colors.textSecondary}
                     secureTextEntry={!showNueva}
                     value={passNueva}
                     onChangeText={setPassNueva}
                   />
-                  <TouchableOpacity style={styles.eyeIcon} onPress={() => setShowNueva(!showNueva)}>
-                    <Ionicons name={showNueva ? "eye-off" : "eye"} size={22} color="#94a3b8" />
+                  <TouchableOpacity style={[styles.eyeIcon, { backgroundColor: isDark ? colors.background : "#f8fafc", borderColor: isDark ? colors.border : "#e2e8f0" }]} onPress={() => setShowNueva(!showNueva)}>
+                    <Ionicons name={showNueva ? "eye-off" : "eye"} size={22} color={colors.textSecondary} />
                   </TouchableOpacity>
                 </View>
                 
@@ -365,15 +381,15 @@ export default function PerfilScreen({ navigation }) {
                 <Text style={styles.label}>Confirmar Nueva Contraseña</Text>
                 <View style={styles.inputWithIcon}>
                   <TextInput
-                    style={[styles.input, { flex: 1, borderTopRightRadius: 0, borderBottomRightRadius: 0, borderRightWidth: 0 }]}
+                    style={[styles.input, { flex: 1, borderTopRightRadius: 0, borderBottomRightRadius: 0, borderRightWidth: 0, backgroundColor: isDark ? colors.background : "#f8fafc", borderColor: isDark ? colors.border : "#e2e8f0", color: colors.textPrimary }]}
                     placeholder="••••••••"
                     placeholderTextColor={colors.textSecondary}
                     secureTextEntry={!showConfirm}
                     value={passConfirmar}
                     onChangeText={setPassConfirmar}
                   />
-                  <TouchableOpacity style={styles.eyeIcon} onPress={() => setShowConfirm(!showConfirm)}>
-                    <Ionicons name={showConfirm ? "eye-off" : "eye"} size={22} color="#94a3b8" />
+                  <TouchableOpacity style={[styles.eyeIcon, { backgroundColor: isDark ? colors.background : "#f8fafc", borderColor: isDark ? colors.border : "#e2e8f0" }]} onPress={() => setShowConfirm(!showConfirm)}>
+                    <Ionicons name={showConfirm ? "eye-off" : "eye"} size={22} color={colors.textSecondary} />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -402,7 +418,7 @@ export default function PerfilScreen({ navigation }) {
         onRequestClose={() => setModalAcercaVisible(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.aboutContent}>
+          <View style={[styles.aboutContent, { backgroundColor: colors.surface }]}>
             <TouchableOpacity
               onPress={() => setModalAcercaVisible(false)}
               style={styles.aboutCloseButton}
@@ -415,19 +431,19 @@ export default function PerfilScreen({ navigation }) {
               style={styles.aboutLogo}
               resizeMode="contain"
             />
-            <Text style={styles.aboutTitle}>S.G.A.F.A QR</Text>
-            <Text style={styles.aboutVersion}>Versión 1.0.0 (Build 2026)</Text>
+            <Text style={[styles.aboutTitle, { color: colors.textPrimary }]}>S.G.A.F.A QR</Text>
+            <Text style={[styles.aboutVersion, { color: colors.textSecondary }]}>Versión 1.0.0 (Build 2026)</Text>
 
-            <Text style={styles.aboutDescription}>
+            <Text style={[styles.aboutDescription, { color: colors.textSecondary }]}>
               Sistema Integral de Gestión de Activos Fijos y Auditoría.
               Herramienta diseñada para optimizar el control, seguimiento y
               mantenimiento de inventario mediante tecnología de escaneo QR.
             </Text>
 
-            <View style={styles.aboutDivider} />
+            <View style={[styles.aboutDivider, { backgroundColor: isDark ? colors.border : '#e2e8f0' }]} />
 
-            <Text style={styles.aboutCopyright}>© 2026 S.G.A.F.A Systems.</Text>
-            <Text style={styles.aboutCopyright}>
+            <Text style={[styles.aboutCopyright, { color: colors.textSecondary }]}>© 2026 S.G.A.F.A Systems.</Text>
+            <Text style={[styles.aboutCopyright, { color: colors.textSecondary }]}>
               Todos los derechos reservados.
             </Text>
           </View>
@@ -437,7 +453,7 @@ export default function PerfilScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors, isDark) => StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: colors.background },
   scrollContainer: { padding: 24, paddingBottom: 40 },
 
@@ -461,7 +477,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: "#e0f2fe",
+    backgroundColor: isDark ? "rgba(255,255,255,0.05)" : "#e0f2fe",
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 4,
@@ -484,7 +500,7 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 22,
     fontWeight: "800",
-    color: colors.primary,
+    color: colors.textPrimary,
     marginBottom: 4,
   },
   emailText: {
@@ -518,11 +534,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   statBox: { alignItems: "center", flex: 1 },
-  statNumber: { fontSize: 20, fontWeight: "800", color: colors.primary },
+  statNumber: { fontSize: 20, fontWeight: "800", color: colors.textPrimary },
   statTextValue: {
     fontSize: 14,
     fontWeight: "800",
-    color: colors.primary,
+    color: colors.textPrimary,
     marginTop: 4,
   },
   statLabel: {
@@ -531,20 +547,20 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginTop: 4,
   },
-  statDivider: { width: 1, height: "100%", backgroundColor: "#f1f5f9" },
+  statDivider: { width: 1, height: "100%", backgroundColor: isDark ? colors.border : "#f1f5f9" },
 
   // Menú
   menuContainer: {
-    backgroundColor: colors.surface,
+    backgroundColor: isDark ? "rgba(255,255,255,0.02)" : colors.surface,
     borderRadius: 24,
     paddingHorizontal: 20,
     paddingVertical: 8,
     marginBottom: 32,
     borderWidth: 1,
-    borderColor: "#f1f5f9",
+    borderColor: isDark ? colors.border : "#f1f5f9",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
+    shadowOpacity: isDark ? 0.3 : 0.05,
     shadowRadius: 8,
     elevation: 2,
   },
@@ -554,14 +570,14 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingVertical: 20,
     borderBottomWidth: 1,
-    borderBottomColor: "#f1f5f9",
+    borderBottomColor: isDark ? colors.border : "#f1f5f9",
   },
   menuItemNoBorder: { borderBottomWidth: 0 },
   menuItemLeft: { flexDirection: "row", alignItems: "center" },
   menuItemText: {
     fontSize: 16,
     fontWeight: "700",
-    color: colors.primary,
+    color: colors.textPrimary,
     marginLeft: 16,
   },
 
@@ -600,9 +616,9 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#f1f5f9",
+    borderBottomColor: isDark ? colors.border : "#f1f5f9",
   },
-  modalTitle: { fontSize: 20, fontWeight: "800", color: colors.primary },
+  modalTitle: { fontSize: 20, fontWeight: "800", color: colors.textPrimary },
   closeButton: { padding: 4 },
   inputGroup: { marginBottom: 20 },
   label: {
@@ -613,14 +629,14 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
   },
   input: {
-    backgroundColor: "#f8fafc",
+    backgroundColor: isDark ? colors.background : "#f8fafc",
     borderWidth: 1,
-    borderColor: "#e2e8f0",
+    borderColor: isDark ? colors.border : "#e2e8f0",
     borderRadius: 12,
     paddingHorizontal: 16,
     height: 52,
     fontSize: 16,
-    color: colors.primary,
+    color: colors.textPrimary,
     fontWeight: "600",
   },
   inputWithIcon: { flexDirection: "row", alignItems: "center" },

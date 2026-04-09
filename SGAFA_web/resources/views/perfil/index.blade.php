@@ -14,16 +14,16 @@
 
 .form-label {
     display: block; font-size: .78rem; font-weight: 600;
-    color: #6b7a8d; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 6px;
+    color: var(--text-secondary, #6b7a8d); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 6px;
 }
 .form-field {
-    width: 100%; padding: 11px 14px; background: #f7f7f7;
-    border: 1.5px solid #e4e8ef; border-radius: 10px;
-    font-family: 'DM Sans', sans-serif; font-size: .92rem; color: #374151;
+    width: 100%; padding: 11px 14px; background: var(--sk-bg, #f7f7f7);
+    border: 1.5px solid var(--border, #e4e8ef); border-radius: 10px;
+    font-family: 'DM Sans', sans-serif; font-size: .92rem; color: var(--text-primary, #374151);
     outline: none; transition: all .2s;
 }
-.form-field:focus { background: #fff; border-color: #4a86b5; box-shadow: 0 0 0 3px rgba(74,134,181,.1); }
-.form-field[readonly] { background: #f0f2f5; color: #9ca3af; cursor: not-allowed; border-color: #e4e8ef; }
+.form-field:focus { background: var(--body-bg, #fff); border-color: #4a86b5; box-shadow: 0 0 0 3px rgba(74,134,181,.1); }
+.form-field[readonly] { background: var(--border, #f0f2f5); color: var(--text-secondary, #9ca3af); cursor: not-allowed; border-color: var(--border, #e4e8ef); }
 
 .avatar-wrapper { position:relative; width:80px; height:80px; flex-shrink:0; }
 .avatar-circle {
@@ -36,7 +36,7 @@
 .divider { height:1px; background: linear-gradient(90deg, transparent, #e4e8ef, transparent); margin:24px 0; }
 .danger-zone {
     display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;
-    padding:16px; background:#fff5f5; border:1px solid #fecaca; border-radius:10px; margin-top:4px;
+    padding:16px; background:var(--sk-bg, #fff5f5); border:1px solid var(--border, #fecaca); border-radius:10px; margin-top:4px;
 }
 .btn-danger-outline {
     display:inline-flex; align-items:center; gap:7px; padding:9px 18px;
@@ -90,15 +90,15 @@
 
 {{-- Alertas de sesión --}}
 @if(session('success'))
-<div style="display:flex;align-items:center;gap:10px;padding:14px 18px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;margin-bottom:16px;">
+<div style="display:flex;align-items:center;gap:10px;padding:14px 18px;background:var(--sk-bg, #f0fdf4);border:1px solid var(--border, #bbf7d0);border-radius:10px;margin-bottom:16px;">
     <svg width="16" height="16" fill="none" stroke="#15803d" stroke-width="2.2" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-    <span style="font-size:.88rem;font-weight:600;color:#15803d;">{{ session('success') }}</span>
+    <span style="font-size:.88rem;font-weight:600;color:var(--text-primary, #15803d);">{{ session('success') }}</span>
 </div>
 @endif
 @if(session('error'))
-<div style="display:flex;align-items:center;gap:10px;padding:14px 18px;background:#fff5f5;border:1px solid #fecaca;border-radius:10px;margin-bottom:16px;">
+<div style="display:flex;align-items:center;gap:10px;padding:14px 18px;background:var(--sk-bg, #fff5f5);border:1px solid var(--border, #fecaca);border-radius:10px;margin-bottom:16px;">
     <svg width="16" height="16" fill="none" stroke="#dc2626" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-    <span style="font-size:.88rem;font-weight:600;color:#dc2626;">{{ session('error') }}</span>
+    <span style="font-size:.88rem;font-weight:600;color:var(--text-primary, #dc2626);">{{ session('error') }}</span>
 </div>
 @endif
 
@@ -108,8 +108,8 @@
         <div class="avatar-wrapper">
             <div class="avatar-circle">{{ $initials }}</div>
         </div>
-        <div>
-            <h2 style="font-family:'Sora',sans-serif;font-size:1.4rem;font-weight:800;color:#0f1f35;margin-bottom:6px;">
+        <div style="flex:1;min-width:0;overflow:hidden;">
+            <h2 style="font-family:'Sora',sans-serif;font-size:1.4rem;font-weight:800;color:var(--text-primary,#0f1f35);margin-bottom:6px;white-space:normal;word-break:break-word;">
                 {{ $nombre }}
             </h2>
             <span class="badge badge-blue" style="margin-bottom:8px;display:inline-flex;">
@@ -119,7 +119,7 @@
                 {{ $rol }}
             </span>
             <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:4px;">
-                <span style="font-size:.88rem;color:#374151;">{{ $email }}</span>
+                <span style="font-size:.88rem;color:var(--text-secondary,#374151);">{{ $email }}</span>
                 <span class="badge badge-green badge-dot" style="font-size:.78rem;">Activo</span>
             </div>
         </div>
@@ -154,15 +154,15 @@
                 </div>
                 <div>
                     <label class="form-label">Estado</label>
-                    <div style="padding:11px 14px;background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:10px;display:flex;align-items:center;gap:6px;">
+                    <div style="padding:11px 14px;background:var(--sk-bg, #f0fdf4);border:1.5px solid var(--border, #bbf7d0);border-radius:10px;display:flex;align-items:center;gap:6px;">
                         <span style="width:8px;height:8px;border-radius:50%;background:#22c55e;display:inline-block;"></span>
-                        <span style="font-size:.92rem;font-weight:600;color:#15803d;">Activo</span>
+                        <span style="font-size:.92rem;font-weight:600;color:var(--text-primary, #15803d);">Activo</span>
                     </div>
                 </div>
             </div>
 
-            <div style="margin-bottom:16px;padding:14px;background:#f8fafc;border-radius:10px;">
-                <p style="font-size:.78rem;font-weight:600;color:#6b7a8d;text-transform:uppercase;letter-spacing:.04em;margin-bottom:10px;">Cambiar contraseña (opcional)</p>
+            <div style="margin-bottom:16px;padding:14px;background:var(--sk-bg, #f8fafc);border-radius:10px;">
+                <p style="font-size:.78rem;font-weight:600;color:var(--text-secondary, #6b7a8d);text-transform:uppercase;letter-spacing:.04em;margin-bottom:10px;">Cambiar contraseña (opcional)</p>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
                     <div>
                         <label class="form-label">Nueva contraseña</label>
@@ -206,6 +206,21 @@
         </form>
 
         <div class="divider"></div>
+        
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:16px; background:var(--sk-bg, #f8fafc); border:1px solid var(--border, #e4e8ef); border-radius:10px; margin-bottom: 24px;">
+            <div>
+                <p style="font-size:.88rem;font-weight:700;color:var(--text-primary);margin-bottom:2px;">Modo Oscuro</p>
+                <p style="font-size:.8rem;color:var(--text-secondary);">Activa la interfaz oscura para descansar la vista.</p>
+            </div>
+            <label style="position:relative; display:inline-block; width:50px; height:26px;">
+                <input type="checkbox" id="themeToggle" style="opacity:0; width:0; height:0;" onchange="toggleTheme(this)">
+                <span style="position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background-color:#cbd5e1; transition:.4s; border-radius:34px;" id="themeToggleSlider">
+                    <span style="position:absolute; content:''; height:20px; width:20px; left:3px; bottom:3px; background-color:white; transition:.4s; border-radius:50%;" id="themeToggleCircle"></span>
+                </span>
+            </label>
+        </div>
+
+        <div class="divider"></div>
 
         <div class="danger-zone">
             <div>
@@ -229,22 +244,22 @@
         </h3>
 
         <div style="display:flex;flex-direction:column;gap:14px;">
-            <div style="padding:14px;background:#f8fafc;border-radius:10px;">
-                <p style="font-size:.73rem;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;">ID de usuario</p>
-                <p style="font-size:.78rem;font-family:'DM Mono',monospace;color:#374151;word-break:break-all;">{{ $user['id'] ?? '—' }}</p>
+            <div style="padding:14px;background:var(--sk-bg, #f8fafc);border-radius:10px;">
+                <p style="font-size:.73rem;font-weight:600;color:var(--text-secondary, #9ca3af);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;">ID de usuario</p>
+                <p style="font-size:.78rem;font-family:'DM Mono',monospace;color:var(--text-primary, #374151);word-break:break-all;">{{ $user['id'] ?? '—' }}</p>
             </div>
-            <div style="padding:14px;background:#f8fafc;border-radius:10px;">
-                <p style="font-size:.73rem;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;">Rol en el sistema</p>
+            <div style="padding:14px;background:var(--sk-bg, #f8fafc);border-radius:10px;">
+                <p style="font-size:.73rem;font-weight:600;color:var(--text-secondary, #9ca3af);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;">Rol en el sistema</p>
                 <span class="badge badge-blue">{{ $rol }}</span>
             </div>
-            <div style="padding:14px;background:#f8fafc;border-radius:10px;">
-                <p style="font-size:.73rem;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;">Estado</p>
+            <div style="padding:14px;background:var(--sk-bg, #f8fafc);border-radius:10px;">
+                <p style="font-size:.73rem;font-weight:600;color:var(--text-secondary, #9ca3af);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;">Estado</p>
                 <span class="badge badge-green badge-dot">Activo</span>
             </div>
             @if(!empty($user['creado_en']))
-            <div style="padding:14px;background:#f8fafc;border-radius:10px;">
-                <p style="font-size:.73rem;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;">Registrado el</p>
-                <p style="font-size:.88rem;color:#374151;">{{ $user['creado_en'] }}</p>
+            <div style="padding:14px;background:var(--sk-bg, #f8fafc);border-radius:10px;">
+                <p style="font-size:.73rem;font-weight:600;color:var(--text-secondary, #9ca3af);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;">Registrado el</p>
+                <p style="font-size:.88rem;color:var(--text-primary, #374151);">{{ $user['creado_en'] }}</p>
             </div>
             @endif
         </div>
@@ -253,6 +268,36 @@
 @endsection
 @push('scripts')
 <script>
+document.addEventListener('DOMContentLoaded', function() {
+    const theme = localStorage.getItem('theme') || 'light';
+    const toggle = document.getElementById('themeToggle');
+    const slider = document.getElementById('themeToggleSlider');
+    const circle = document.getElementById('themeToggleCircle');
+    
+    if (theme === 'dark') {
+        toggle.checked = true;
+        circle.style.transform = 'translateX(24px)';
+        slider.style.backgroundColor = '#3d73a4';
+    }
+});
+
+function toggleTheme(el) {
+    const slider = document.getElementById('themeToggleSlider');
+    const circle = document.getElementById('themeToggleCircle');
+    
+    if(el.checked) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        localStorage.setItem('theme', 'dark');
+        circle.style.transform = 'translateX(24px)';
+        slider.style.backgroundColor = '#3d73a4';
+    } else {
+        document.documentElement.setAttribute('data-theme', 'light');
+        localStorage.setItem('theme', 'light');
+        circle.style.transform = 'translateX(0)';
+        slider.style.backgroundColor = '#cbd5e1';
+    }
+}
+
 function toggleP(id, btn) {
     const input = document.getElementById(id);
     const icon = btn.querySelector('svg');

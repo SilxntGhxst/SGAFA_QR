@@ -72,10 +72,11 @@
 </div>
 
 <style>
-    .form-label-mini { font-size:.78rem;font-weight:600;color:#6b7a8d;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:6px; }
-    .filter-select-input { padding:10px 14px;border-radius:10px;border:1.5px solid #e4e8ef;background:#f7f7f7;width:100%;outline:none;font-family:inherit; }
-    .btn-secondary { display:flex;align-items:center;justify-content:center;gap:8px;padding:11px 22px;border-radius:12px;font-weight:700;font-size:.9rem;background:#f0f4f8;color:#1e40af;border:none;cursor:pointer;transition:all .2s; }
-    .btn-secondary:hover { background:#e1e7f0; }
+    .form-label-mini { font-size:.78rem;font-weight:600;color:var(--text-secondary, #6b7a8d);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:6px; }
+    .filter-select-input { padding:10px 14px;border-radius:10px;border:1.5px solid var(--border, #e4e8ef);background:var(--sk-bg, #f7f7f7);color:var(--text-primary);width:100%;outline:none;font-family:inherit; }
+    .filter-select-input option { background: var(--card-bg, #fff); color: var(--text-primary, #0f1f35); }
+    .btn-secondary { display:flex;align-items:center;justify-content:center;gap:8px;padding:11px 22px;border-radius:12px;font-weight:700;font-size:.9rem;background:var(--border, #f0f4f8);color:var(--text-primary, #1e40af);border:none;cursor:pointer;transition:all .2s; }
+    .btn-secondary:hover { background:var(--sk-bg, #e1e7f0); }
 </style>
 
 <script>

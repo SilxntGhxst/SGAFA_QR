@@ -17,12 +17,12 @@
 <style>
 .filters-bar {
     display:flex; align-items:center; gap:10px; padding:16px 20px;
-    border-bottom:1px solid #f0f2f5; flex-wrap:wrap;
+    border-bottom:1px solid var(--border, #f0f2f5); flex-wrap:wrap;
 }
 .bulk-bar {
     display:none; align-items:center; justify-content:space-between;
     padding:14px 20px;
-    background:#eff6ff; border-top:1px solid #bfdbfe;
+    background:var(--sk-bg, #eff6ff); border-top:1px solid var(--border, #bfdbfe);
 }
 .bulk-bar.visible { display:flex; }
 
@@ -33,15 +33,15 @@
 
 {{-- Alertas de éxito/error --}}
 @if(session('success'))
-<div style="display:flex;align-items:center;gap:10px;padding:14px 18px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;margin-bottom:16px;">
+<div style="display:flex;align-items:center;gap:10px;padding:14px 18px;background:var(--sk-bg,#f0fdf4);border:1px solid var(--border,#bbf7d0);border-radius:10px;margin-bottom:16px;">
     <svg width="16" height="16" fill="none" stroke="#15803d" stroke-width="2.2" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-    <span style="font-size:.88rem;font-weight:600;color:#15803d;">{{ session('success') }}</span>
+    <span style="font-size:.88rem;font-weight:600;color:var(--text-primary,#15803d);">{{ session('success') }}</span>
 </div>
 @endif
 @if(session('error'))
-<div style="display:flex;align-items:center;gap:10px;padding:14px 18px;background:#fff5f5;border:1px solid #fecaca;border-radius:10px;margin-bottom:16px;">
+<div style="display:flex;align-items:center;gap:10px;padding:14px 18px;background:var(--sk-bg,#fff5f5);border:1px solid var(--border,#fecaca);border-radius:10px;margin-bottom:16px;">
     <svg width="16" height="16" fill="none" stroke="#dc2626" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-    <span style="font-size:.88rem;font-weight:600;color:#dc2626;">{{ session('error') }}</span>
+    <span style="font-size:.88rem;font-weight:600;color:var(--text-primary,#dc2626);">{{ session('error') }}</span>
 </div>
 @endif
 
@@ -90,10 +90,10 @@
             <tr>
                 <td><input type="checkbox" class="row-check" data-id="{{ $a['id'] }}" onchange="updateBulk()"></td>
                 <td style="font-weight:700;font-size:.85rem;color:#4a86b5;">{{ $a['codigo'] }}</td>
-                <td style="font-weight:600;">{{ $a['nombre'] }}</td>
-                <td style="font-size:.88rem;color:#6b7a8d;">{{ $a['categoria'] }}</td>
-                <td style="font-size:.88rem;">{{ $a['ubicacion'] }}</td>
-                <td style="font-size:.88rem;">{{ $a['usuario'] }}</td>
+                <td style="font-weight:600;color:var(--text-primary);">{{ $a['nombre'] }}</td>
+                <td style="font-size:.88rem;color:var(--text-secondary,#6b7a8d);">{{ $a['categoria'] }}</td>
+                <td style="font-size:.88rem;color:var(--text-primary);">{{ $a['ubicacion'] }}</td>
+                <td style="font-size:.88rem;color:var(--text-primary);">{{ $a['usuario'] }}</td>
                 <td><span class="badge badge-{{ $a['color_badge'] }} badge-dot">{{ $a['estado'] }}</span></td>
                 <td>
                     <div style="display:flex;gap:6px;align-items:center;">
@@ -126,7 +126,7 @@
     {{-- Bulk bar --}}
     <div class="bulk-bar" id="bulkBar">
         <div style="display:flex;align-items:center;gap:10px;">
-            <span style="font-size:.88rem;font-weight:600;color:#1d4ed8;" id="bulkCount">0 activos seleccionados</span>
+            <span style="font-size:.88rem;font-weight:600;color:var(--accent,#1d4ed8);" id="bulkCount">0 activos seleccionados</span>
         </div>
         <div style="display:flex;gap:8px;">
             <button class="btn-primary" style="padding:8px 16px;font-size:.85rem;" onclick="abrirExportarQR('seleccionados')">
@@ -142,8 +142,8 @@
     </div>
 
     {{-- Footer --}}
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid #f0f2f5;">
-        <div style="display:flex;align-items:center;gap:8px;font-size:.85rem;color:#6b7a8d;">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--border,#f0f2f5);">
+        <div style="display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--text-secondary,#6b7a8d);">
             <span>Mostrando @if($total == 0) 0 @else {{ min(($page-1)*$limit + 1, $total) }}–{{ min($page*$limit, $total) }} @endif de {{ $total }} activos</span>
             <form method="GET" action="{{ route('activos.index') }}" style="margin:0;">
                 @foreach(request()->except('limit', 'page') as $key => $value)

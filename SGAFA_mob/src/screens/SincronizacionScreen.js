@@ -12,14 +12,17 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather, Ionicons } from "@expo/vector-icons";
-import { colors } from "../theme/colors";
+import { colors as baseColors } from "../theme/colors";
 import { SyncManager } from "../data/sync/syncManager";
 import { apiClient } from "../data/api/apiClient";
+import { useTheme } from "../theme/ThemeContext";
 
 export default function SincronizacionScreen({ navigation }) {
   const [queue, setQueue] = useState([]);
   const [isSyncing, setIsSyncing] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const { colors, isDark } = useTheme();
+  const styles = React.useMemo(() => getStyles(colors, isDark), [colors, isDark]);
 
   useEffect(() => {
     loadQueue();
@@ -103,7 +106,7 @@ export default function SincronizacionScreen({ navigation }) {
             onPress={() => navigation.goBack()}
             style={styles.backButton}
           >
-            <Feather name="arrow-left" size={28} color={colors.primary} />
+            <Feather name="arrow-left" size={28} color={colors.accent} />
           </TouchableOpacity>
           <Text style={styles.title}>Centro de{"\n"}Sincronización</Text>
         </View>
@@ -115,7 +118,7 @@ export default function SincronizacionScreen({ navigation }) {
         {/* ESTADO DE LA COLA */}
         <View style={styles.connectionCard}>
           <View style={styles.connectionIconContainer}>
-            <Feather name="cloud-upload" size={32} color={colors.primary} />
+            <Feather name="upload-cloud" size={32} color="#ffffff" />
           </View>
           <View style={styles.connectionTextContainer}>
             <Text style={styles.connectionTitle}>{queue.length} pendientes</Text>
@@ -153,7 +156,7 @@ export default function SincronizacionScreen({ navigation }) {
       </ScrollView>
 
       {/* BOTÓN DE ACCIÓN */}
-      <View style={{ padding: 24, backgroundColor: '#fff' }}>
+      <View style={{ padding: 24, backgroundColor: isDark ? colors.background : '#fff' }}>
         <TouchableOpacity
           style={[
             styles.syncButton,
@@ -176,7 +179,7 @@ export default function SincronizacionScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors, isDark) => StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: colors.background },
   headerContainer: {
     flexDirection: "row",
@@ -189,58 +192,60 @@ const styles = StyleSheet.create({
   headerLeft: { flexDirection: "row", alignItems: "center" },
   headerLogo: { width: 44, height: 44, marginRight: 12 },
   headerTextContainer: { justifyContent: "center" },
-  headerTitle: { color: colors.surface, fontSize: 18, fontWeight: "800", letterSpacing: 0.5 },
-  headerSubtitle: { color: "#94a3b8", fontSize: 13, fontWeight: "600", marginTop: 2, textTransform: "uppercase" },
+  headerTitle: { color: '#ffffff', fontSize: 18, fontWeight: "800", letterSpacing: 0.5 },
+  headerSubtitle: { color: "rgba(255,255,255,0.80)", fontSize: 13, fontWeight: "600", marginTop: 2, textTransform: "uppercase" },
   scrollContainer: { padding: 24, paddingBottom: 40 },
   navHeader: { flexDirection: "row", alignItems: "center", marginBottom: 12 },
   backButton: { marginRight: 16, padding: 4 },
-  title: { fontSize: 26, fontWeight: "900", color: colors.primary, flex: 1, lineHeight: 30 },
+  title: { fontSize: 26, fontWeight: "900", color: colors.textPrimary, flex: 1, lineHeight: 30 },
   subtitle: { fontSize: 16, fontWeight: "600", color: colors.textSecondary, marginBottom: 32, lineHeight: 22 },
   connectionCard: {
-    backgroundColor: "#eff6ff",
+    backgroundColor: isDark ? "rgba(220, 38, 38, 0.05)" : "#eff6ff",
     borderRadius: 16,
     padding: 20,
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 32,
     borderWidth: 1,
-    borderColor: "#dbeafe",
+    borderColor: isDark ? "rgba(220, 38, 38, 0.1)" : "#dbeafe",
   },
   connectionIconContainer: {
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.accent,
     justifyContent: "center",
     alignItems: "center",
     marginRight: 16,
-    elevation: 2
+    elevation: 2,
   },
   connectionTextContainer: { flex: 1 },
-  connectionTitle: { fontSize: 18, fontWeight: "800", color: colors.primary, marginBottom: 4 },
+  connectionTitle: { fontSize: 18, fontWeight: "800", color: colors.textPrimary, marginBottom: 4 },
   connectionTime: { fontSize: 14, fontWeight: "600", color: colors.textSecondary },
   listHeader: { marginBottom: 16 },
-  listTitle: { fontSize: 18, fontWeight: "800", color: colors.primary },
+  listTitle: { fontSize: 18, fontWeight: "800", color: colors.textPrimary },
   recordCard: {
-    backgroundColor: "#fff",
+    backgroundColor: isDark ? "rgba(255,255,255,0.02)" : "#fff",
     borderRadius: 16,
     padding: 16,
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 12,
-    elevation: 1
+    elevation: 1,
+    borderWidth: 1,
+    borderColor: isDark ? colors.border : 'transparent'
   },
   recordIcon: {
     width: 48,
     height: 48,
     borderRadius: 12,
-    backgroundColor: "#f8fafc",
+    backgroundColor: isDark ? "rgba(255,255,255,0.05)" : "#f8fafc",
     justifyContent: "center",
     alignItems: "center",
     marginRight: 16,
   },
   recordDetails: { flex: 1 },
-  recordType: { fontSize: 15, fontWeight: "800", color: colors.primary, marginBottom: 4 },
+  recordType: { fontSize: 15, fontWeight: "800", color: colors.textPrimary, marginBottom: 4 },
   recordStatus: { fontSize: 13, fontWeight: "600", color: colors.textSecondary },
   emptyState: {
     backgroundColor: colors.surface,
@@ -249,9 +254,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 24,
     borderWidth: 1,
-    borderColor: "#f1f5f9",
+    borderColor: isDark ? colors.border : "#f1f5f9",
   },
-  emptyStateTitle: { fontSize: 18, fontWeight: "800", color: colors.primary, marginBottom: 8 },
+  emptyStateTitle: { fontSize: 18, fontWeight: "800", color: colors.textPrimary, marginBottom: 8 },
   emptyStateText: { fontSize: 14, color: colors.textSecondary, textAlign: "center" },
   syncButton: {
     backgroundColor: colors.accent,

@@ -38,11 +38,11 @@
 
 .detail-label {
     font-size: .75rem; font-weight: 600;
-    color: #6b7a8d; text-transform: uppercase;
+    color: var(--text-secondary,#6b7a8d); text-transform: uppercase;
     letter-spacing: .05em; margin-bottom: 4px;
 }
 .detail-value {
-    font-size: .92rem; font-weight: 500; color: #0f1f35;
+    font-size: .92rem; font-weight: 500; color: var(--text-primary,#0f1f35);
 }
 
 .timeline-item {
@@ -69,7 +69,7 @@
 {{-- Encabezado del activo --}}
 <div class="card" style="padding:24px;margin-bottom:0;">
     <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
-        <div style="width:60px;height:60px;border-radius:14px;background:#eff6ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <div style="width:60px;height:60px;border-radius:14px;background:var(--sk-bg,#eff6ff);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
             <svg width="28" height="28" fill="none" stroke="#4a86b5" stroke-width="1.8" viewBox="0 0 24 24">
                 <rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
             </svg>
@@ -228,12 +228,12 @@
 
 {{-- Modal eliminar --}}
 <div class="modal-overlay" id="deleteModal" onclick="if(event.target===this)this.classList.remove('open')">
-    <div style="background:#fff;border-radius:16px;padding:28px;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
-        <div style="width:48px;height:48px;border-radius:12px;background:#fee2e2;display:flex;align-items:center;justify-content:center;margin-bottom:16px;">
+    <div style="background:var(--card-bg,#fff);border-radius:16px;padding:28px;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+        <div style="width:48px;height:48px;border-radius:12px;background:var(--sk-bg,#fee2e2);display:flex;align-items:center;justify-content:center;margin-bottom:16px;">
             <svg width="22" height="22" fill="none" stroke="#dc2626" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
         </div>
-        <div style="font-family:'Sora',sans-serif;font-size:1.05rem;font-weight:800;color:#0f1f35;margin-bottom:6px;">¿Eliminar activo?</div>
-        <div style="font-size:.88rem;color:#6b7a8d;line-height:1.5;margin-bottom:20px;">Estás a punto de eliminar "Escritorio" (ACT-001). Esta acción no se puede deshacer.</div>
+        <div style="font-family:'Sora',sans-serif;font-size:1.05rem;font-weight:800;color:var(--text-primary,#0f1f35);margin-bottom:6px;">¿Eliminar activo?</div>
+        <div style="font-size:.88rem;color:var(--text-secondary,#6b7a8d);line-height:1.5;margin-bottom:20px;">Estás a punto de eliminar "Escritorio" (ACT-001). Esta acción no se puede deshacer.</div>
         <div style="display:flex;gap:10px;justify-content:flex-end;">
             <button class="btn-outline" style="padding:9px 18px;" onclick="document.getElementById('deleteModal').classList.remove('open')">Cancelar</button>
             <a href="/activos" class="btn-primary" style="padding:9px 18px;background:#dc2626;">Sí, eliminar</a>

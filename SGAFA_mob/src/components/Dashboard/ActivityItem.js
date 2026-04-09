@@ -2,8 +2,9 @@ import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { colors } from "../../theme/colors";
+import { useTheme } from "../../theme/ThemeContext";
 
-const renderActivityIcon = (tipo) => {
+const renderActivityIcon = (tipo, colors) => {
   switch (tipo) {
     case "alerta": // Relacionado a advertencias o pendientes graves
       return <Feather name="clock" size={20} color={colors.warning} />;
@@ -16,7 +17,7 @@ const renderActivityIcon = (tipo) => {
   }
 };
 
-const getBadgeStyle = (estado) => {
+const getBadgeStyle = (estado, colors) => {
   const estStr = (estado || "").toLowerCase().trim();
   
   if (estStr === "pendiente" || estStr === "en progreso") {
@@ -32,14 +33,18 @@ const getBadgeStyle = (estado) => {
   return { bg: colors.infoBg, text: colors.info };
 };
 
-export default function ActivityItem({ item }) {
-  // Ahora tomamos el estilo del estado (estado) en vez del tipo
-  const badgeStyle = getBadgeStyle(item.estado);
+export default function ActivityItem({ item, onPress, hideBorder = false }) {
+  const { colors, isDark } = useTheme();
+  const styles = React.useMemo(() => getStyles(colors, isDark), [colors, isDark]);
+  const badgeStyle = getBadgeStyle(item.estado, colors);
   
   return (
-    <View style={styles.activityItem}>
-      <View style={styles.activityIconContainer}>
-        {renderActivityIcon(item.tipo)}
+    <TouchableOpacity
+      onPress={onPress}
+      style={[styles.activityContainer, hideBorder && styles.activityContainerNoBorder]}
+    >
+      <View style={[styles.activityIconWrapper, { backgroundColor: colors.backgroundSecondary }]}>
+        {renderActivityIcon(item.tipo, colors)}
       </View>
       <View style={styles.activityDetails}>
         <Text style={styles.activityTitle}>{item.titulo}</Text>
@@ -52,32 +57,36 @@ export default function ActivityItem({ item }) {
           </Text>
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 }
 
-const styles = StyleSheet.create({
-  activityItem: {
+const getStyles = (colors, isDark) => StyleSheet.create({
+  activityContainer: {
     flexDirection: "row",
-    alignItems: "center",
-    padding: 12,
+    paddingVertical: 16,
+    paddingHorizontal: 8,
     borderBottomWidth: 1,
-    borderBottomColor: "#f1f5f9",
+    borderBottomColor: isDark ? colors.border : "#f1f5f9",
+    alignItems: "center",
   },
-  activityIconContainer: {
+  activityContainerNoBorder: { borderBottomWidth: 0 },
+  activityIconWrapper: {
     width: 40,
     height: 40,
     borderRadius: 12,
-    backgroundColor: "#f8fafc",
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 12,
+    marginRight: 16,
+    backgroundColor: isDark ? "rgba(255,255,255,0.05)" : "#f8fafc",
+    borderWidth: 1,
+    borderColor: isDark ? colors.border : 'transparent'
   },
   activityDetails: { flex: 1, justifyContent: "center" },
   activityTitle: {
     fontSize: 14,
     fontWeight: "700",
-    color: colors.primary,
+    color: colors.textPrimary,
   },
   activityDate: {
     fontSize: 12,

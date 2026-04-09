@@ -1,41 +1,57 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
-import { colors } from "../../theme/colors";
+import { Feather } from "@expo/vector-icons";
+import { useTheme } from "../../theme/ThemeContext";
 
 export default function MetricCard({ value, label }) {
+  const { colors, isDark } = useTheme();
+  const styles = React.useMemo(() => getStyles(colors, isDark), [colors, isDark]);
+
   return (
     <View style={styles.metricCard}>
+      <View style={styles.iconContainer}>
+        <Feather name="folder" size={24} color={colors.accent} />
+      </View>
       <Text style={styles.metricValue}>{value}</Text>
       <Text style={styles.metricLabel}>{label}</Text>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors, isDark) => StyleSheet.create({
   metricCard: {
-    flex: 1,
     backgroundColor: colors.surface,
     padding: 20,
-    borderRadius: 16,
-    marginHorizontal: 4,
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    borderRadius: 20,
+    flex: 1,
+    marginHorizontal: 6,
+    shadowColor: colors.accent,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: isDark ? 0.05 : 0.08,
+    shadowRadius: 12,
+    elevation: 3,
     borderWidth: 1,
-    borderColor: "#f1f5f9",
+    borderColor: isDark ? colors.border : 'transparent',
+  },
+  iconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 16,
+    backgroundColor: isDark ? "rgba(255,255,255,0.05)" : "#eff6ff",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 16,
   },
   metricValue: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: "800",
-    color: colors.accent,
-    marginBottom: 8,
+    color: isDark ? colors.textPrimary : colors.primary,
+    marginBottom: 4,
   },
   metricLabel: {
     fontSize: 13,
-    color: colors.textSecondary,
     fontWeight: "600",
+    color: colors.textSecondary,
     lineHeight: 18,
   },
 });

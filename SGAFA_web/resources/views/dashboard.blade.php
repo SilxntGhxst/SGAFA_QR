@@ -15,8 +15,8 @@
 @media(max-width:500px){ .stats-grid { grid-template-columns: 1fr; } }
 
 .stat-card {
-    background: #fff;
-    border: 1px solid #e4e8ef;
+    background: var(--card-bg, #fff);
+    border: 1px solid var(--border, #e4e8ef);
     border-radius: 14px;
     padding: 20px 22px;
     box-shadow: 0 2px 12px rgba(0,0,0,.06);
@@ -38,12 +38,12 @@
 .stat-value {
     font-family: 'Sora', sans-serif;
     font-size: 1.9rem; font-weight: 800;
-    color: #0f1f35; letter-spacing: -0.04em;
+    color: var(--text-primary, #0f1f35); letter-spacing: -0.04em;
     line-height: 1;
 }
 .stat-label {
     font-size: .8rem; font-weight: 500;
-    color: #6b7a8d; margin-top: 4px;
+    color: var(--text-secondary, #6b7a8d); margin-top: 4px;
 }
 
 .stat-trend {
@@ -66,9 +66,9 @@
 .section-header {
     display: flex; align-items: center; justify-content: space-between;
     padding: 18px 20px 14px;
-    border-bottom: 1px solid #f0f2f5;
+    border-bottom: 1px solid var(--border, #f0f2f5);
 }
-.section-title { font-family: 'Sora', sans-serif; font-size: 1rem; font-weight: 700; color: #0f1f35; }
+.section-title { font-family: 'Sora', sans-serif; font-size: 1rem; font-weight: 700; color: var(--text-primary, #0f1f35); }
 .see-all { font-size: .82rem; font-weight: 600; color: #4a86b5; text-decoration: none; }
 .see-all:hover { text-decoration: underline; }
 
@@ -76,13 +76,13 @@
 .quick-action {
     display: flex; align-items: center; gap: 12px;
     padding: 13px 20px;
-    border-bottom: 1px solid #f0f2f5;
+    border-bottom: 1px solid var(--border, #f0f2f5);
     text-decoration: none;
     transition: background .18s;
-    color: #0f1f35;
+    color: var(--text-primary, #0f1f35);
 }
 .quick-action:last-child { border-bottom: none; }
-.quick-action:hover { background: #f8fafc; }
+.quick-action:hover { background: var(--sk-bg, #f8fafc); }
 .quick-action:hover .qa-arrow { opacity: 1; transform: translateX(0); }
 
 .qa-icon {
@@ -109,7 +109,7 @@
 .inv-filters {
     display: flex; align-items: center; gap: 10px;
     padding: 14px 20px; flex-wrap: wrap;
-    border-bottom: 1px solid #f0f2f5;
+    border-bottom: 1px solid var(--border, #f0f2f5);
 }
 
 .empty-state {
@@ -127,8 +127,8 @@
 <div class="stats-grid">
 
     {{-- Total Activos --}}
-    <div class="stat-card" style="border-top: 3px solid #4a86b5;">
-        <div class="stat-card-icon" style="background:#eff6ff; color:#4a86b5;">
+    <div class="stat-card" style="border-top: 3px solid #3d73a4;">
+        <div class="stat-card-icon" style="background:var(--sk-bg,#eff6ff); color:#3d73a4;">
             <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
                 <path d="M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"/>
@@ -141,14 +141,14 @@
         <div class="stat-card-body">
             <span class="stat-trend up">
                 <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>
-                +3 este mes
+                +{{ $stats['novedades']['total_este_mes'] ?? 0 }} este mes
             </span>
         </div>
     </div>
 
     {{-- Activos Faltantes --}}
     <div class="stat-card" style="border-top: 3px solid #ef4444;">
-        <div class="stat-card-icon" style="background:#fee2e2; color:#dc2626;">
+        <div class="stat-card-icon" style="background:var(--sk-bg,#fee2e2); color:#dc2626;">
             <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <circle cx="12" cy="12" r="10"/>
                 <line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
@@ -161,14 +161,14 @@
         <div class="stat-card-body">
             <span class="stat-trend down">
                 <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="18 9 12 15 6 9"/></svg>
-                +2 esta semana
+                +{{ $stats['novedades']['faltantes_esta_semana'] ?? 0 }} esta semana
             </span>
         </div>
     </div>
 
     {{-- Solicitudes Pendientes --}}
     <div class="stat-card" style="border-top: 3px solid #f59e0b;">
-        <div class="stat-card-icon" style="background:#fef9c3; color:#a16207;">
+        <div class="stat-card-icon" style="background:var(--sk-bg,#fef9c3); color:#a16207;">
             <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
                 <rect x="9" y="3" width="6" height="4" rx="1"/>
@@ -182,7 +182,7 @@
         <div class="stat-card-body">
             <span class="stat-trend warn">
                 <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="18 9 12 15 6 9"/></svg>
-                5 sin revisar
+                {{ $stats['novedades']['pendientes_sin_revisar'] ?? 0 }} sin revisar
             </span>
         </div>
     </div>
@@ -339,18 +339,18 @@
                         @endforeach
                     @endif
                     
-                    <text x="70" y="66" text-anchor="middle" font-family="Sora" font-size="20" font-weight="800" fill="#0f1f35">{{ $stats['total_activos'] ?? 0 }}</text>
-                    <text x="70" y="82" text-anchor="middle" font-family="DM Sans" font-size="9" fill="#9ca3af">activos</text>
+                    <text x="70" y="66" text-anchor="middle" font-family="Sora" font-size="20" font-weight="800" fill="var(--text-primary, #0f1f35)">{{ $stats['total_activos'] ?? 0 }}</text>
+                    <text x="70" y="82" text-anchor="middle" font-family="DM Sans" font-size="9" fill="var(--text-secondary, #9ca3af)">activos</text>
                 </svg>
                 <div class="legend">
                     @if(isset($stats['estado_counts']))
                         @foreach($colores as $estado => $color)
                             @php $v = $estado_counts[$estado] ?? 0; @endphp
                             @if($v > 0)
-                            <div class="legend-item">
-                                <div class="legend-dot" style="background:{{ $color }}"></div>
-                                <span>{{ $estado == 'Mantenimiento' ? 'Mant.' : $estado }} <strong style="color:#0f1f35;">{{ $v }}</strong></span>
-                            </div>
+                                <div class="legend-item">
+                                    <div class="legend-dot" style="background:{{ $color }}"></div>
+                                    <span style="color:var(--text-secondary);">{{ $estado == 'Mantenimiento' ? 'Mant.' : $estado }} <strong style="color:var(--text-primary,#0f1f35);">{{ $v }}</strong></span>
+                                </div>
                             @endif
                         @endforeach
                     @endif
@@ -365,7 +365,7 @@
             </div>
 
             <a href="/activos/crear" class="quick-action">
-                <div class="qa-icon" style="background:#eff6ff;color:#4a86b5;">
+                <div class="qa-icon" style="background:var(--sk-bg,#eff6ff);color:#4a86b5;">
                     <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
                         <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
                     </svg>
@@ -375,7 +375,7 @@
             </a>
 
             <a href="/solicitudes/administrativos" class="quick-action">
-                <div class="qa-icon" style="background:#f0fdf4;color:#15803d;">
+                <div class="qa-icon" style="background:var(--sk-bg,#f0fdf4);color:#15803d;">
                     <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
                         <rect x="8" y="2" width="8" height="4" rx="1"/>
                         <path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/>
@@ -386,7 +386,7 @@
             </a>
 
             <a href="/solicitudes/administrativos" class="quick-action">
-                <div class="qa-icon" style="background:#fef9c3;color:#a16207;">
+                <div class="qa-icon" style="background:var(--sk-bg,#fef9c3);color:#a16207;">
                     <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
                         <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
                         <rect x="9" y="3" width="6" height="4" rx="1"/>
@@ -397,7 +397,7 @@
             </a>
 
             <a href="/reportes" class="quick-action">
-                <div class="qa-icon" style="background:#faf5ff;color:#7c3aed;">
+                <div class="qa-icon" style="background:var(--sk-bg,#faf5ff);color:#7c3aed;">
                     <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
                         <path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4z"/>
                         <path d="M14 17h6M17 14v6"/>

@@ -14,13 +14,16 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { Feather } from "@expo/vector-icons";
-import { colors } from "../theme/colors";
+import { colors as baseColors } from "../theme/colors";
 import { useEscaner } from "../domain/useCases/useEscaner";
 import { apiClient } from "../data/api/apiClient";
+import { useTheme } from "../theme/ThemeContext";
 
 export default function EscanerScreen({ route, navigation }) {
   const { auditoriaContext } = route.params || {};
   const [permission, requestPermission] = useCameraPermissions();
+  const { colors, isDark } = useTheme();
+  const styles = React.useMemo(() => getStyles(colors, isDark), [colors, isDark]);
   
   // Modals state
   const [modalVisible, setModalVisible] = useState(false);
@@ -325,24 +328,24 @@ export default function EscanerScreen({ route, navigation }) {
         </View>
       </Modal>
 
-      {/* MODAL FINAL (CIERRE DE AUDITORÍA) */}
       <Modal animationType="fade" visible={modalFinalVisible} transparent>
          <View style={[styles.modalOverlay, {justifyContent: 'center', padding: 20}]}>
-             <View style={{backgroundColor: '#fff', borderRadius: 20, padding: 24, width: '100%', shadowColor: '#000', shadowOpacity: 0.3, shadowRadius: 20}}>
+             <View style={styles.modalContentRounded}>
                  <View style={{alignItems: 'center', marginBottom: 20}}>
-                     <View style={{width: 60, height: 60, borderRadius: 30, backgroundColor: colors.successBg, justifyContent: 'center', alignItems: 'center', marginBottom: 12}}>
+                     <View style={styles.successIconFinal}>
                          <Feather name="award" size={30} color={colors.success} />
                      </View>
-                     <Text style={{fontSize: 20, fontWeight: '800', color: colors.primary, textAlign: 'center'}}>Auditoría Completada</Text>
-                     <Text style={{fontSize: 14, color: colors.textSecondary, textAlign: 'center', marginTop: 8}}>
+                     <Text style={styles.successTitleFinal}>Auditoría Completada</Text>
+                     <Text style={styles.successSubtitleFinal}>
                          Se han contabilizado los {metaTotal} activos físicos exitosamente en {auditoriaContext?.ubicacion_nombre}.
                      </Text>
                  </View>
                  
-                 <Text style={{fontSize: 13, fontWeight: '700', color: colors.primary, marginBottom: 8}}>Sintesis del Recorrido</Text>
+                 <Text style={styles.sintesisTitle}>Sintesis del Recorrido</Text>
                  <TextInput 
                      style={[styles.input, {minHeight: 100, textAlignVertical: 'top'}]}
                      placeholder="Ej: Todos los activos estaban en su lugar excepto las PCs de la fila trasera."
+                     placeholderTextColor={colors.textSecondary}
                      value={resumenFinal}
                      onChangeText={setResumenFinal}
                      multiline
@@ -353,7 +356,7 @@ export default function EscanerScreen({ route, navigation }) {
                      onPress={procesarFinalizacion}
                      disabled={isFinishing}
                  >
-                     { isFinishing ? <ActivityIndicator color="#fff" /> : <Text style={styles.primaryButtonText}>Enviar Reporte Final</Text> }
+                     { isFinishing ? <ActivityIndicator color={colors.surface} /> : <Text style={styles.primaryButtonText}>Enviar Reporte Final</Text> }
                  </TouchableOpacity>
              </View>
          </View>
@@ -363,8 +366,8 @@ export default function EscanerScreen({ route, navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#000" },
+const getStyles = (colors, isDark) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: colors.primary },
 
   header: {
     flexDirection: "row",
@@ -377,20 +380,20 @@ const styles = StyleSheet.create({
     paddingTop: 45 
   },
   headerLeft: { flexDirection: "row", alignItems: "center", gap: 12 },
-  headerTitle: { color: colors.surface, fontSize: 16, fontWeight: "800" },
-  headerSubtitle: { color: "#94a3b8", fontSize: 11, fontWeight: "600", letterSpacing: 1 },
+  headerTitle: { color: '#ffffff', fontSize: 16, fontWeight: "800" },
+  headerSubtitle: { color: "rgba(255,255,255,0.85)", fontSize: 11, fontWeight: "600", letterSpacing: 1 },
 
   progressContainer: {
      backgroundColor: colors.surface,
      paddingHorizontal: 20,
      paddingVertical: 14,
      borderBottomWidth: 1,
-     borderBottomColor: "#e2e8f0"
+     borderBottomColor: isDark ? colors.border : "#e2e8f0"
   },
   progressHeader: { flexDirection: "row", justifyContent: "space-between", marginBottom: 8 },
   progressText: { fontSize: 13, fontWeight: "700", color: colors.textSecondary },
   progressNumbers: { fontSize: 13, fontWeight: "800", color: colors.accent, fontFamily: "monospace" },
-  progressBarBg: { height: 8, backgroundColor: "#f1f5f9", borderRadius: 4, overflow: "hidden" },
+  progressBarBg: { height: 8, backgroundColor: isDark ? "rgba(255,255,255,0.05)" : "#f1f5f9", borderRadius: 4, overflow: "hidden" },
   progressBarFill: { height: "100%", backgroundColor: colors.accent },
 
   cameraShrink: { flex: 1 },
@@ -421,7 +424,7 @@ const styles = StyleSheet.create({
   bottomLeft:  { bottom: 0, left: 0,  borderTopWidth: 0,    borderRightWidth: 0,  borderBottomLeftRadius: 12 },
   bottomRight: { bottom: 0, right: 0, borderTopWidth: 0,    borderLeftWidth: 0,   borderBottomRightRadius: 12 },
   hint: {
-    color: "#fff",
+    color: colors.surface,
     fontSize: 15,
     fontWeight: "700",
     textAlign: "center",
@@ -461,19 +464,19 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: "#f1f5f9",
+    borderBottomColor: isDark ? colors.border : "#f1f5f9",
   },
-  modalTitle: { fontSize: 18, fontWeight: "800", color: colors.primary },
+  modalTitle: { fontSize: 18, fontWeight: "800", color: colors.textPrimary },
   modalScroll: { padding: 20, paddingBottom: 40 },
 
   assetCard: {
-    backgroundColor: "#f8fafc",
+    backgroundColor: isDark ? "rgba(255,255,255,0.02)" : "#f8fafc",
     borderRadius: 16,
     padding: 20,
     alignItems: "center",
     marginBottom: 24,
     borderWidth: 1,
-    borderColor: "#e2e8f0",
+    borderColor: isDark ? colors.border : "#e2e8f0",
   },
   imagePlaceholder: {
     width: 60,
@@ -483,17 +486,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 12,
-    shadowColor: colors.primary,
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 2
   },
-  assetName: { fontSize: 18, fontWeight: "800", color: colors.primary, textAlign: "center" },
+  assetName: { fontSize: 18, fontWeight: "800", color: colors.textPrimary, textAlign: "center" },
   assetCode: { fontSize: 13, color: colors.textSecondary, fontWeight: "600", marginBottom: 16 },
-  divider: { width: "100%", height: 1, backgroundColor: "#e2e8f0", marginBottom: 16 },
+  divider: { width: "100%", height: 1, backgroundColor: isDark ? colors.border : "#e2e8f0", marginBottom: 16 },
   detailRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", width: "100%", marginBottom: 8 },
   detailText: { fontSize: 13, color: colors.textSecondary, fontWeight: "600" },
-  detailValue: { color: colors.primary, fontWeight: "800", fontSize: 13 },
+  detailValue: { color: colors.textPrimary, fontWeight: "800", fontSize: 13 },
 
   sectionLabel: { fontSize: 13, fontWeight: "800", color: colors.textSecondary, marginBottom: 12, textTransform: "uppercase", letterSpacing: 0.5 },
   evalRow: { flexDirection: "row", gap: 8, marginBottom: 20 },
@@ -508,7 +507,7 @@ const styles = StyleSheet.create({
   evalLabel: { fontSize: 11, fontWeight: "800", textAlign: "center" },
 
   input: {
-    backgroundColor: "#f1f5f9",
+    backgroundColor: isDark ? colors.background : "#f1f5f9",
     borderRadius: 12,
     padding: 14,
     fontSize: 14,
@@ -516,6 +515,8 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     marginBottom: 20,
     minHeight: 56,
+    borderColor: isDark ? colors.border : 'transparent',
+    borderWidth: isDark ? 1 : 0
   },
 
   primaryButton: {
@@ -524,6 +525,22 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: "center",
   },
-  disabledButton: { backgroundColor: "#94a3b8" },
+  disabledButton: { backgroundColor: isDark ? colors.border : "#94a3b8" },
   primaryButtonText: { color: colors.surface, fontSize: 16, fontWeight: "800" },
+
+  modalContentRounded: {
+    backgroundColor: colors.surface, 
+    borderRadius: 20, 
+    padding: 24, 
+    width: '100%', 
+    shadowColor: '#000', 
+    shadowOpacity: isDark ? 0.1 : 0.3, 
+    shadowRadius: 20,
+    borderWidth: isDark ? 1 : 0,
+    borderColor: colors.border
+  },
+  successIconFinal: { width: 60, height: 60, borderRadius: 30, backgroundColor: isDark ? 'rgba(22, 101, 52, 0.3)' : colors.successBg, justifyContent: 'center', alignItems: 'center', marginBottom: 12 },
+  successTitleFinal: { fontSize: 20, fontWeight: '800', color: colors.textPrimary, textAlign: 'center' },
+  successSubtitleFinal: { fontSize: 14, color: colors.textSecondary, textAlign: 'center', marginTop: 8 },
+  sintesisTitle: { fontSize: 13, fontWeight: '700', color: colors.textPrimary, marginBottom: 8 }
 });

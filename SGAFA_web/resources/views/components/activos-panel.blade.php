@@ -9,7 +9,7 @@
 .panel {
     position:fixed; top:0; right:0; bottom:0;
     width:100%; max-width:580px;
-    background:#fff; box-shadow:-8px 0 40px rgba(0,0,0,0.15);
+    background:var(--card-bg, #fff); box-shadow:-8px 0 40px rgba(0,0,0,0.15);
     display:flex; flex-direction:column;
     transform:translateX(100%); transition:transform .28s cubic-bezier(.4,0,.2,1);
     z-index:501;
@@ -17,39 +17,40 @@
 .panel.open { transform:translateX(0); }
 .panel-header {
     display:flex; align-items:center; justify-content:space-between;
-    padding:20px 24px; border-bottom:1px solid #f0f2f5; flex-shrink:0;
+    padding:20px 24px; border-bottom:1px solid var(--border, #f0f2f5); flex-shrink:0;
 }
-.panel-title { font-family:'Sora',sans-serif; font-size:1rem; font-weight:800; color:#0f1f35; }
+.panel-title { font-family:'Sora',sans-serif; font-size:1rem; font-weight:800; color:var(--text-primary, #0f1f35); }
 .panel-close {
     width:32px; height:32px; border-radius:8px; border:none;
-    background:#f1f5f9; cursor:pointer; display:flex;
+    background:var(--sk-bg, #f1f5f9); cursor:pointer; display:flex;
     align-items:center; justify-content:center; transition:background .15s;
 }
-.panel-close:hover { background:#e2e8f0; }
+.panel-close:hover { background:var(--border, #e2e8f0); }
 .panel-body { flex:1; overflow-y:auto; padding:24px; }
 .panel-footer {
-    padding:16px 24px; border-top:1px solid #f0f2f5;
+    padding:16px 24px; border-top:1px solid var(--border, #f0f2f5);
     display:flex; gap:10px; justify-content:flex-end; flex-shrink:0;
-    background:#fff;
+    background:var(--card-bg, #fff);
 }
 /* Campos del formulario dentro del panel */
-.pf-label { display:block; font-size:.75rem; font-weight:600; color:#6b7a8d; text-transform:uppercase; letter-spacing:.05em; margin-bottom:5px; }
+.pf-label { display:block; font-size:.75rem; font-weight:600; color:var(--text-secondary, #6b7a8d); text-transform:uppercase; letter-spacing:.05em; margin-bottom:5px; }
 .pf-field {
-    width:100%; padding:10px 13px; background:#f7f7f7;
-    border:1.5px solid #e4e8ef; border-radius:10px;
-    font-family:'DM Sans',sans-serif; font-size:.9rem; color:#374151;
+    width:100%; padding:10px 13px; background:var(--sk-bg, #f7f7f7);
+    border:1.5px solid var(--border, #e4e8ef); border-radius:10px;
+    font-family:'DM Sans',sans-serif; font-size:.9rem; color:var(--text-primary, #374151);
     outline:none; transition:all .2s; box-sizing:border-box;
 }
-.pf-field:focus { background:#fff; border-color:#4a86b5; box-shadow:0 0 0 3px rgba(74,134,181,.1); }
-.pf-field[readonly] { background:#f0f2f5; color:#9ca3af; cursor:not-allowed; }
+.pf-field:focus { background:var(--body-bg, #fff); border-color:#4a86b5; box-shadow:0 0 0 3px rgba(74,134,181,.1); }
+.pf-field[readonly] { background:var(--border, #f0f2f5); color:var(--text-secondary, #9ca3af); cursor:not-allowed; }
 select.pf-field { cursor:pointer; appearance:none; }
+select.pf-field option { background: var(--card-bg, #fff); color: var(--text-primary, #0f1f35); }
 textarea.pf-field { resize:vertical; }
 .pf-group { margin-bottom:16px; }
 .pf-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:16px; }
-.pf-section { font-family:'Sora',sans-serif; font-size:.8rem; font-weight:700; color:#0f1f35; text-transform:uppercase; letter-spacing:.06em; padding-bottom:8px; border-bottom:1px solid #f0f2f5; margin-bottom:16px; }
+.pf-section { font-family:'Sora',sans-serif; font-size:.8rem; font-weight:700; color:var(--text-primary, #0f1f35); text-transform:uppercase; letter-spacing:.06em; padding-bottom:8px; border-bottom:1px solid var(--border, #f0f2f5); margin-bottom:16px; }
 /* Detalles en ver */
-.detail-label { font-size:.73rem; font-weight:600; color:#9ca3af; text-transform:uppercase; letter-spacing:.05em; margin-bottom:3px; }
-.detail-value { font-size:.9rem; font-weight:500; color:#0f1f35; }
+.detail-label { font-size:.73rem; font-weight:600; color:var(--text-secondary, #9ca3af); text-transform:uppercase; letter-spacing:.05em; margin-bottom:3px; }
+.detail-value { font-size:.9rem; font-weight:500; color:var(--text-primary, #0f1f35); }
 
 /* Modal exportar QR masivo */
 .export-modal-overlay {
@@ -59,7 +60,7 @@ textarea.pf-field { resize:vertical; }
 }
 .export-modal-overlay.open { display:flex; }
 .export-modal-box {
-    background:#fff; border-radius:16px;
+    background:var(--card-bg, #fff); border-radius:16px;
     padding:28px; width:100%; max-width:460px;
     box-shadow:0 20px 60px rgba(0,0,0,0.25);
     animation: modalIn .18s ease;
@@ -68,24 +69,24 @@ textarea.pf-field { resize:vertical; }
     display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:20px 0;
 }
 .export-card {
-    border:2px solid #e4e8ef; border-radius:12px;
+    border:2px solid var(--border, #e4e8ef); border-radius:12px;
     padding:20px 16px; cursor:pointer; text-align:center;
     transition:border-color .15s, background .15s;
 }
-.export-card:hover { border-color:#4a86b5; background:#f0f7ff; }
-.export-card.selected { border-color:#4a86b5; background:#eff6ff; }
+.export-card:hover { border-color:#4a86b5; background:var(--sk-bg, #f0f7ff); }
+.export-card.selected { border-color:#4a86b5; background:var(--sk-bg, #eff6ff); }
 .export-card-icon {
     width:44px; height:44px; border-radius:10px;
     display:flex; align-items:center; justify-content:center;
     margin:0 auto 10px;
 }
-.export-card-title { font-family:'Sora',sans-serif; font-size:.9rem; font-weight:700; color:#0f1f35; margin-bottom:4px; }
-.export-card-desc  { font-size:.78rem; color:#6b7a8d; line-height:1.4; }
+.export-card-title { font-family:'Sora',sans-serif; font-size:.9rem; font-weight:700; color:var(--text-primary, #0f1f35); margin-bottom:4px; }
+.export-card-desc  { font-size:.78rem; color:var(--text-secondary, #6b7a8d); line-height:1.4; }
 .export-progress {
     display:none; align-items:center; gap:10px;
-    padding:12px 14px; background:#f8fafc;
+    padding:12px 14px; background:var(--sk-bg, #f8fafc);
     border-radius:10px; margin-top:16px;
-    font-size:.85rem; color:#6b7a8d;
+    font-size:.85rem; color:var(--text-secondary, #6b7a8d);
 }
 .export-progress.visible { display:flex; }
 .export-spinner {
@@ -103,7 +104,7 @@ textarea.pf-field { resize:vertical; }
 }
 .qr-modal-overlay.open { display:flex; }
 .qr-modal-box {
-    background:#fff; border-radius:16px;
+    background:var(--card-bg, #fff); border-radius:16px;
     padding:32px; width:100%; max-width:340px;
     box-shadow:0 20px 60px rgba(0,0,0,0.25);
     text-align:center;
@@ -111,12 +112,12 @@ textarea.pf-field { resize:vertical; }
 }
 .qr-modal-box img {
     width:200px; height:200px;
-    border-radius:8px; border:1px solid #e4e8ef;
+    border-radius:8px; border:1px solid var(--border, #e4e8ef);
     margin:16px auto;
     display:block;
 }
-.qr-modal-title { font-family:'Sora',sans-serif; font-size:1rem; font-weight:800; color:#0f1f35; margin-bottom:2px; }
-.qr-modal-code  { font-size:.82rem; color:#9ca3af; font-family:'DM Mono',monospace; margin-bottom:4px; }
+.qr-modal-title { font-family:'Sora',sans-serif; font-size:1rem; font-weight:800; color:var(--text-primary, #0f1f35); margin-bottom:2px; }
+.qr-modal-code  { font-size:.82rem; color:var(--text-secondary, #9ca3af); font-family:'DM Mono',monospace; margin-bottom:4px; }
 
 /* Lightbox foto */
 .lightbox-overlay {
@@ -148,7 +149,7 @@ textarea.pf-field { resize:vertical; }
 }
 .modal-overlay.open { display:flex; }
 .modal-box {
-    background:#fff; border-radius:16px;
+    background:var(--card-bg, #fff); border-radius:16px;
     padding:28px; width:100%; max-width:400px;
     box-shadow:0 20px 60px rgba(0,0,0,0.2);
     animation: modalIn .18s ease;
@@ -156,11 +157,11 @@ textarea.pf-field { resize:vertical; }
 @keyframes modalIn { from { transform:scale(.95); opacity:0; } to { transform:scale(1); opacity:1; } }
 .modal-icon {
     width:48px; height:48px; border-radius:12px;
-    background:#fee2e2; display:flex; align-items:center; justify-content:center;
+    background:var(--sk-bg, #fee2e2); display:flex; align-items:center; justify-content:center;
     margin-bottom:16px;
 }
-.modal-title { font-family:'Sora',sans-serif; font-size:1.05rem; font-weight:800; color:#0f1f35; margin-bottom:6px; }
-.modal-desc  { font-size:.88rem; color:#6b7a8d; line-height:1.5; margin-bottom:20px; }
+.modal-title { font-family:'Sora',sans-serif; font-size:1.05rem; font-weight:800; color:var(--text-primary, #0f1f35); margin-bottom:6px; }
+.modal-desc  { font-size:.88rem; color:var(--text-secondary, #6b7a8d); line-height:1.5; margin-bottom:20px; }
 .modal-actions { display:flex; gap:10px; justify-content:flex-end; }
 </style>
 {{-- Panel lateral (Nuevo / Ver / Editar) --}}
@@ -443,7 +444,7 @@ function renderFormNuevo() {
         </div>
         <div class="pf-section" style="margin-top:8px;">Foto del activo</div>
         <div class="pf-group">
-            <div id="fotoDropZone" onclick="document.getElementById('fotoInput').click()" style="border:2px dashed #d1d5db;border-radius:12px;padding:24px 16px;text-align:center;cursor:pointer;background:#fafafa;transition:border-color .2s;" onmouseenter="this.style.borderColor='#4a86b5'" onmouseleave="this.style.borderColor='#d1d5db'">
+            <div id="fotoDropZone" onclick="document.getElementById('fotoInput').click()" style="border:2px dashed var(--border, #d1d5db);border-radius:12px;padding:24px 16px;text-align:center;cursor:pointer;background:var(--sk-bg, #fafafa);transition:border-color .2s;" onmouseenter="this.style.borderColor='#4a86b5'" onmouseleave="this.style.borderColor='var(--border, #d1d5db)'">
                 <div id="fotoPreviewWrap" style="display:none;margin-bottom:8px;"><img id="fotoPreview" src="" style="max-height:160px;max-width:100%;border-radius:10px;object-fit:cover;"></div>
                 <div id="fotoPlaceholder"><svg width="28" height="28" fill="none" stroke="#9ca3af" stroke-width="1.6" viewBox="0 0 24 24" style="margin:0 auto 8px;display:block;"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><p style="font-size:.83rem;color:#6b7a8d;margin:0;">Haz clic para seleccionar una foto</p><p style="font-size:.75rem;color:#b0b8c1;margin:4px 0 0;">JPG, PNG o WEBP — máx. 5 MB</p></div>
             </div>
@@ -462,7 +463,7 @@ function renderVer(a) {
     const fg   = BADGE_TEXT[a.color]   || '#374151';
     const initials = a.usuario !== '—' ? a.usuario.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase() : '—';
     return `
-    <div style="width:100%;height:180px;border-radius:14px;background:#f0f4f8;overflow:hidden;margin-bottom:16px;display:flex;align-items:center;justify-content:center;position:relative;">
+    <div style="width:100%;height:180px;border-radius:14px;background:var(--sk-bg, #f0f4f8);overflow:hidden;margin-bottom:16px;display:flex;align-items:center;justify-content:center;position:relative;">
         ${a.foto
             ? `<img src="${a.foto}" style="width:100%;height:100%;object-fit:cover;cursor:zoom-in;" onclick="abrirLightbox('${a.foto}')" title="Ver imagen completa">
                <div style="position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,.45);border-radius:7px;padding:4px 8px;display:flex;align-items:center;gap:4px;pointer-events:none;">
@@ -475,9 +476,9 @@ function renderVer(a) {
                </div>`
         }
     </div>
-    <div style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:#f8fafc;border-radius:12px;margin-bottom:20px;">
+    <div style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--sk-bg, #f8fafc);border-radius:12px;margin-bottom:20px;">
         <div style="flex:1;">
-            <div style="font-family:'Sora',sans-serif;font-size:1rem;font-weight:800;color:#0f1f35;">${a.nombre}</div>
+            <div style="font-family:'Sora',sans-serif;font-size:1rem;font-weight:800;color:var(--text-primary, #0f1f35);">${a.nombre}</div>
             <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
                 <span style="font-family:'DM Mono',monospace;font-size:.78rem;color:#9ca3af;">${a.codigo}</span>
                 <span style="background:${bg};color:${fg};font-size:.75rem;font-weight:700;padding:2px 10px;border-radius:20px;">${a.estado}</span>
@@ -573,7 +574,7 @@ function renderFormEditar(a) {
         </div>
         <div class="pf-section" style="margin-top:8px;">Foto del activo</div>
         <div class="pf-group">
-            <div id="fotoDropZoneEdit" onclick="document.getElementById('fotoInputEdit').click()" style="border:2px dashed #d1d5db;border-radius:12px;padding:${tieneFoto?'10px':'24px'} 16px;text-align:center;cursor:pointer;background:#fafafa;transition:border-color .2s;" onmouseenter="this.style.borderColor='#4a86b5'" onmouseleave="this.style.borderColor='#d1d5db'">
+            <div id="fotoDropZoneEdit" onclick="document.getElementById('fotoInputEdit').click()" style="border:2px dashed var(--border, #d1d5db);border-radius:12px;padding:${tieneFoto?'10px':'24px'} 16px;text-align:center;cursor:pointer;background:var(--sk-bg, #fafafa);transition:border-color .2s;" onmouseenter="this.style.borderColor='#4a86b5'" onmouseleave="this.style.borderColor='var(--border, #d1d5db)'">
                 <div id="fotoPreviewWrapEdit" style="display:${tieneFoto?'block':'none'};margin-bottom:8px;"><img id="fotoPreviewEdit" src="${a.foto||''}" style="max-height:160px;max-width:100%;border-radius:10px;object-fit:cover;"></div>
                 <div id="fotoPlaceholderEdit" style="display:${tieneFoto?'none':'block'};"><svg width="28" height="28" fill="none" stroke="#9ca3af" stroke-width="1.6" viewBox="0 0 24 24" style="margin:0 auto 8px;display:block;"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><p style="font-size:.83rem;color:#6b7a8d;margin:0;">Haz clic para cambiar la foto</p></div>
             </div>

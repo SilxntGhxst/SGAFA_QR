@@ -16,19 +16,21 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { Feather } from "@expo/vector-icons";
-import { colors } from "../theme/colors";
 import { useIncidencias } from "../domain/useCases/useIncidencias";
+import { useTheme } from "../theme/ThemeContext";
 
 const TIPOS = [
   "Activo Fantasma",
   "Activo sin registro",
   "Reporte de Daño",
-  "Activo Fuera de Lugar", // Added this type
+  "Activo Fuera de Lugar",
 ];
 
 export default function IncidenciaScreen({ route, navigation }) {
   const [permission, requestPermission] = useCameraPermissions();
-  
+  const { colors, isDark } = useTheme();
+  const styles = React.useMemo(() => getStyles(colors, isDark), [colors, isDark]);
+
   // Custom Hook (Domain Layer)
   const { submitIncidencia, isSubmitting, isSuccess, errorApi, resetState } = useIncidencias();
 
@@ -129,7 +131,7 @@ export default function IncidenciaScreen({ route, navigation }) {
 
         <View style={styles.successContainer}>
           <View style={styles.successIcon}>
-            <Feather name="check-circle" size={64} color="#10b981" />
+            <Feather name="check-circle" size={64} color={colors.success} />
           </View>
           <Text style={styles.successTitle}>¡Reporte Enviado!</Text>
           <Text style={styles.successSubtitle}>
@@ -142,7 +144,7 @@ export default function IncidenciaScreen({ route, navigation }) {
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.backBtnOutline} onPress={() => navigation.goBack()}>
-            <Feather name="arrow-left" size={18} color={colors.primary} />
+            <Feather name="arrow-left" size={18} color={colors.accent} />
             <Text style={styles.backBtnOutlineText}>Volver</Text>
           </TouchableOpacity>
         </View>
@@ -182,7 +184,7 @@ export default function IncidenciaScreen({ route, navigation }) {
           {/* Título */}
           <View style={styles.navHeader}>
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-              <Feather name="arrow-left" size={28} color={colors.primary} />
+              <Feather name="arrow-left" size={28} color={colors.accent} />
             </TouchableOpacity>
             <Text style={styles.title}>Registrar Activo{"\n"}Fantasma/Dañado</Text>
           </View>
@@ -306,7 +308,7 @@ export default function IncidenciaScreen({ route, navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors, isDark) => StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: colors.background },
 
   headerContainer: {
@@ -318,23 +320,25 @@ const styles = StyleSheet.create({
   headerLeft: { flexDirection: "row", alignItems: "center" },
   headerLogo: { width: 44, height: 44, marginRight: 12 },
   headerTextContainer: { justifyContent: "center" },
-  headerTitle: { color: colors.surface, fontSize: 18, fontWeight: "800", letterSpacing: 0.5 },
-  headerSubtitle: { color: "#94a3b8", fontSize: 13, fontWeight: "600", marginTop: 2, textTransform: "uppercase" },
+  headerTitle: { color: '#ffffff', fontSize: 18, fontWeight: "800", letterSpacing: 0.5 },
+  headerSubtitle: { color: "rgba(255,255,255,0.80)", fontSize: 13, fontWeight: "600", marginTop: 2, textTransform: "uppercase" },
 
   keyboardView: { flex: 1 },
   scrollContainer: { padding: 24, paddingBottom: 40 },
 
   navHeader: { flexDirection: "row", alignItems: "center", marginBottom: 12 },
   backButton: { marginRight: 16, padding: 4 },
-  title: { fontSize: 24, fontWeight: "900", color: colors.primary, flex: 1, lineHeight: 28 },
+  title: { fontSize: 24, fontWeight: "900", color: colors.textPrimary, flex: 1, lineHeight: 28 },
   subtitle: { fontSize: 16, fontWeight: "700", color: colors.textSecondary, marginBottom: 24, lineHeight: 22 },
 
   // Error banner
   errorBanner: {
     flexDirection: "row", alignItems: "center", gap: 8,
-    backgroundColor: "#fef2f2", borderRadius: 10,
+    backgroundColor: isDark ? "rgba(239,68,68,0.12)" : "#fef2f2",
+    borderRadius: 10,
     padding: 12, marginBottom: 16,
-    borderWidth: 1, borderColor: "#fecaca",
+    borderWidth: 1,
+    borderColor: isDark ? "rgba(239,68,68,0.3)" : "#fecaca",
   },
   errorBannerText: { color: "#ef4444", fontSize: 14, fontWeight: "600", flex: 1 },
 
@@ -342,10 +346,11 @@ const styles = StyleSheet.create({
   tipoContainer: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   tipoBtn: {
     paddingHorizontal: 14, paddingVertical: 8,
-    borderRadius: 20, borderWidth: 1.5, borderColor: "#e2e8f0",
-    backgroundColor: "#f8fafc",
+    borderRadius: 20, borderWidth: 1.5,
+    borderColor: isDark ? colors.border : "#e2e8f0",
+    backgroundColor: isDark ? colors.backgroundSecondary : "#f8fafc",
   },
-  tipoBtnActive: { backgroundColor: colors.primary, borderColor: colors.primary },
+  tipoBtnActive: { backgroundColor: colors.accent, borderColor: colors.accent },
   tipoBtnText: { fontSize: 13, fontWeight: "600", color: colors.textSecondary },
   tipoBtnTextActive: { color: colors.surface },
 
@@ -370,11 +375,14 @@ const styles = StyleSheet.create({
 
   // Inputs
   inputGroup: { marginBottom: 20 },
-  label: { fontSize: 16, fontWeight: "800", color: colors.primary, marginBottom: 8 },
+  label: { fontSize: 14, fontWeight: "700", color: colors.textSecondary, marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.4 },
   input: {
-    backgroundColor: "#e2e8f0", borderRadius: 12,
+    backgroundColor: isDark ? colors.backgroundSecondary : "#f1f5f9",
+    borderRadius: 12,
     paddingHorizontal: 16, paddingVertical: 14,
     fontSize: 16, color: colors.textPrimary, fontWeight: "600",
+    borderWidth: isDark ? 1 : 0,
+    borderColor: isDark ? colors.border : "transparent",
   },
   textArea: { height: 90, paddingTop: 14 },
 
@@ -383,16 +391,15 @@ const styles = StyleSheet.create({
     backgroundColor: colors.accent, borderRadius: 12,
     paddingVertical: 16, alignItems: "center", marginTop: 12,
     flexDirection: "row", justifyContent: "center", gap: 10,
-    shadowColor: colors.accent, shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3, shadowRadius: 8, elevation: 4,
+    elevation: 4,
   },
-  submitButtonDisabled: { opacity: 0.6 },
+  submitButtonDisabled: { opacity: 0.5 },
   submitButtonText: { color: colors.surface, fontSize: 20, fontWeight: "800" },
 
   // Pantalla de éxito
   successContainer: { flex: 1, alignItems: "center", justifyContent: "center", padding: 32 },
   successIcon: { marginBottom: 20 },
-  successTitle: { fontSize: 28, fontWeight: "900", color: colors.primary, marginBottom: 10 },
+  successTitle: { fontSize: 28, fontWeight: "900", color: colors.textPrimary, marginBottom: 10 },
   successSubtitle: { fontSize: 16, color: colors.textSecondary, textAlign: "center", lineHeight: 24, marginBottom: 32 },
   successBtn: {
     backgroundColor: colors.accent, borderRadius: 12,
@@ -402,12 +409,12 @@ const styles = StyleSheet.create({
   },
   successBtnText: { color: colors.surface, fontSize: 18, fontWeight: "800" },
   backBtnOutline: {
-    borderWidth: 2, borderColor: colors.primary, borderRadius: 12,
+    borderWidth: 2, borderColor: colors.accent, borderRadius: 12,
     paddingVertical: 14, paddingHorizontal: 32,
     flexDirection: "row", alignItems: "center", gap: 8,
     width: "100%", justifyContent: "center",
   },
-  backBtnOutlineText: { color: colors.primary, fontSize: 18, fontWeight: "800" },
+  backBtnOutlineText: { color: colors.accent, fontSize: 18, fontWeight: "800" },
 
   // Modal cámara
   fullCameraContainer: { flex: 1, backgroundColor: "#000" },
@@ -417,7 +424,7 @@ const styles = StyleSheet.create({
   cameraOverlayBottom: { position: "absolute", bottom: 50, left: 0, right: 0, alignItems: "center", zIndex: 10 },
   captureButtonOuter: {
     width: 80, height: 80, borderRadius: 40,
-    borderWidth: 6, borderColor: "rgba(255, 255, 255, 0.4)",
+    borderWidth: 6, borderColor: "rgba(255,255,255,0.4)",
     justifyContent: "center", alignItems: "center",
   },
   captureButtonInner: { width: 60, height: 60, borderRadius: 30, backgroundColor: colors.surface },

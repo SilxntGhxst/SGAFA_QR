@@ -10,20 +10,25 @@ import {
   RefreshControl,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { colors } from "../theme/colors";
+import { colors as baseColors } from "../theme/colors";
 import { useDashboard } from "../domain/useCases/useDashboard";
+import { useTheme } from "../theme/ThemeContext";
 import MetricCard from "../components/Dashboard/MetricCard";
 import ActivityItem from "../components/Dashboard/ActivityItem";
+import { useAuth } from "../domain/AuthContext";
 
 export default function DashboardScreen({ navigation }) {
   const [modalVisible, setModalVisible] = useState(false);
+  const { user } = useAuth();
+  const { colors, isDark } = useTheme();
+  const styles = React.useMemo(() => getStyles(colors, isDark), [colors, isDark]);
   const { data, isLoading, error, refetch } = useDashboard();
 
   if (isLoading && !data) {
     return (
-      <View style={styles.loadingContainer}>
+      <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
         <ActivityIndicator size="large" color={colors.accent} />
-        <Text style={styles.loadingText}>Cargando panel...</Text>
+        <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Cargando panel...</Text>
       </View>
     );
   }
@@ -41,7 +46,7 @@ export default function DashboardScreen({ navigation }) {
   }
 
   return (
-    <View style={styles.safeArea}>
+    <View style={[styles.safeArea, { backgroundColor: colors.background }]}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContainer}
@@ -51,11 +56,11 @@ export default function DashboardScreen({ navigation }) {
       >
         <View style={styles.header}>
           <View>
-            <Text style={styles.greeting}>Hola, {data?.usuario?.nombre || "Usuario"}</Text>
-            <Text style={styles.role}>{data?.usuario?.rol || ""}</Text>
+            <Text style={[styles.greeting, { color: colors.textPrimary }]}>Hola, {user?.nombre || data?.usuario?.nombre || "Usuario"}</Text>
+            <Text style={[styles.role, { color: colors.textSecondary }]}>{user?.rol || data?.usuario?.rol || ""}</Text>
           </View>
           <TouchableOpacity
-            style={styles.avatarPlaceholder}
+            style={[styles.avatarPlaceholder, { backgroundColor: isDark ? colors.surface : "#f1f5f9" }]}
             onPress={() => navigation.navigate("Perfil")}
           >
             <Feather name="user" size={24} color={colors.accent} />
@@ -73,40 +78,46 @@ export default function DashboardScreen({ navigation }) {
           />
         </View>
 
-        <Text style={styles.sectionTitle}>Acciones Rápidas</Text>
+        <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Acciones Rápidas</Text>
         <View style={styles.actionsContainer}>
           <TouchableOpacity
-            style={styles.primaryAction}
+            style={[styles.primaryAction, { backgroundColor: colors.accent }]}
             onPress={() => navigation.navigate("Escaner")}
           >
             <Feather
               name="maximize"
               size={32}
-              color={colors.surface}
+              color={"#ffffff"}
               style={styles.actionIcon}
             />
             <Text style={styles.primaryActionText}>Escanear Código QR</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={styles.secondaryAction}
+            style={[styles.secondaryAction, { backgroundColor: colors.surface }]}
             onPress={() => navigation.navigate("Incidencia")}
           >
             <Feather name="alert-octagon" size={24} color={colors.danger} />
-            <Text style={styles.secondaryActionText}>Reportar Incidencia</Text>
+            <Text style={[styles.secondaryActionText, { color: colors.danger }]}>Reportar Incidencia</Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.activityHeader}>
-          <Text style={styles.sectionTitle}>Actividad Reciente</Text>
+          <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Actividad Reciente</Text>
           <TouchableOpacity onPress={() => setModalVisible(true)}>
-            <Text style={styles.linkText}>Ver todo</Text>
+            <Text style={[styles.linkText, { color: colors.accent }]}>Ver todo</Text>
           </TouchableOpacity>
         </View>
 
-        <View style={styles.activityList}>
-          {data?.actividadReciente?.map((item) => (
-            <ActivityItem key={item.id} item={item} />
-          ))}
+        <View style={[styles.activityList, { backgroundColor: colors.surface, borderColor: isDark ? colors.border : "#f1f5f9" }]}>
+          {data?.actividadReciente?.length > 0 ? (
+            data?.actividadReciente?.map((item) => (
+              <ActivityItem key={item.id} item={item} />
+            ))
+          ) : (
+            <View style={styles.emptyContainer}>
+              <Text style={[styles.emptyText, { color: colors.textSecondary }]}>No hay actividad reciente</Text>
+            </View>
+          )}
         </View>
       </ScrollView>
 
@@ -117,9 +128,9 @@ export default function DashboardScreen({ navigation }) {
         onRequestClose={() => setModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Historial Completo</Text>
+          <View style={[styles.modalContent, { backgroundColor: colors.surface }]}>
+            <View style={[styles.modalHeader, { borderBottomColor: isDark ? colors.border : "#f1f5f9" }]}>
+              <Text style={[styles.modalTitle, { color: colors.textPrimary }]}>Historial Completo</Text>
               <TouchableOpacity
                 onPress={() => setModalVisible(false)}
                 style={styles.closeButton}
@@ -142,7 +153,7 @@ export default function DashboardScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors, isDark) => StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: colors.background },
   loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: colors.background },
   loadingText: { marginTop: 12, fontSize: 16, color: colors.textSecondary, fontWeight: "600" },
@@ -178,9 +189,11 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: "#dbeafe",
+    backgroundColor: isDark ? "rgba(255,255,255,0.05)" : "#dbeafe",
     justifyContent: "center",
     alignItems: "center",
+    borderWidth: 1,
+    borderColor: isDark ? colors.border : 'transparent',
   },
   metricsContainer: {
     flexDirection: "row",
@@ -190,7 +203,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: "700",
-    color: colors.primary,
+    color: colors.textPrimary,
     marginBottom: 16,
   },
   actionsContainer: { marginBottom: 32 },
@@ -215,13 +228,13 @@ const styles = StyleSheet.create({
   },
   actionIcon: { marginBottom: 8 },
   secondaryAction: {
-    backgroundColor: colors.surface,
+    backgroundColor: isDark ? "rgba(220, 38, 38, 0.1)" : colors.surface,
     borderRadius: 16,
     padding: 20,
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
-    borderColor: "#fee2e2",
+    borderColor: isDark ? "rgba(239, 68, 68, 0.2)" : "#fee2e2",
     flexDirection: "row",
   },
   secondaryActionText: {
@@ -242,7 +255,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 8,
     borderWidth: 1,
-    borderColor: "#f1f5f9",
+    borderColor: isDark ? colors.border : "#f1f5f9",
   },
   modalOverlay: {
     flex: 1,
@@ -257,9 +270,11 @@ const styles = StyleSheet.create({
     maxHeight: "85%",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.1,
+    shadowOpacity: isDark ? 0.3 : 0.1,
     shadowRadius: 12,
     elevation: 10,
+    borderWidth: isDark ? 1 : 0,
+    borderColor: colors.border
   },
   modalHeader: {
     flexDirection: "row",
@@ -268,8 +283,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#f1f5f9",
+    borderBottomColor: isDark ? colors.border : "#f1f5f9",
   },
-  modalTitle: { fontSize: 20, fontWeight: "800", color: colors.primary },
+  modalTitle: { fontSize: 20, fontWeight: "800", color: colors.textPrimary },
   closeButton: { padding: 4 },
 });

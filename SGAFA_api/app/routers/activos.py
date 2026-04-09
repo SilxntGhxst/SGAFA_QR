@@ -2,9 +2,10 @@ from fastapi import APIRouter, Query, HTTPException, status, Depends
 from typing import Optional
 from sqlalchemy.orm import Session
 import uuid as _uuid
+from datetime import datetime, timedelta
 from app.models.ActivoModel import ActivoCreate, ActivoUpdate, ActivoResponse
 from app.database.db import get_db
-from app.database.models import BienMueble, Categoria, Ubicacion, Usuario, EstadoActivo
+from app.database.models import BienMueble, Categoria, Ubicacion, Usuario, EstadoActivo, Buzon
 
 router = APIRouter(prefix="/api/activos", tags=["Gestión de Activos"])
 
@@ -48,19 +49,41 @@ def _enriquecer(bien: BienMueble, db: Session) -> dict:
 # 1. STATS — para el dashboard
 @router.get("/stats")
 def get_stats(db: Session = Depends(get_db)):
+    ahora = datetime.now()
+    hace_un_mes = ahora - timedelta(days=30)
+    hace_una_semana = ahora - timedelta(days=7)
+
     total         = db.query(BienMueble).count()
     funcional     = db.query(BienMueble).filter(BienMueble.estado == EstadoActivo.funcional).count()
     mantenimiento = db.query(BienMueble).filter(BienMueble.estado == EstadoActivo.mantenimiento).count()
     baja          = db.query(BienMueble).filter(BienMueble.estado == EstadoActivo.baja).count()
 
+    # Novedades dinámicas
+    total_este_mes = db.query(BienMueble).filter(BienMueble.creado_at >= hace_un_mes).count()
+    
+    # Activos faltantes esta semana (Solo Buzon)
+    faltantes_buzon_recientes = db.query(Buzon).filter(Buzon.created_at >= hace_una_semana).count()
+    
+    # Activos faltantes historico (Solo Buzon)
+    faltante = db.query(Buzon).filter(Buzon.tipo.ilike("%faltante%")).count()
+
+    # Solicitudes pendientes (Desde el Buzón)
+    pendientes = db.query(Buzon).filter(Buzon.estado == "Pendiente").count()
+
     return {
         "total_activos": total,
-        "activos_faltantes": 0,
-        "solicitudes_pendientes": 0,
+        "activos_faltantes": faltante,
+        "solicitudes_pendientes": pendientes,
+        "novedades": {
+            "total_este_mes": total_este_mes,
+            "faltantes_esta_semana": faltantes_buzon_recientes,
+            "pendientes_sin_revisar": pendientes
+        },
         "estado_counts": {
             "Funcional":        funcional,
             "En mantenimiento": mantenimiento,
             "Baja":             baja,
+            "Faltante":         faltante
         }
     }
 

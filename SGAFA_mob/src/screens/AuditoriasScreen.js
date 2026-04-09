@@ -11,8 +11,9 @@ import {
   Alert
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { colors } from "../theme/colors";
+import { colors as baseColors } from "../theme/colors";
 import { useAuditorias } from "../domain/useCases/useAuditorias";
+import { useTheme } from "../theme/ThemeContext";
 import { apiClient } from "../data/api/apiClient";
 
 export default function AuditoriasScreen({ navigation }) {
@@ -20,6 +21,8 @@ export default function AuditoriasScreen({ navigation }) {
   // Filtros: 'Todas', 'Por comenzar', 'A punto de finalizar', 'Pendientes', 'En Progreso', 'Completadas'
   const [filtroActivo, setFiltroActivo] = useState("Todas");
   
+  const { colors, isDark } = useTheme();
+  const styles = React.useMemo(() => getStyles(colors, isDark), [colors, isDark]);
   const { data, isLoading, error, refetch } = useAuditorias();
 
   // Helper para clasificación temporal
@@ -262,9 +265,9 @@ export default function AuditoriasScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors, isDark) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  centerContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
+  centerContainer: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: colors.background },
   retryBtn: { marginTop: 16, backgroundColor: colors.accent, padding: 12, borderRadius: 8 },
   emptyContainer: { padding: 40, alignItems: "center" },
   
@@ -278,7 +281,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#e2e8f0",
+    borderColor: isDark ? colors.border : "#e2e8f0",
     height: 52,
   },
   searchIcon: { marginRight: 12 },
@@ -290,9 +293,9 @@ const styles = StyleSheet.create({
       paddingHorizontal: 16,
       paddingVertical: 8,
       borderRadius: 100,
-      backgroundColor: "#f1f5f9",
+      backgroundColor: isDark ? "rgba(255,255,255,0.05)" : "#f1f5f9",
       borderWidth: 1,
-      borderColor: "#e2e8f0"
+      borderColor: isDark ? colors.border : "#e2e8f0"
   },
   chipActive: {
       backgroundColor: colors.accent,
@@ -309,15 +312,15 @@ const styles = StyleSheet.create({
 
   listContainer: { paddingHorizontal: 24, paddingBottom: 40 },
   card: {
-    backgroundColor: colors.surface,
+    backgroundColor: isDark ? "rgba(255,255,255,0.02)" : colors.surface,
     borderRadius: 16,
     padding: 20,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: "#f1f5f9",
-    shadowColor: colors.primary,
+    borderColor: isDark ? colors.border : "#f1f5f9",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
+    shadowOpacity: isDark ? 0.3 : 0.05,
     shadowRadius: 8,
     elevation: 2,
   },
@@ -327,7 +330,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 14,
   },
-  folioText: { fontSize: 16, fontWeight: "800", color: colors.primary },
+  folioText: { fontSize: 16, fontWeight: "800", color: colors.textPrimary },
   statusBadge: { paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12 },
   statusText: { fontSize: 12, fontWeight: "700" },
   cardBody: { marginBottom: 14 },
@@ -343,7 +346,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
-    backgroundColor: 'rgba(255,255,255,0.5)'
+    backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.5)'
   },
   timeLabelText: {
     fontSize: 10,
