@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -10,16 +10,19 @@ import {
   Alert,
   Image,
   Switch,
+  ActivityIndicator,
+  RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { colors } from "../theme/colors";
 import { useAuth } from "../domain/AuthContext";
-import { apiClient } from "../data/api/apiClient";
 import { useTheme } from "../theme/ThemeContext";
+import { fetchPerfilStats } from "../data/api/perfilApi";
+import { useFocusEffect } from "@react-navigation/native";
 
 export default function PerfilScreen({ navigation }) {
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser } = useAuth();
   const { isDark, toggleTheme, colors } = useTheme();
   const styles = React.useMemo(() => getStyles(colors, isDark), [colors, isDark]);
 
@@ -34,7 +37,30 @@ export default function PerfilScreen({ navigation }) {
   const rol    = user?.rol   || "Resguardante";
 
   const [editNombre, setEditNombre] = useState(user?.nombre || "");
+  const [editApellidos, setEditApellidos] = useState(user?.apellidos || "");
   const [editEmail,  setEditEmail]  = useState(user?.email  || "");
+  const [isSavingPerfil, setIsSavingPerfil] = useState(false);
+  const [isSavingPassword, setIsSavingPassword] = useState(false);
+
+  // --- ESTADÍSTICAS DEL PERFIL ---
+  const [perfilStats, setPerfilStats] = useState({ activos: null, auditorias: null });
+  const [loadingStats, setLoadingStats] = useState(true);
+
+  const cargarStats = useCallback(() => {
+    if (!user?.id) return;
+    setLoadingStats(true);
+    fetchPerfilStats(user.id)
+      .then((stats) => setPerfilStats(stats))
+      .catch(() => setPerfilStats({ activos: 0, auditorias: 0 }))
+      .finally(() => setLoadingStats(false));
+  }, [user?.id]);
+
+  // Recarga cada vez que el usuario navega a esta pantalla
+  useFocusEffect(
+    useCallback(() => {
+      cargarStats();
+    }, [cargarStats])
+  );
 
   const [passActual, setPassActual] = useState("");
   const [passNueva, setPassNueva] = useState("");
@@ -71,13 +97,25 @@ export default function PerfilScreen({ navigation }) {
     );
   };
 
-  const handleGuardarPerfil = () => {
-    if (!editNombre.trim() || !editEmail.trim()) {
-      Alert.alert("Error", "Los campos no pueden estar vacíos.");
+  const handleGuardarPerfil = async () => {
+    if (!editNombre.trim() || !editApellidos.trim() || !editEmail.trim()) {
+      Alert.alert("Error", "Todos los campos son obligatorios.");
       return;
     }
-    setModalEditarVisible(false);
-    Alert.alert("Éxito", "Perfil actualizado correctamente.");
+    setIsSavingPerfil(true);
+    try {
+      await updateUser({
+        nombre: editNombre.trim(),
+        apellidos: editApellidos.trim(),
+        email: editEmail.trim(),
+      });
+      setModalEditarVisible(false);
+      Alert.alert("Éxito", "Perfil actualizado correctamente.");
+    } catch (error) {
+      Alert.alert("Error", error.message || "No se pudo actualizar el perfil. Revisa tu conexión.");
+    } finally {
+      setIsSavingPerfil(false);
+    }
   };
 
   const handleGuardarPassword = async () => {
@@ -89,7 +127,7 @@ export default function PerfilScreen({ navigation }) {
       return;
     }
     
-    // Validar requerimientos
+    // Validar requerimientos de la nueva contraseña
     if (passNueva.length < 8) {
       Alert.alert('Seguridad', 'La nueva contraseña debe tener al menos 8 caracteres.');
       return;
@@ -111,12 +149,11 @@ export default function PerfilScreen({ navigation }) {
       return;
     }
 
+    setIsSavingPassword(true);
     try {
-      await apiClient(`/usuarios/${user.id}`, {
-        method: "PUT",
-        body: JSON.stringify({
-          password: passNueva
-        })
+      await updateUser({
+        current_password: passActual,
+        password: passNueva,
       });
 
       setModalPasswordVisible(false);
@@ -125,7 +162,15 @@ export default function PerfilScreen({ navigation }) {
       setPassConfirmar("");
       Alert.alert("Éxito", "Tu contraseña ha sido cambiada de forma segura.");
     } catch (error) {
-      Alert.alert("Error", "No se pudo actualizar la contraseña. Revisa tu conexión.");
+      // El backend retorna 401 cuando la contraseña actual es incorrecta
+      const msg = error.message || "";
+      if (msg.includes("correcta") || msg.includes("401") || msg.includes("incorrecta")) {
+        Alert.alert("Error", "La contraseña actual que ingresaste no es correcta.");
+      } else {
+        Alert.alert("Error", msg || "No se pudo actualizar la contraseña. Revisa tu conexión.");
+      }
+    } finally {
+      setIsSavingPassword(false);
     }
   };
 
@@ -141,6 +186,14 @@ export default function PerfilScreen({ navigation }) {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContainer}
+        refreshControl={
+          <RefreshControl
+            refreshing={loadingStats}
+            onRefresh={cargarStats}
+            tintColor={colors.accent}
+            colors={[colors.accent]}
+          />
+        }
       >
         {/* --- TARJETA DE PERFIL --- */}
         <View style={[styles.profileCard, { backgroundColor: colors.surface }]}>
@@ -165,12 +218,18 @@ export default function PerfilScreen({ navigation }) {
           {/* RESUMEN OPERATIVO */}
           <View style={styles.statsContainer}>
             <View style={styles.statBox}>
-              <Text style={styles.statNumber}>—</Text>
+              {loadingStats
+                ? <ActivityIndicator size="small" color={colors.accent} />
+                : <Text style={styles.statNumber}>{perfilStats.activos ?? 0}</Text>
+              }
               <Text style={styles.statLabel}>Activos</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statBox}>
-              <Text style={styles.statNumber}>—</Text>
+              {loadingStats
+                ? <ActivityIndicator size="small" color={colors.accent} />
+                : <Text style={styles.statNumber}>{perfilStats.auditorias ?? 0}</Text>
+              }
               <Text style={styles.statLabel}>Auditorías</Text>
             </View>
             <View style={styles.statDivider} />
@@ -279,11 +338,20 @@ export default function PerfilScreen({ navigation }) {
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Nombre Completo</Text>
+              <Text style={styles.label}>Nombre</Text>
               <TextInput
                 style={[styles.input, { backgroundColor: isDark ? colors.background : "#f8fafc", borderColor: isDark ? colors.border : "#e2e8f0", color: colors.textPrimary }]}
                 value={editNombre}
                 onChangeText={setEditNombre}
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Apellidos</Text>
+              <TextInput
+                style={[styles.input, { backgroundColor: isDark ? colors.background : "#f8fafc", borderColor: isDark ? colors.border : "#e2e8f0", color: colors.textPrimary }]}
+                value={editApellidos}
+                onChangeText={setEditApellidos}
               />
             </View>
 
@@ -299,10 +367,14 @@ export default function PerfilScreen({ navigation }) {
             </View>
 
             <TouchableOpacity
-              style={styles.primaryButton}
+              style={[styles.primaryButton, isSavingPerfil && styles.disabled]}
               onPress={handleGuardarPerfil}
+              disabled={isSavingPerfil}
             >
-              <Text style={styles.primaryButtonText}>Guardar Cambios</Text>
+              {isSavingPerfil
+                ? <ActivityIndicator color={colors.surface} />
+                : <Text style={styles.primaryButtonText}>Guardar Cambios</Text>
+              }
             </TouchableOpacity>
           </View>
         </View>
@@ -395,13 +467,14 @@ export default function PerfilScreen({ navigation }) {
               </View>
 
               <TouchableOpacity
-                style={[styles.primaryButton, (passNueva.length > 0 && strength < 3) && styles.disabled]}
+                style={[styles.primaryButton, ((passNueva.length > 0 && strength < 3) || isSavingPassword) && styles.disabled]}
                 onPress={handleGuardarPassword}
-                disabled={passNueva.length > 0 && strength < 3}
+                disabled={(passNueva.length > 0 && strength < 3) || isSavingPassword}
               >
-                <Text style={styles.primaryButtonText}>
-                  Actualizar Contraseña
-                </Text>
+                {isSavingPassword
+                  ? <ActivityIndicator color={colors.surface} />
+                  : <Text style={styles.primaryButtonText}>Actualizar Contraseña</Text>
+                }
               </TouchableOpacity>
             </View>
           </View>

@@ -5,7 +5,7 @@ from typing import Optional
 from app.database.db import get_db
 from app.database.models import Usuario, Rol
 from app.models.UserModel import UserCreate, UserResponse
-from app.security.auth import hash_password, get_current_user, validate_password_strength
+from app.security.auth import hash_password, verify_password, get_current_user, validate_password_strength
 
 router = APIRouter(prefix="/api/usuarios", tags=["Usuarios"])
 
@@ -78,7 +78,20 @@ def actualizar_usuario(id: str, payload: dict, db: Session = Depends(get_db)):
     for campo, valor in payload.items():
         if campo in campos_permitidos and valor is not None:
             setattr(usuario, campo, valor)
+
     if "password" in payload and payload["password"]:
+        # Verificar contraseña actual antes de permitir el cambio
+        current_password = payload.get("current_password", "")
+        if not current_password:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Debes proporcionar tu contraseña actual para cambiarla."
+            )
+        if not verify_password(current_password, usuario.clave_acceso):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="La contraseña actual no es correcta."
+            )
         validate_password_strength(payload["password"])
         usuario.clave_acceso = hash_password(payload["password"])
 

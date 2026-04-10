@@ -1,8 +1,10 @@
 import { useState, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { fetchDashboardData } from '../../data/api/dashboardApi';
+import { useAuth } from '../AuthContext';
 
 export const useDashboard = () => {
+  const { user } = useAuth();
   const [data, setData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -11,14 +13,14 @@ export const useDashboard = () => {
     try {
       setIsLoading(true);
       setError(null);
-      const result = await fetchDashboardData();
+      const result = await fetchDashboardData(user);
       setData(result);
     } catch (err) {
       setError(err.message || "Error al cargar los datos del dashboard");
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [user]);
 
   // Se recarga automáticamente cada que el usuario vuelve a ver la pantalla "Dashboard"
   useFocusEffect(

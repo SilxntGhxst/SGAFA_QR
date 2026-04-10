@@ -146,6 +146,7 @@ def get_activos(
     categoria_id: Optional[int] = Query(None),
     estado:       Optional[str] = Query(None),
     ubicacion_id: Optional[int] = Query(None),
+    usuario_id:   Optional[str] = Query(None),
     limit:        Optional[int] = Query(None),
     offset:       Optional[int] = Query(0),
     db: Session = Depends(get_db)
@@ -163,6 +164,12 @@ def get_activos(
         query = query.filter(BienMueble.estado == estado.lower())
     if ubicacion_id:
         query = query.filter(BienMueble.ubicacion_id == ubicacion_id)
+    if usuario_id:
+        try:
+            uid = _uuid.UUID(usuario_id.strip())
+            query = query.filter(BienMueble.usuario_responsable_id == uid)
+        except ValueError:
+            pass  # UUID inválido: ignorar filtro
 
     total = query.count()
     bienes = query.offset(offset).limit(limit).all() if limit else query.offset(offset).all()

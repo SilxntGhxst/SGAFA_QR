@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { loginApi, registerApi, getMeApi, logoutApi } from '../data/api/authApi';
+import { apiClient } from '../data/api/apiClient';
 
 const AuthContext = createContext(null);
 
@@ -65,8 +66,26 @@ export function AuthProvider({ children }) {
     setUser(null);
   };
 
+  // ── UPDATE USER ───────────────────────────────────────────────────────────
+  /**
+   * Actualiza campos del perfil en la API y sincroniza el estado local.
+   * @param {object} campos - Ej: { nombre, apellidos, email } o { password, current_password }
+   * @returns {Promise<object>} - Datos del usuario actualizados
+   */
+  const updateUser = async (campos) => {
+    const data = await apiClient(`/usuarios/${user.id}`, {
+      method: 'PUT',
+      body: JSON.stringify(campos),
+    });
+    const updatedUser = data.data || data;
+    const merged = { ...user, ...updatedUser };
+    setUser(merged);
+    await AsyncStorage.setItem('auth_user', JSON.stringify(merged));
+    return merged;
+  };
+
   return (
-    <AuthContext.Provider value={{ user, token, isLoading, login, logout, register }}>
+    <AuthContext.Provider value={{ user, token, isLoading, login, logout, register, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

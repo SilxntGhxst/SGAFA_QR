@@ -30,26 +30,38 @@ const mapBuzonToActivity = (item) => {
 
 /**
  * Fetch dashboard data.
- * @param {object|null} authUser - user object from AuthContext (si es null no se incluye)
+ * @param {object|null} authUser - user object from AuthContext
  */
 export const fetchDashboardData = async (authUser = null) => {
   try {
-    const [statsRes, buzonRes] = await Promise.all([
-      apiClient('/activos/stats'),
-      apiClient('/buzon')
-    ]);
-    
+    // Peticiones en paralelo: buzón + estadísticas del usuario
+    const requests = [apiClient('/buzon')];
+    if (authUser?.id) {
+      // Activos asignados al usuario
+      requests.push(apiClient(`/activos/?usuario_id=${authUser.id}`));
+      // Auditorías en estado Pendiente o En Progreso asignadas al usuario
+      requests.push(apiClient(`/auditorias/?usuario_id=${authUser.id}&estado=Pendiente`));
+      requests.push(apiClient(`/auditorias/?usuario_id=${authUser.id}&estado=En Progreso`));
+    }
+
+    const [buzonRes, activosRes, audPendientesRes, audEnProgresoRes] = await Promise.all(requests);
+
     const buzonList = (buzonRes.data || []).sort((a, b) => b.id - a.id);
     const mappedActivities = buzonList.map(mapBuzonToActivity);
-    
+
+    const activosAsignados    = activosRes?.total ?? 0;
+    const auditoriasPendientes =
+      (audPendientesRes?.total ?? 0) + (audEnProgresoRes?.total ?? 0);
+
     return {
-      // Usar datos reales del usuario autenticado
       usuario: authUser
         ? { nombre: authUser.nombre, rol: authUser.rol || 'Resguardante' }
         : { nombre: 'Usuario', rol: '' },
-      metricas: { 
-        auditoriasPendientes: statsRes.solicitudes_pendientes || 0, 
-        activosAsignados:     statsRes.total_activos || 0 
+      metricas: {
+        // Solo auditorías activas (Pendiente + En Progreso) del usuario
+        auditoriasPendientes,
+        // Activos asignados al usuario
+        activosAsignados,
       },
       actividadReciente: mappedActivities.slice(0, 3),
       historial:         mappedActivities
