@@ -513,6 +513,25 @@ function renderVer(a) {
         </div>
     </div>
     
+    <div class="pf-section" style="margin-top:24px;">Historial de Inspecciones</div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+        ${(a.historial && a.historial.length > 0)
+            ? a.historial.map(h => {
+                const hBg = BADGE_COLORS[h.color_badge] || '#f0f2f5';
+                const hFg = BADGE_TEXT[h.color_badge]   || '#374151';
+                return `
+                <div style="padding:14px;border:1px solid #e4e8ef;border-radius:12px;background:#fcfcfc;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                        <span style="font-size:.75rem;color:#9ca3af;font-weight:600;"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align:-2px;margin-right:3px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> ${h.fecha}</span>
+                        <span style="background:${hBg};color:${hFg};font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:12px;text-transform:capitalize;">${h.estado}</span>
+                    </div>
+                    <div style="font-size:.85rem;color:#4b5563;line-height:1.4;">${h.comentario || ''}</div>
+                </div>`;
+            }).join('')
+            : '<div style="font-size:.85rem;color:#9ca3af;text-align:center;padding:12px;">Sin inspecciones registradas</div>'
+        }
+    </div>
+    
     <div style="margin-top:24px;padding-top:16px;border-top:1px solid #e4e8ef;display:flex;justify-content:flex-end;">
         <button onclick="confirmarEliminar('${a.id}', '${a.nombre}')" style="background:#fee2e2;color:#ef4444;border:none;padding:8px 16px;border-radius:8px;font-weight:600;font-size:.85rem;cursor:pointer;display:flex;align-items:center;gap:6px;transition:background 0.2s;" onmouseenter="this.style.background='#fecaca'" onmouseleave="this.style.background='#fee2e2'" title="Eliminar este activo">
             <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>

@@ -21,7 +21,7 @@ class ActivoUpdate(BaseModel):
     ubicacion_id: Optional[Union[int, str]] = None
     usuario_responsable_id: Optional[str] = None
     estado: Optional[str] = None
-
+    nota_historial: Optional[str] = None
 class ActivoResponse(BaseModel):
     id: str
     codigo: str
@@ -34,3 +34,4 @@ class ActivoResponse(BaseModel):
     estado: str
     fecha: str
     color_badge: Optional[str] = None
+    historial: list = []

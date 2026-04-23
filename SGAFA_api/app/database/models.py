@@ -90,6 +90,17 @@ class BienMueble(Base):
     actualizado_at         = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
 
 
+# ─── TABLA: historial_activos ───────────────────────────────────────────────────
+class HistorialActivo(Base):
+    __tablename__ = "historial_activos"
+
+    id         = Column(Integer, primary_key=True, index=True)
+    bien_id    = Column(UUID(as_uuid=True), ForeignKey("bienes_muebles.id", ondelete="CASCADE"), nullable=False)
+    estado     = Column(String(50))
+    comentario = Column(Text)
+    fecha      = Column(TIMESTAMP, server_default=func.now())
+
+
 # ─── TABLA: solicitudes_cambio ──────────────────────────────────────────────────
 class SolicitudCambio(Base):
     __tablename__ = "solicitudes_cambio"

@@ -46,7 +46,9 @@ export const fetchDashboardData = async (authUser = null) => {
 
     const [buzonRes, activosRes, audPendientesRes, audEnProgresoRes] = await Promise.all(requests);
 
-    const buzonList = (buzonRes.data || []).sort((a, b) => b.id - a.id);
+    const buzonList = (buzonRes.data || [])
+      .filter((item) => authUser?.nombre ? item.reportado_por === authUser.nombre : true)
+      .sort((a, b) => b.id - a.id);
     const mappedActivities = buzonList.map(mapBuzonToActivity);
 
     const activosAsignados    = activosRes?.total ?? 0;

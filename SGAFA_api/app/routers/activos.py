@@ -5,7 +5,7 @@ import uuid as _uuid
 from datetime import datetime, timedelta
 from app.models.ActivoModel import ActivoCreate, ActivoUpdate, ActivoResponse
 from app.database.db import get_db
-from app.database.models import BienMueble, Categoria, Ubicacion, Usuario, EstadoActivo, Buzon
+from app.database.models import BienMueble, Categoria, Ubicacion, Usuario, EstadoActivo, Buzon, HistorialActivo
 
 router = APIRouter(prefix="/api/activos", tags=["Gestión de Activos"])
 
@@ -31,6 +31,16 @@ def _enriquecer(bien: BienMueble, db: Session) -> dict:
     
     color = color_map.get(estado_str, "blue")
 
+    historial_objs = db.query(HistorialActivo).filter(HistorialActivo.bien_id == bien.id).order_by(HistorialActivo.fecha.desc()).all()
+    hist_list = []
+    for h in historial_objs:
+        hist_list.append({
+            "estado": h.estado,
+            "comentario": h.comentario,
+            "fecha": str(h.fecha)[:16],
+            "color_badge": color_map.get(h.estado, "blue")
+        })
+
     return ActivoResponse(
         id=str(bien.id),
         codigo=bien.codigo_inventario,
@@ -42,7 +52,8 @@ def _enriquecer(bien: BienMueble, db: Session) -> dict:
         usuario=user_nombre,
         estado=estado_str.capitalize(),
         fecha=str(bien.creado_at)[:10] if bien.creado_at else "",
-        color_badge=color
+        color_badge=color,
+        historial=hist_list,
     ).model_dump()
 
 
@@ -190,33 +201,59 @@ def get_activo_por_codigo(codigo: str, db: Session = Depends(get_db)):
 
 
 def _resolver_categoria(valor, db: Session) -> int:
-    """Acepta ID numérico o nombre de categoría y devuelve el ID."""
+    """Acepta ID numérico o nombre de categoría y devuelve el ID, creándola si no existe."""
     if isinstance(valor, int):
         return valor
     if str(valor).isdigit():
         return int(valor)
-    cat = db.query(Categoria).filter(Categoria.categoria.ilike(str(valor))).first()
+    
+    valor_str = str(valor).strip()
+    cat = db.query(Categoria).filter(Categoria.categoria.ilike(valor_str)).first()
     if not cat:
-        raise HTTPException(status_code=400, detail=f"Categoría '{valor}' no encontrada. Verifica que exista en la BD.")
+        nueva_cat = Categoria(categoria=valor_str)
+        db.add(nueva_cat)
+        db.commit()
+        db.refresh(nueva_cat)
+        return nueva_cat.id
     return cat.id
 
 def _resolver_ubicacion(valor, db: Session) -> int:
-    """Acepta ID numérico o nombre de ubicación y devuelve el ID."""
+    """Acepta ID numérico o nombre de ubicación y devuelve el ID, creándola si no existe."""
     if isinstance(valor, int):
         return valor
     if str(valor).isdigit():
         return int(valor)
-    ubi = db.query(Ubicacion).filter(Ubicacion.nombre.ilike(str(valor))).first()
+    
+    valor_str = str(valor).strip()
+    ubi = db.query(Ubicacion).filter(Ubicacion.nombre.ilike(valor_str)).first()
     if not ubi:
-        raise HTTPException(status_code=400, detail=f"Ubicación '{valor}' no encontrada. Verifica que exista en la BD.")
+        nueva_ubi = Ubicacion(
+            nombre=valor_str,
+            edificio=valor_str,
+            area="General",
+            oficina="General"
+        )
+        db.add(nueva_ubi)
+        db.commit()
+        db.refresh(nueva_ubi)
+        return nueva_ubi.id
     return ubi.id
 
 
 # 5. CREAR activo
 @router.post("/", status_code=status.HTTP_201_CREATED)
 def crear_activo(payload: ActivoCreate, db: Session = Depends(get_db)):
-    total = db.query(BienMueble).count()
-    codigo = f"ACT-{str(total + 1).zfill(3)}"
+    # Obtener el número máximo del código de inventario actual
+    bienes = db.query(BienMueble.codigo_inventario).filter(BienMueble.codigo_inventario.ilike('ACT-%')).all()
+    max_num = 0
+    for (cod,) in bienes:
+        try:
+            num = int(cod.split('-')[1])
+            if num > max_num:
+                max_num = num
+        except:
+            pass
+    codigo = f"ACT-{str(max_num + 1).zfill(3)}"
 
     cat_id = _resolver_categoria(payload.categoria_id, db)
     ubi_id = _resolver_ubicacion(payload.ubicacion_id, db)
@@ -272,10 +309,28 @@ def actualizar_activo(id: str, payload: ActivoUpdate, db: Session = Depends(get_
     if "ubicacion_id" in campos and campos["ubicacion_id"]:
         campos["ubicacion_id"] = _resolver_ubicacion(campos["ubicacion_id"], db)
 
+    estado_anterior = bien.estado
+
+    nota = campos.pop("nota_historial", None)
+
     for campo, valor in campos.items():
         setattr(bien, campo, valor)
 
     db.commit()
+    db.refresh(bien)
+
+    # Si hay nota explícita O el estado cambió, creamos un registro
+    estado_nuevo = bien.estado.value if hasattr(bien.estado, 'value') else bien.estado
+    estado_viejo = estado_anterior.value if hasattr(estado_anterior, 'value') else estado_anterior
+
+    if nota or (estado_nuevo != estado_viejo):
+        historial = HistorialActivo(
+            bien_id=bien.id,
+            estado=estado_nuevo,
+            comentario=nota if nota else f"Cambio de estado: {estado_nuevo.capitalize()}"
+        )
+        db.add(historial)
+        db.commit()
     db.refresh(bien)
     return {
         "success": True,
