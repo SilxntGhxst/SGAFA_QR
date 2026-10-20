@@ -9,3 +9,4 @@ python-multipart
 email-validator
 fastapi-mail
 pydantic-settings
+psycopg[binary]
