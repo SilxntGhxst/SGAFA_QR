@@ -255,6 +255,19 @@
 @push('scripts')
 <script>
 const API_URL = "http://localhost:8080/api";
+const API_KEY = "{{ env('FASTAPI_KEY', 'sgafa_qr_api_key_2024_secure') }}";
+
+function apiFetch(endpoint, options = {}) {
+    return fetch(`${API_URL}${endpoint}`, {
+        ...options,
+        headers: {
+            'Accept': 'application/json',
+            'X-API-Key': API_KEY,
+            ...(options.headers || {})
+        }
+    });
+}
+
 let todosLosRegistros = [];
 let currentDeleteId   = null;
 
@@ -325,7 +338,7 @@ async function cargarBuzon() {
     document.getElementById('buzonTableBody').innerHTML =
         `<tr><td colspan="9" style="text-align:center;padding:30px;color:#6b7a8d;">Cargando...</td></tr>`;
     try {
-        const res  = await fetch(`${API_URL}/buzon/`);
+        const res  = await apiFetch('/buzon/');
         const json = await res.json();
         todosLosRegistros = json.data ?? [];
         renderTabla(todosLosRegistros);
@@ -339,7 +352,7 @@ async function cargarBuzon() {
 
 async function verDetalle(id) {
     try {
-        const res  = await fetch(`${API_URL}/buzon/${id}`);
+        const res  = await apiFetch(`/buzon/${id}`);
         const json = await res.json();
         const b    = json.data;
         alert(`Detalle\n\nCódigo: ${b.codigo}\nActivo: ${b.activo}\nTipo: ${b.tipo}\nReportado por: ${b.reportado_por}\nÁrea: ${b.area}\nEstado: ${b.estado}\nDescripción: ${b.descripcion ?? '–'}`);
@@ -401,7 +414,7 @@ async function saveEdit() {
     };
 
     try {
-        const res  = await fetch(`${API_URL}/buzon/${id}`, {
+        const res  = await apiFetch(`/buzon/${id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload),
@@ -433,7 +446,7 @@ async function confirmDelete() {
     btn.disabled = true;
 
     try {
-        const res  = await fetch(`${API_URL}/buzon/${currentDeleteId}`, { method: 'DELETE' });
+        const res  = await apiFetch(`/buzon/${currentDeleteId}`, { method: 'DELETE' });
         const json = await res.json();
         if (!res.ok) throw new Error(json.detail ?? 'Error al eliminar.');
 

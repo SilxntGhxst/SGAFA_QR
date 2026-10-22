@@ -6,8 +6,9 @@ from datetime import datetime, timedelta
 from app.models.ActivoModel import ActivoCreate, ActivoUpdate, ActivoResponse
 from app.database.db import get_db
 from app.database.models import BienMueble, Categoria, Ubicacion, Usuario, EstadoActivo, Buzon, HistorialActivo
+from app.security.auth import get_current_user, role_required
 
-router = APIRouter(prefix="/api/activos", tags=["Gestión de Activos"])
+router = APIRouter(prefix="/api/activos", tags=["Gestión de Activos"], dependencies=[Depends(get_current_user)])
 
 color_map = {
     "funcional":     "green",
@@ -101,7 +102,10 @@ def get_stats(db: Session = Depends(get_db)):
 
 # 2. CATÁLOGOS — para llenar los selects en el frontend
 @router.get("/catalogos")
-def get_catalogos(db: Session = Depends(get_db)):
+def get_catalogos(
+    current_user: Usuario = Depends(role_required([1])),
+    db: Session = Depends(get_db)
+):
     categorias = db.query(Categoria).all()
     ubicaciones = db.query(Ubicacion).all()
     usuarios    = db.query(Usuario).all()
@@ -114,7 +118,11 @@ def get_catalogos(db: Session = Depends(get_db)):
 
 # 2b. CREAR nueva categoría
 @router.post("/catalogos/categoria", status_code=status.HTTP_201_CREATED)
-def crear_categoria(payload: dict, db: Session = Depends(get_db)):
+def crear_categoria(
+    payload: dict,
+    current_user: Usuario = Depends(role_required([1])),
+    db: Session = Depends(get_db)
+):
     nombre = (payload.get("categoria") or "").strip()
     if not nombre:
         raise HTTPException(status_code=400, detail="El nombre de la categoría es obligatorio.")
@@ -130,7 +138,11 @@ def crear_categoria(payload: dict, db: Session = Depends(get_db)):
 
 # 2c. CREAR nueva ubicación
 @router.post("/catalogos/ubicacion", status_code=status.HTTP_201_CREATED)
-def crear_ubicacion(payload: dict, db: Session = Depends(get_db)):
+def crear_ubicacion(
+    payload: dict,
+    current_user: Usuario = Depends(role_required([1])),
+    db: Session = Depends(get_db)
+):
     nombre = (payload.get("nombre") or "").strip()
     if not nombre:
         raise HTTPException(status_code=400, detail="El nombre de la ubicación es obligatorio.")
@@ -160,9 +172,22 @@ def get_activos(
     usuario_id:   Optional[str] = Query(None),
     limit:        Optional[int] = Query(None),
     offset:       Optional[int] = Query(0),
+    current_user: Usuario = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     query = db.query(BienMueble)
+    es_admin = current_user.rol_id == 1
+
+    if usuario_id:
+        try:
+            uid = _uuid.UUID(usuario_id.strip())
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Formato de usuario_id inválido.")
+        if not es_admin and uid != current_user.id:
+            raise HTTPException(status_code=403, detail="No tienes permisos para consultar los activos de este usuario.")
+        query = query.filter(BienMueble.usuario_responsable_id == uid)
+    elif not es_admin:
+        query = query.filter(BienMueble.usuario_responsable_id == current_user.id)
 
     if search:
         s = f"%{search.lower()}%"
@@ -175,13 +200,6 @@ def get_activos(
         query = query.filter(BienMueble.estado == estado.lower())
     if ubicacion_id:
         query = query.filter(BienMueble.ubicacion_id == ubicacion_id)
-    if usuario_id:
-        try:
-            uid = _uuid.UUID(usuario_id.strip())
-            query = query.filter(BienMueble.usuario_responsable_id == uid)
-        except ValueError:
-            pass  # UUID inválido: ignorar filtro
-
     total = query.count()
     bienes = query.offset(offset).limit(limit).all() if limit else query.offset(offset).all()
 
@@ -193,8 +211,15 @@ def get_activos(
 
 # 4. OBTENER por código (usado al escanear QR)
 @router.get("/{codigo}")
-def get_activo_por_codigo(codigo: str, db: Session = Depends(get_db)):
-    bien = db.query(BienMueble).filter(BienMueble.codigo_inventario == codigo).first()
+def get_activo_por_codigo(
+    codigo: str,
+    current_user: Usuario = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    query = db.query(BienMueble).filter(BienMueble.codigo_inventario == codigo)
+    if current_user.rol_id != 1:
+        query = query.filter(BienMueble.usuario_responsable_id == current_user.id)
+    bien = query.first()
     if not bien:
         raise HTTPException(status_code=404, detail="Activo no encontrado.")
     return {"success": True, "data": _enriquecer(bien, db)}
@@ -242,7 +267,11 @@ def _resolver_ubicacion(valor, db: Session) -> int:
 
 # 5. CREAR activo
 @router.post("/", status_code=status.HTTP_201_CREATED)
-def crear_activo(payload: ActivoCreate, db: Session = Depends(get_db)):
+def crear_activo(
+    payload: ActivoCreate,
+    current_user: Usuario = Depends(role_required([1])),
+    db: Session = Depends(get_db)
+):
     # Obtener el número máximo del código de inventario actual
     bienes = db.query(BienMueble.codigo_inventario).filter(BienMueble.codigo_inventario.ilike('ACT-%')).all()
     max_num = 0
@@ -280,17 +309,31 @@ def crear_activo(payload: ActivoCreate, db: Session = Depends(get_db)):
 
 # 6. EDITAR activo
 @router.put("/{id}")
-def actualizar_activo(id: str, payload: ActivoUpdate, db: Session = Depends(get_db)):
+def actualizar_activo(
+    id: str,
+    payload: ActivoUpdate,
+    current_user: Usuario = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
     try:
         val_uuid = _uuid.UUID(id.strip())
     except ValueError:
         raise HTTPException(status_code=400, detail="Formato de ID inválido.")
     
-    bien = db.query(BienMueble).filter(BienMueble.id == val_uuid).first()
+    query = db.query(BienMueble).filter(BienMueble.id == val_uuid)
+    if current_user.rol_id != 1:
+        query = query.filter(BienMueble.usuario_responsable_id == current_user.id)
+    bien = query.first()
     if not bien:
         raise HTTPException(status_code=404, detail="Activo no encontrado.")
 
     campos = payload.dict(exclude_unset=True)
+    if current_user.rol_id != 1:
+        campos = {
+            campo: valor
+            for campo, valor in campos.items()
+            if campo in {"estado", "nota_historial"}
+        }
     if "estado" in campos and campos["estado"]:
         val = campos["estado"].lower().strip()
         # Mapear estados comunes o prevenir errores de Enum
@@ -341,7 +384,11 @@ def actualizar_activo(id: str, payload: ActivoUpdate, db: Session = Depends(get_
 
 # 7. ELIMINAR activo
 @router.delete("/{id}")
-def eliminar_activo(id: str, db: Session = Depends(get_db)):
+def eliminar_activo(
+    id: str,
+    current_user: Usuario = Depends(role_required([1])),
+    db: Session = Depends(get_db)
+):
     try:
         val_uuid = _uuid.UUID(id.strip())
     except ValueError:

@@ -5,9 +5,9 @@ from typing import Optional
 from app.database.db import get_db
 from app.database.models import Usuario, Rol
 from app.models.UserModel import UserCreate, UserResponse
-from app.security.auth import hash_password, verify_password, get_current_user, validate_password_strength
+from app.security.auth import hash_password, verify_password, get_current_user, validate_password_strength, role_required
 
-router = APIRouter(prefix="/api/usuarios", tags=["Usuarios"])
+router = APIRouter(prefix="/api/usuarios", tags=["Usuarios"], dependencies=[Depends(get_current_user)])
 
 
 def _enriquecer_usuario(u: Usuario, db: Session) -> dict:
@@ -25,7 +25,10 @@ def _enriquecer_usuario(u: Usuario, db: Session) -> dict:
 
 # GET - Listar todos los usuarios
 @router.get("/")
-def listar_usuarios(db: Session = Depends(get_db)):
+def listar_usuarios(
+    current_user: Usuario = Depends(role_required([1])),
+    db: Session = Depends(get_db),
+):
     usuarios = db.query(Usuario).all()
     return {
         "success": True,
@@ -36,17 +39,27 @@ def listar_usuarios(db: Session = Depends(get_db)):
 
 # GET - Obtener usuario por ID
 @router.get("/{id}")
-def obtener_usuario(id: str, db: Session = Depends(get_db)):
+def obtener_usuario(
+    id: str,
+    current_user: Usuario = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
     import uuid as _uuid
     usuario = db.query(Usuario).filter(Usuario.id == _uuid.UUID(id)).first()
     if not usuario:
         raise HTTPException(status_code=404, detail="Usuario no encontrado.")
+    if current_user.rol_id != 1 and current_user.id != usuario.id:
+        raise HTTPException(status_code=403, detail="No tienes permisos para consultar este usuario.")
     return {"success": True, "data": _enriquecer_usuario(usuario, db)}
 
 
 # POST - Crear usuario (solo admin)
 @router.post("/", status_code=status.HTTP_201_CREATED)
-def crear_usuario(payload: UserCreate, db: Session = Depends(get_db)):
+def crear_usuario(
+    payload: UserCreate,
+    current_user: Usuario = Depends(role_required([1])),
+    db: Session = Depends(get_db),
+):
     if db.query(Usuario).filter(Usuario.email == payload.email).first():
         raise HTTPException(status_code=400, detail="El correo ya está registrado.")
 
@@ -68,15 +81,24 @@ def crear_usuario(payload: UserCreate, db: Session = Depends(get_db)):
 
 # PUT - Actualizar usuario
 @router.put("/{id}")
-def actualizar_usuario(id: str, payload: dict, db: Session = Depends(get_db)):
+def actualizar_usuario(
+    id: str,
+    payload: dict,
+    current_user: Usuario = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
     import uuid as _uuid
     usuario = db.query(Usuario).filter(Usuario.id == _uuid.UUID(id)).first()
     if not usuario:
         raise HTTPException(status_code=404, detail="Usuario no encontrado.")
+    if current_user.rol_id != 1 and current_user.id != usuario.id:
+        raise HTTPException(status_code=403, detail="No tienes permisos para actualizar este usuario.")
 
     campos_permitidos = {"nombre", "apellidos", "email", "rol_id"}
     for campo, valor in payload.items():
         if campo in campos_permitidos and valor is not None:
+            if current_user.rol_id != 1 and campo == "rol_id":
+                continue
             setattr(usuario, campo, valor)
 
     if "password" in payload and payload["password"]:
@@ -102,7 +124,11 @@ def actualizar_usuario(id: str, payload: dict, db: Session = Depends(get_db)):
 
 # DELETE - Eliminar usuario
 @router.delete("/{id}")
-def eliminar_usuario(id: str, db: Session = Depends(get_db)):
+def eliminar_usuario(
+    id: str,
+    current_user: Usuario = Depends(role_required([1])),
+    db: Session = Depends(get_db),
+):
     import uuid as _uuid
     usuario = db.query(Usuario).filter(Usuario.id == _uuid.UUID(id)).first()
     if not usuario:

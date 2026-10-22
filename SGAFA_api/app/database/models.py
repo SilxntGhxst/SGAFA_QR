@@ -157,6 +157,7 @@ class Buzon(Base):
 
     id            = Column(Integer, primary_key=True, index=True, autoincrement=True)
     bien_id       = Column(UUID(as_uuid=True), ForeignKey("bienes_muebles.id", ondelete="SET NULL"), nullable=True)
+    usuario_id    = Column(UUID(as_uuid=True), ForeignKey("usuarios.id", ondelete="SET NULL"), nullable=True)
     reportado_por = Column(String(100), nullable=True) # Nombre del usuario que reporta
     codigo        = Column(String(20)) # Código manual o de referencia
     activo        = Column(String(100), nullable=False)

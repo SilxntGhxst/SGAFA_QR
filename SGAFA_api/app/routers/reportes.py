@@ -3,8 +3,9 @@ from sqlalchemy.orm import Session
 from typing import Optional
 from app.database.db import get_db
 from app.database.models import BienMueble, Auditoria, Buzon, Categoria, Ubicacion, Usuario
+from app.security.auth import role_required
 
-router = APIRouter(prefix="/api/reportes", tags=["Reportes"])
+router = APIRouter(prefix="/api/reportes", tags=["Reportes"], dependencies=[Depends(role_required([1]))])
 
 @router.get("/activos")
 def reporte_activos(

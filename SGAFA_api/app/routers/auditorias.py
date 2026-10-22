@@ -6,9 +6,10 @@ import uuid as _uuid
 from app.models.AuditoriaModel import AuditoriaCreate, AuditoriaEscaneo, AuditoriaFinalizar
 from app.database.db import get_db
 from app.database.models import Auditoria, AuditoriaActivo, BienMueble, Ubicacion, Usuario
+from app.security.auth import get_current_user, role_required
 import uuid as _uuid
 
-router = APIRouter(prefix="/api/auditorias", tags=["Auditorías"])
+router = APIRouter(prefix="/api/auditorias", tags=["Auditorías"], dependencies=[Depends(get_current_user)])
 
 
 # GET - Listar auditorías con datos enriquecidos
@@ -16,15 +17,21 @@ router = APIRouter(prefix="/api/auditorias", tags=["Auditorías"])
 def listar_auditorias(
     usuario_id: Optional[str] = Query(None),
     estado:     Optional[str] = Query(None),
+    current_user: Usuario = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     query = db.query(Auditoria)
+    es_admin = current_user.rol_id == 1
     if usuario_id:
         try:
             val_uuid = _uuid.UUID(usuario_id.strip())
-            query = query.filter(Auditoria.usuario_id == val_uuid)
         except ValueError:
-            pass # Si no es un UUID válido, simplemente no filtramos por usuario
+            raise HTTPException(status_code=400, detail="Formato de usuario_id inválido.")
+        if not es_admin and val_uuid != current_user.id:
+            raise HTTPException(status_code=403, detail="No tienes permisos para consultar las auditorías de este usuario.")
+        query = query.filter(Auditoria.usuario_id == val_uuid)
+    elif not es_admin:
+        query = query.filter(Auditoria.usuario_id == current_user.id)
     if estado:
         query = query.filter(Auditoria.estado.ilike(estado))
 
@@ -69,7 +76,11 @@ def listar_auditorias(
 
 # POST - Crear nueva auditoría
 @router.post("/", status_code=status.HTTP_201_CREATED)
-def crear_auditoria(payload: AuditoriaCreate, db: Session = Depends(get_db)):
+def crear_auditoria(
+    payload: AuditoriaCreate,
+    current_user: Usuario = Depends(role_required([1])),
+    db: Session = Depends(get_db)
+):
     total_esperados = db.query(BienMueble).filter(
         BienMueble.ubicacion_id == payload.ubicacion_id
     ).count()
@@ -101,8 +112,16 @@ def crear_auditoria(payload: AuditoriaCreate, db: Session = Depends(get_db)):
 
 # PUT - Registrar escaneo de un activo en la auditoría
 @router.put("/{id}/escanear")
-def procesar_escaneo(id: int, payload: AuditoriaEscaneo, db: Session = Depends(get_db)):
-    aud = db.query(Auditoria).filter(Auditoria.id == id).first()
+def procesar_escaneo(
+    id: int,
+    payload: AuditoriaEscaneo,
+    current_user: Usuario = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    query = db.query(Auditoria).filter(Auditoria.id == id)
+    if current_user.rol_id != 1:
+        query = query.filter(Auditoria.usuario_id == current_user.id)
+    aud = query.first()
     if not aud:
         raise HTTPException(status_code=404, detail="Auditoría no encontrada.")
 
@@ -110,6 +129,13 @@ def procesar_escaneo(id: int, payload: AuditoriaEscaneo, db: Session = Depends(g
         bien_uuid = _uuid.UUID(payload.activo_id.strip())
     except ValueError:
         raise HTTPException(status_code=400, detail="El ID del activo no tiene formato UUID válido.")
+    bien = db.query(BienMueble).filter(
+        BienMueble.id == bien_uuid,
+        BienMueble.ubicacion_id == aud.ubicacion_id,
+    ).first()
+    if not bien:
+        raise HTTPException(status_code=404, detail="El activo no pertenece a la ubicación de esta auditoría.")
+
     ya_escaneado = db.query(AuditoriaActivo).filter(
         AuditoriaActivo.auditoria_id == id,
         AuditoriaActivo.bien_id == bien_uuid
@@ -134,8 +160,16 @@ def procesar_escaneo(id: int, payload: AuditoriaEscaneo, db: Session = Depends(g
 
 # PUT - Finalizar auditoría
 @router.put("/{id}/finalizar")
-def finalizar_auditoria(id: int, payload: AuditoriaFinalizar, db: Session = Depends(get_db)):
-    aud = db.query(Auditoria).filter(Auditoria.id == id).first()
+def finalizar_auditoria(
+    id: int,
+    payload: AuditoriaFinalizar,
+    current_user: Usuario = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    query = db.query(Auditoria).filter(Auditoria.id == id)
+    if current_user.rol_id != 1:
+        query = query.filter(Auditoria.usuario_id == current_user.id)
+    aud = query.first()
     if not aud:
         raise HTTPException(status_code=404, detail="Auditoría no encontrada.")
 
@@ -152,7 +186,12 @@ def finalizar_auditoria(id: int, payload: AuditoriaFinalizar, db: Session = Depe
 
 # PUT - Actualizar auditoría (genérico)
 @router.put("/{id}")
-def actualizar_auditoria(id: int, payload: AuditoriaCreate, db: Session = Depends(get_db)):
+def actualizar_auditoria(
+    id: int,
+    payload: AuditoriaCreate,
+    current_user: Usuario = Depends(role_required([1])),
+    db: Session = Depends(get_db)
+):
     aud = db.query(Auditoria).filter(Auditoria.id == id).first()
     if not aud:
         raise HTTPException(status_code=404, detail="Auditoría no encontrada.")
@@ -180,7 +219,11 @@ def actualizar_auditoria(id: int, payload: AuditoriaCreate, db: Session = Depend
 
 # DELETE - Eliminar auditoría
 @router.delete("/{id}")
-def eliminar_auditoria(id: int, db: Session = Depends(get_db)):
+def eliminar_auditoria(
+    id: int,
+    current_user: Usuario = Depends(role_required([1])),
+    db: Session = Depends(get_db)
+):
     aud = db.query(Auditoria).filter(Auditoria.id == id).first()
     if not aud:
         raise HTTPException(status_code=404, detail="Auditoría no encontrada.")

@@ -1,7 +1,8 @@
 import hashlib
+import secrets
 from datetime import datetime, timedelta
 
-from fastapi import APIRouter, Depends, HTTPException, status, Body
+from fastapi import APIRouter, Depends, HTTPException, status, Body, Request
 from sqlalchemy.orm import Session
 
 from app.database.db import get_db
@@ -13,7 +14,7 @@ from app.security.auth import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
     validate_password_strength
 )
-import secrets
+from app.security.limiter import limiter
 from app.utils.email_service import enviar_correo_recuperacion
 
 router = APIRouter(prefix="/api/auth", tags=["Autenticación"])
@@ -38,7 +39,8 @@ def _to_response(usuario: Usuario, db: Session) -> UserResponse:
 
 # ─── POST /api/auth/register ──────────────────────────────────────────────────
 @router.post("/register", status_code=status.HTTP_201_CREATED, response_model=UserResponse)
-def registrar_usuario(payload: UserCreate, db: Session = Depends(get_db)):
+@limiter.limit("5/minute")
+def registrar_usuario(request: Request, payload: UserCreate, db: Session = Depends(get_db)):
     existe = db.query(Usuario).filter(Usuario.email == payload.email).first()
     if existe:
         raise HTTPException(
@@ -46,12 +48,19 @@ def registrar_usuario(payload: UserCreate, db: Session = Depends(get_db)):
             detail="Ya existe una cuenta con ese correo electrónico.",
         )
 
-    # Validar que el rol existe
-    rol = db.query(Rol).filter(Rol.id == payload.rol_id).first()
+    # En el registro público solo se permite el rol estándar de resguardante.
+    if payload.rol_id == 1:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No está permitido asignar el rol de administrador durante el registro público.",
+        )
+
+    rol_id = 2
+    rol = db.query(Rol).filter(Rol.id == rol_id).first()
     if not rol:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"El rol con id={payload.rol_id} no existe.",
+            detail="El rol estándar para nuevos usuarios no está disponible.",
         )
 
     nuevo = Usuario(
@@ -59,7 +68,7 @@ def registrar_usuario(payload: UserCreate, db: Session = Depends(get_db)):
         apellidos=payload.apellidos,
         email=payload.email,
         clave_acceso=hash_password(payload.password),
-        rol_id=payload.rol_id,
+        rol_id=rol_id,
     )
     db.add(nuevo)
     db.commit()
@@ -69,7 +78,8 @@ def registrar_usuario(payload: UserCreate, db: Session = Depends(get_db)):
 
 # ─── POST /api/auth/login ─────────────────────────────────────────────────────
 @router.post("/login", response_model=Token)
-def iniciar_sesion(payload: UserLogin, db: Session = Depends(get_db)):
+@limiter.limit("5/minute")
+def iniciar_sesion(request: Request, payload: UserLogin, db: Session = Depends(get_db)):
     usuario = db.query(Usuario).filter(Usuario.email == payload.email).first()
     if not usuario or not verify_password(payload.password, usuario.clave_acceso):
         raise HTTPException(
@@ -124,7 +134,8 @@ def cerrar_sesion(
 
 # ─── POST /api/auth/forgot-password ───────────────────────────────────────────
 @router.post("/forgot-password")
-async def recuperar_contrasena(email: str = Body(..., embed=True), db: Session = Depends(get_db)):
+@limiter.limit("3/minute")
+async def recuperar_contrasena(request: Request, email: str = Body(..., embed=True), db: Session = Depends(get_db)):
     usuario = db.query(Usuario).filter(Usuario.email == email).first()
     if not usuario:
         # Por seguridad no revelamos si el correo existe
@@ -159,7 +170,9 @@ async def recuperar_contrasena(email: str = Body(..., embed=True), db: Session =
 
 # ─── POST /api/auth/reset-password ────────────────────────────────────────────
 @router.post("/reset-password")
+@limiter.limit("5/minute")
 def restablecer_contrasena(
+    request: Request,
     email: str = Body(...),
     codigo: str = Body(...),
     nueva_password: str = Body(...),

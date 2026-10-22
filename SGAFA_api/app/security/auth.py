@@ -14,9 +14,12 @@ from app.database.models import Usuario, Sesion
 
 # ─── CONFIGURACIÓN ────────────────────────────────────────────────────────────
 
-SECRET_KEY = os.getenv("SECRET_KEY", "sgafa-qr-super-secret-key-2026-change-in-production")
-ALGORITHM  = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 8   # 8 horas
+SECRET_KEY = os.getenv("SECRET_KEY") or os.getenv("JWT_SECRET")
+if not SECRET_KEY:
+    raise RuntimeError("SECRET_KEY o JWT_SECRET debe configurarse antes de iniciar la API.")
+
+ALGORITHM = os.getenv("ALGORITHM", "HS256")
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "480"))
 
 pwd_context    = CryptContext(schemes=["bcrypt"], deprecated="auto", bcrypt__rounds=12)
 oauth2_scheme  = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
