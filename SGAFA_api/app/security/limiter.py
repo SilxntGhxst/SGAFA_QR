@@ -8,5 +8,5 @@ DEFAULT_RATE_LIMIT = os.getenv("RATE_LIMIT_DEFAULT", "120/minute")
 limiter = Limiter(
     key_func=get_remote_address,
     default_limits=[DEFAULT_RATE_LIMIT],
-    headers_enabled=True,
+    headers_enabled=False,
 )

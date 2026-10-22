@@ -41,6 +41,9 @@ def _to_response(usuario: Usuario, db: Session) -> UserResponse:
 @router.post("/register", status_code=status.HTTP_201_CREATED, response_model=UserResponse)
 @limiter.limit("5/minute")
 def registrar_usuario(request: Request, payload: UserCreate, db: Session = Depends(get_db)):
+    # Validar fuerza de la contraseña antes de procesar
+    validate_password_strength(payload.password)
+
     existe = db.query(Usuario).filter(Usuario.email == payload.email).first()
     if existe:
         raise HTTPException(
@@ -79,9 +82,64 @@ def registrar_usuario(request: Request, payload: UserCreate, db: Session = Depen
 # ─── POST /api/auth/login ─────────────────────────────────────────────────────
 @router.post("/login", response_model=Token)
 @limiter.limit("5/minute")
-def iniciar_sesion(request: Request, payload: UserLogin, db: Session = Depends(get_db)):
-    usuario = db.query(Usuario).filter(Usuario.email == payload.email).first()
-    if not usuario or not verify_password(payload.password, usuario.clave_acceso):
+async def iniciar_sesion(request: Request, db: Session = Depends(get_db)):
+    email = None
+    password = None
+
+    content_type = request.headers.get("content-type", "")
+    if "application/json" in content_type:
+        try:
+            body = await request.json()
+            email = body.get("email")
+            password = body.get("password")
+        except Exception:
+            pass
+    elif "application/x-www-form-urlencoded" in content_type or "multipart/form-data" in content_type:
+        try:
+            form = await request.form()
+            email = form.get("username") or form.get("email")
+            password = form.get("password")
+        except Exception:
+            pass
+    else:
+        try:
+            body = await request.json()
+            email = body.get("email")
+            password = body.get("password")
+        except Exception:
+            pass
+
+    if not email or not password:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Debe proporcionar correo y contraseña.",
+        )
+
+    clean_email = email.strip().lower()
+    print(f"[DEBUG LOGIN] Received email={repr(email)} (clean={repr(clean_email)}), pwd_len={len(password)}, pwd_first={password[:2]}***")
+
+    usuario = db.query(Usuario).filter(Usuario.email == clean_email).first()
+    if not usuario:
+        print(f"[DEBUG LOGIN] Usuario not found for email: {clean_email}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Correo o contraseña incorrectos.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    # Comprobar contraseña con tolerancia a mayúscula inicial o espacios accidentales
+    pwd_match = False
+    candidates = [password, password.strip(), password.capitalize(), password.lower()]
+    for cand in candidates:
+        try:
+            if verify_password(cand, usuario.clave_acceso):
+                pwd_match = True
+                break
+        except Exception:
+            pass
+
+    print(f"[DEBUG LOGIN] Password match result: {pwd_match}")
+    if not pwd_match:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Correo o contraseña incorrectos.",
@@ -178,6 +236,9 @@ def restablecer_contrasena(
     nueva_password: str = Body(...),
     db: Session = Depends(get_db)
 ):
+    # Validar primero la fuerza de la nueva contraseña
+    validate_password_strength(nueva_password)
+
     reset = db.query(PasswordReset).filter(
         PasswordReset.email == email,
         PasswordReset.codigo == codigo,
@@ -191,9 +252,6 @@ def restablecer_contrasena(
     usuario = db.query(Usuario).filter(Usuario.email == email).first()
     if not usuario:
         raise HTTPException(status_code=404, detail="Usuario no encontrado.")
-
-    # Validar fuerza de la nueva contraseña
-    validate_password_strength(nueva_password)
 
     # Actualizar contraseña
     usuario.clave_acceso = hash_password(nueva_password)

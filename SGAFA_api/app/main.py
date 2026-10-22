@@ -54,8 +54,8 @@ api_deps = [Depends(verify_api_key)]
 # Rutas públicas / de bienvenida
 app.include_router(varios.router)
 
-# Rutas protegidas por API Key (y autenticación JWT según cada endpoint)
-app.include_router(auth.router, dependencies=api_deps)
+# Rutas de autenticación (login, registro, recuperación)
+app.include_router(auth.router)
 app.include_router(usuarios.router, dependencies=api_deps)
 app.include_router(buzon.router, dependencies=api_deps)
 app.include_router(activos.router, dependencies=api_deps)
