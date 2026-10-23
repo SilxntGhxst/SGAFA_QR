@@ -32,13 +32,16 @@ app.add_middleware(SlowAPIMiddleware)
 
 @app.exception_handler(RateLimitExceeded)
 async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
-    return JSONResponse(
+    response = JSONResponse(
         status_code=429,
         content={
             "success": False,
             "detail": f"Límite de peticiones excedido: {exc.detail}. Intenta de nuevo más tarde."
         }
     )
+    if hasattr(request.state, "view_rate_limit"):
+        response = limiter._inject_headers(response, request.state.view_rate_limit)
+    return response
 
 app.add_middleware(
     CORSMiddleware,
